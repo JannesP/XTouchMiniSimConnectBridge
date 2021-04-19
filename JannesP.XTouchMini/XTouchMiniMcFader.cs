@@ -1,0 +1,13 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace JannesP.XTouchMini
+{
+    public class XTouchMiniMcFader : ControlDefinition<XTouchMiniMcFader>
+    {
+        public static XTouchMiniMcFader Encoder1 = new XTouchMiniMcFader(0x08, "Fader");
+
+        private XTouchMiniMcFader(byte value, string name) : base(value, name) { }
+    }
+}

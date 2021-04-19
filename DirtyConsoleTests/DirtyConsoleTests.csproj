@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+    <Platforms>AnyCPU;x64</Platforms>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\JannesP.Midi\JannesP.Midi.csproj" />
+    <ProjectReference Include="..\JannesP.SimConnectWrapper\JannesP.SimConnectWrapper.csproj" />
+    <ProjectReference Include="..\JannesP.XTouchMini\JannesP.XTouchMini.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="SimConnect.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>
