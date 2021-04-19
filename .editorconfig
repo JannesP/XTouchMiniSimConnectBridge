@@ -76,7 +76,7 @@ csharp_style_expression_bodied_constructors = false:suggestion
 #prefer expression-bodied members for methods
 csharp_style_expression_bodied_methods = true:suggestion
 #prefer block bodies for properties
-csharp_style_expression_bodied_properties = false:suggestion
+csharp_style_expression_bodied_properties = when_on_single_line:suggestion
 
 #Style - expression level options
 

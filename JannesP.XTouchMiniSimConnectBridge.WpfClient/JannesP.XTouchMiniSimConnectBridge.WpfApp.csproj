@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net5.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+	<UseWindowsForms>true</UseWindowsForms>
+	<Nullable>enable</Nullable>
+	<AssemblyName>XTouchMiniSimConnectBridge</AssemblyName>
+	<ApplicationIcon>Resources\tray.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Resources\tray.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\tray.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\JannesP.SimConnectWrapper\JannesP.SimConnectWrapper.csproj" />
+    <ProjectReference Include="..\JannesP.XTouchMini\JannesP.XTouchMini.csproj" />
+  </ItemGroup>
+
+</Project>
