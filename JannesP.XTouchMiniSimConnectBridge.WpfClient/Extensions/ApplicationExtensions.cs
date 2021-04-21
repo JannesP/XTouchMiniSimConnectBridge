@@ -4,31 +4,32 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using JannesP.XTouchMiniSimConnectBridge.WpfApp.View;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace JannesP.XTouchMiniSimConnectBridge.WpfApp.Extensions
 {
     internal static class ApplicationExtensions
     {
         /// <summary>
-        /// Shows the main window or creates it with the given Type.
+        /// Shows the main window or creates it.
         /// </summary>
-        /// <typeparam name="TWindow">The type for window to use. Throws an exception if the current Window exists and doesnt have correct type.</typeparam>
         /// <param name="app">the application for which to open the window</param>
         /// <param name="createdNew">If a new window was created or if the MainWindow already had a window.</param>
         /// <returns></returns>
-        public static TWindow ShowCreateMainWindow<TWindow>(this Application app, out bool createdNew) where TWindow : Window
+        public static MainWindow ShowCreateMainWindow(this App app, out bool createdNew)
         {
             createdNew = app.MainWindow == null;
             if (createdNew)
             {
-                TWindow window = Activator.CreateInstance<TWindow>();
+                MainWindow window = app.Host.Services.GetRequiredService<MainWindow>();
                 window.Show();
                 Application.Current.MainWindow = window;
                 return window;
             }
             else
             {
-                if (app.MainWindow is TWindow currentWindow)
+                if (app.MainWindow is MainWindow currentWindow)
                 {
                     if (currentWindow.WindowState == WindowState.Minimized) currentWindow.WindowState = WindowState.Normal;
                     currentWindow.Activate();
@@ -37,19 +38,18 @@ namespace JannesP.XTouchMiniSimConnectBridge.WpfApp.Extensions
                 else
                 {
                     throw new InvalidOperationException(
-                        $"The current window is not of the type {typeof(TWindow).FullName}");
+                        $"The current window is not of the type {typeof(MainWindow).FullName}");
                 }
             }
         }
 
         /// <summary>
-        /// Shows the main window or creates it with the given Type.
+        /// Shows the main window or creates it.
         /// </summary>
-        /// <typeparam name="TWindow">The type for window to use. Throws an exception if the current Window exists and doesnt have correct type.</typeparam>
         /// <returns></returns>
-        public static TWindow ShowCreateMainWindow<TWindow>(this Application app) where TWindow : Window
+        public static MainWindow ShowCreateMainWindow(this App app)
         {
-            return app.ShowCreateMainWindow<TWindow>(out _);
+            return app.ShowCreateMainWindow(out _);
         }
     }
 }

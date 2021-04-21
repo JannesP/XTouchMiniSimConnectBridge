@@ -19,7 +19,7 @@ namespace JannesP.SimConnectWrapper
             Dummy,
         }
 
-        private const uint WM_APP_SIMCONNECT = (uint)WindowMessage.WM_APP + 0x0239;
+        private const uint _wmAppSimConnect = (uint)WindowMessage.WM_APP + 0x0239;
 
         private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1); 
 
@@ -59,7 +59,7 @@ namespace JannesP.SimConnectWrapper
                 {
                     _msgPump = new MessagePumpWindow(WndProc);
                     await _msgPump.Create().ConfigureAwait(false);
-                    _msgPump.MessagePumpDestroyed += _msgPump_MessagePumpDestroyed;
+                    _msgPump.MessagePumpDestroyed += OnMsgPump_MessagePumpDestroyed;
                 }
                 if (_simConnect == null)
                 {
@@ -67,16 +67,13 @@ namespace JannesP.SimConnectWrapper
                     {
                         await Task.Run(() =>
                         {
-                            _simConnect = new SimConnect(_appName, _msgPump.Handle, WM_APP_SIMCONNECT, null, 0);
-                            _simConnect.OnRecvOpen += _simConnect_OnRecvOpen;
-                            _simConnect.OnRecvQuit += _simConnect_OnRecvQuit;
-                            _simConnect.OnRecvClientData += _simConnect_OnRecvClientData;
-                            _simConnect.OnRecvException += _simConnect_OnRecvException;
-                            _simConnect.OnRecvSimobjectDataBytype += _simConnect_OnRecvSimobjectDataBytype;
-
-                        //_simConnect?.AddToDataDefinition(Test.PlaneHeadingDegrees, "PLANE HEADING DEGREES MAGNETIC", "degree", SIMCONNECT_DATATYPE.FLOAT64, 0.0f, SimConnect.SIMCONNECT_UNUSED);
-                        //_simConnect?.RegisterDataDefineStruct<double>(Test.PlaneHeadingDegrees);
-                    });
+                            _simConnect = new SimConnect(_appName, _msgPump.Handle, _wmAppSimConnect, null, 0);
+                            _simConnect.OnRecvOpen += OnSimConnect_OnRecvOpen;
+                            _simConnect.OnRecvQuit += OnSimConnect_OnRecvQuit;
+                            _simConnect.OnRecvClientData += OnSimConnect_OnRecvClientData;
+                            _simConnect.OnRecvException += OnSimConnect_OnRecvException;
+                            _simConnect.OnRecvSimobjectDataBytype += OnSimConnect_OnRecvSimobjectDataBytype;
+                        });
                     }
                     catch (COMException)
                     {
@@ -238,13 +235,12 @@ namespace JannesP.SimConnectWrapper
             }
         }
 
-        private void _msgPump_MessagePumpDestroyed(object sender, System.EventArgs e)
-        {
-            //since we can't rescue from this state we just close the object
-            Dispose();
-        }
+        //since we can't rescue from this state we just close the object
+        private void OnMsgPump_MessagePumpDestroyed(object sender, System.EventArgs e) => Dispose();
+        
 
-        private void _simConnect_OnRecvSimobjectDataBytype(SimConnect sender, SIMCONNECT_RECV_SIMOBJECT_DATA_BYTYPE data)
+
+        private void OnSimConnect_OnRecvSimobjectDataBytype(SimConnect sender, SIMCONNECT_RECV_SIMOBJECT_DATA_BYTYPE data)
         {
             if (_requests.TryGetValue(data.dwRequestID, out SimConnectRequest request))
             {
@@ -266,10 +262,10 @@ namespace JannesP.SimConnectWrapper
                 }
                 _requests.Remove(data.dwRequestID);
             }
-            Console.WriteLine($"_simConnect_OnRecvSimobjectDataBytype {data.dwRequestID} - {data.dwData?.FirstOrDefault()}");
+            Console.WriteLine($"OnSimConnect_OnRecvSimobjectDataBytype {data.dwRequestID} - {data.dwData?.FirstOrDefault()}");
         }
 
-        private async void _simConnect_OnRecvException(SimConnect sender, SIMCONNECT_RECV_EXCEPTION data)
+        private async void OnSimConnect_OnRecvException(SimConnect sender, SIMCONNECT_RECV_EXCEPTION data)
         {
             await _semaphore.WaitAsync().ConfigureAwait(false);
             try
@@ -282,7 +278,7 @@ namespace JannesP.SimConnectWrapper
                 }
                 else
                 {
-                    Console.WriteLine("Unhandled _simConnect_OnRecvException!");
+                    Console.WriteLine("Unhandled OnSimConnect_OnRecvException!");
                 }
             }
             catch
@@ -292,22 +288,22 @@ namespace JannesP.SimConnectWrapper
             }
         }
 
-        private async void _simConnect_OnRecvQuit(SimConnect sender, SIMCONNECT_RECV data)
+        private async void OnSimConnect_OnRecvQuit(SimConnect sender, SIMCONNECT_RECV data)
         {
             Console.WriteLine("_simConnect_OnRecvQuit");
             await Disconnect().ConfigureAwait(false);
         }
 
-        private void _simConnect_OnRecvOpen(SimConnect sender, SIMCONNECT_RECV_OPEN data)
+        private void OnSimConnect_OnRecvOpen(SimConnect sender, SIMCONNECT_RECV_OPEN data)
         {
-            Console.WriteLine("_simConnect_OnRecvOpen");
+            Console.WriteLine("OnSimConnect_OnRecvOpen");
             IsOpen = true;
             SimConnectOpen?.Invoke(this, new System.EventArgs());
         }
 
-        private void _simConnect_OnRecvClientData(SimConnect sender, SIMCONNECT_RECV_CLIENT_DATA data)
+        private void OnSimConnect_OnRecvClientData(SimConnect sender, SIMCONNECT_RECV_CLIENT_DATA data)
         {
-            Console.WriteLine("_simConnect_OnRecvClientData");
+            Console.WriteLine("OnSimConnect_OnRecvClientData");
         }
 
         private IntPtr WndProc(IntPtr hWnd, WindowMessage msg, IntPtr wParam, IntPtr lParam)
@@ -315,7 +311,7 @@ namespace JannesP.SimConnectWrapper
             Console.WriteLine($"[wndProc] {hWnd:X8} {msg} {wParam} {lParam}");
             switch (msg)
             {
-                case (WindowMessage)WM_APP_SIMCONNECT:
+                case (WindowMessage)_wmAppSimConnect:
                     _simConnect?.ReceiveMessage();
                     break;
             }
@@ -378,7 +374,7 @@ namespace JannesP.SimConnectWrapper
                 Disconnect().Wait();
                 if (_msgPump != null)
                 {
-                    _msgPump.MessagePumpDestroyed -= _msgPump_MessagePumpDestroyed;
+                    _msgPump.MessagePumpDestroyed -= OnMsgPump_MessagePumpDestroyed;
                     _msgPump.Dispose();
                 }
             }

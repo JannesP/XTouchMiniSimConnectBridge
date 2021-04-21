@@ -1,15 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using JannesP.XTouchMiniSimConnectBridge.WpfApp.Logging;
+using JannesP.XTouchMiniSimConnectBridge.WpfApp.Options;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
-namespace JannesP.XTouchMiniSimConnectBridge.WpfApp.Utility
+namespace JannesP.XTouchMiniSimConnectBridge.WpfApp.Manager
 {
-    public class SingleInstanceManager : IDisposable
+    internal class SingleInstanceManager : IDisposable
     {
         private readonly string _syncNamesBase;
         private string MutexName => _syncNamesBase + "_isFirstInstanceMutex";
@@ -17,6 +20,7 @@ namespace JannesP.XTouchMiniSimConnectBridge.WpfApp.Utility
         private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
         private readonly EventWaitHandle? _evtNotifiedFromOtherProcess;
         private readonly Mutex _mutexCheckIfFirstInstance;
+        private readonly ILogger<SingleInstanceManager> _logger;
 
         /// <summary>
         /// Creates a new Instance that monitors for another process with the same WaitHandles and Mutexes.
@@ -25,14 +29,14 @@ namespace JannesP.XTouchMiniSimConnectBridge.WpfApp.Utility
         /// <param name="notifyIfNotFirst">if the other application should be notified that we checked for the instance</param>
         /// <exception cref="ArgumentException">if the systemUniqueIdentifierName is an empty string</exception>
         /// <exception cref="IOException">if an error happens while initializing any of the system allocations</exception>
-        public SingleInstanceManager(string systemUniqueIdentifierName, bool notifyIfNotFirst = true)
+        public SingleInstanceManager(ILogger<SingleInstanceManager> logger, IOptions<ApplicationOptions> config)
         {
-            if (string.IsNullOrWhiteSpace(systemUniqueIdentifierName))
+            _logger = logger;
+            _syncNamesBase = config.Value.SingleInstanceMutexName;
+            if (string.IsNullOrWhiteSpace(config.Value.SingleInstanceMutexName))
             {
-                throw new ArgumentException("systemUniqueIdentifierName must have a value",
-                    nameof(systemUniqueIdentifierName));
+                throw new ConfigurationErrorsException("ApplicationOptions.SingleInstanceMutexName must have a value");
             }
-            _syncNamesBase = systemUniqueIdentifierName;
             _mutexCheckIfFirstInstance = new Mutex(false, MutexName);
             try
             {
@@ -43,7 +47,7 @@ namespace JannesP.XTouchMiniSimConnectBridge.WpfApp.Utility
                 /* ignored because we got it and it doesn't protect any data */
                 IsFirstInstance = true;
             }
-            if (!IsFirstInstance && notifyIfNotFirst)
+            if (!IsFirstInstance && config.Value.SingleInstanceNotifyFirstInstance)
             {
                 try
                 {
@@ -96,14 +100,8 @@ namespace JannesP.XTouchMiniSimConnectBridge.WpfApp.Utility
 
         private void OnSecondInstanceStarted()
         {
-            try
-            {
-                SecondInstanceStarted?.Invoke(this, EventArgs.Empty);
-            }
-            catch (Exception ex)
-            {
-                ApplicationEventSource.Log.FatalException(ex);
-            }
+            _logger.LogInformation("Second instance started.");
+            SecondInstanceStarted?.Invoke(this, EventArgs.Empty);
         }
 
         /// <summary>
@@ -120,7 +118,7 @@ namespace JannesP.XTouchMiniSimConnectBridge.WpfApp.Utility
                 }
                 catch (Exception ex)
                 {
-                    ApplicationEventSource.Log.DisposeException(ex);
+                    _logger.LogError(ex, "Error releasing _mutexCheckIfFirstInstance.");
                 }
             }
             _mutexCheckIfFirstInstance.Dispose();

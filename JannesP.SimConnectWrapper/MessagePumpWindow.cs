@@ -48,12 +48,20 @@ namespace JannesP.SimConnectWrapper
 
         private void MessagePump()
         {
-            if (_wndClassResult == null) throw new Exception("Woops, this isn't supposed to happen :(");
-            Console.WriteLine("Window Thread start!");
-            Handle = Win32.CreateWindowEx(0, new IntPtr((int)(uint)_wndClassResult.Value), "XTouchMiniSimconnectBridgeMessagePump", 0, 0, 0, 0, 0, Win32.HWND_MESSAGE, IntPtr.Zero, _wndClass.hInstance, IntPtr.Zero);
-            Marshal.ThrowExceptionForHR(Marshal.GetLastWin32Error());
-            Console.WriteLine($"Handle: {Handle:X16}");
-            _windows.Add(Handle, this);
+            try
+            {
+                if (_wndClassResult == null) throw new Exception("Woops, this isn't supposed to happen :(");
+                Console.WriteLine("Window Thread start!");
+                Handle = Win32.CreateWindowEx(0, new IntPtr((int)(uint)_wndClassResult.Value), "XTouchMiniSimconnectBridgeMessagePump", 0, 0, 0, 0, 0, Win32.HWND_MESSAGE, IntPtr.Zero, _wndClass.hInstance, IntPtr.Zero);
+                Marshal.ThrowExceptionForHR(Marshal.GetLastWin32Error());
+                Console.WriteLine($"Handle: {Handle:X16}");
+                _windows.Add(Handle, this);
+            }
+            catch (Exception ex)
+            {
+                _createTaskCompletionSource?.SetException(ex);
+                throw;
+            }
             _createTaskCompletionSource?.SetResult(true);
             MSG msg;
             sbyte getMsgResult;
@@ -66,7 +74,16 @@ namespace JannesP.SimConnectWrapper
                 else
                 {
                     //TranslateMessage(ref msg);
-                    DispatchMessage(ref msg);
+                    try
+                    {
+                        DispatchMessage(ref msg);
+                    }
+#pragma warning disable CS0618 // Type or member is obsolete -- well, it does raise it Sadge
+                    catch (ExecutionEngineException)
+#pragma warning restore CS0618 // Type or member is obsolete
+                    {
+                        break;
+                    }
                 }
             }
             MessagePumpDestroyed?.Invoke(this, new System.EventArgs());
