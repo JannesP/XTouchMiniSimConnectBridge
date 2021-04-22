@@ -157,11 +157,11 @@ namespace JannesP.SimConnectWrapper
         {
             public IntPtr hwnd;
             public uint message;
-            public IntPtr wParam;
+            public UIntPtr wParam;
             public IntPtr lParam;
-            public uint time;
+            public int time;
             public POINT pt;
-            public uint reserved;
+            public int reserved;
         }
 
         [StructLayout(LayoutKind.Sequential)]
@@ -172,9 +172,9 @@ namespace JannesP.SimConnectWrapper
         }
 
         [DllImport("user32.dll")]
-        internal static extern bool TranslateMessage([In] ref MSG lpMsg);
+        internal static extern bool TranslateMessage(ref MSG lpMsg);
         [DllImport("user32.dll")]
-        internal static extern IntPtr DispatchMessage([In] ref MSG lpmsg);
+        internal static extern IntPtr DispatchMessage(ref MSG lpmsg);
         [DllImport("user32.dll")]
         internal static extern IntPtr SendMessage(IntPtr hWnd, WindowMessage msg, IntPtr wParam, IntPtr lParam);
 

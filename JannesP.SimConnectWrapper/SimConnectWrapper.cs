@@ -104,7 +104,6 @@ namespace JannesP.SimConnectWrapper
                     _requests.Add((uint)newRequestId, request);
                     request.PrepareRequest(this, _simConnect);
                     request.ExecuteRequest((uint)newRequestId, _simConnect);
-                    Console.WriteLine($"Sending message ID: {request.RequestId}");
                     return await request.TaskCompletionSource.Task.ConfigureAwait(false);
                 }
                 else
@@ -262,7 +261,6 @@ namespace JannesP.SimConnectWrapper
                 }
                 _requests.Remove(data.dwRequestID);
             }
-            Console.WriteLine($"OnSimConnect_OnRecvSimobjectDataBytype {data.dwRequestID} - {data.dwData?.FirstOrDefault()}");
         }
 
         private async void OnSimConnect_OnRecvException(SimConnect sender, SIMCONNECT_RECV_EXCEPTION data)
@@ -308,7 +306,6 @@ namespace JannesP.SimConnectWrapper
 
         private IntPtr WndProc(IntPtr hWnd, WindowMessage msg, IntPtr wParam, IntPtr lParam)
         {
-            Console.WriteLine($"[wndProc] {hWnd:X8} {msg} {wParam} {lParam}");
             switch (msg)
             {
                 case (WindowMessage)_wmAppSimConnect:

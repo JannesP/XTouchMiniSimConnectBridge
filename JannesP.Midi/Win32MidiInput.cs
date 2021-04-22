@@ -30,6 +30,7 @@ namespace JannesP.Midi
         private readonly object _syncRoot = new object();
         private readonly Dictionary<IntPtr, MidiInputLongDataBuffer> _longMessageBuffers = new Dictionary<IntPtr, MidiInputLongDataBuffer>();
         private readonly HMIDIIN _midiHandle;
+        private readonly NativeImports.MidiInProc _midiInProc;
         private bool _disposedValue;
 
         public event EventHandler<MidiEventReceivedEventArgs>? MidiEventReceived;
@@ -43,7 +44,8 @@ namespace JannesP.Midi
         {
             lock (_syncRoot)
             {
-                NativeImports.ThrowOnError(NativeImports.midiInOpen(out _midiHandle, id, MidiInProc, IntPtr.Zero));
+                _midiInProc = new NativeImports.MidiInProc(MidiInProc);
+                NativeImports.ThrowOnError(NativeImports.midiInOpen(out _midiHandle, id, _midiInProc, IntPtr.Zero));
                 NativeImports.ThrowOnError(NativeImports.midiInStart(_midiHandle));
                 while (_longMessageBuffers.Count < LongMessageBufferCount)
                 {
@@ -254,6 +256,7 @@ namespace JannesP.Midi
         {
             if (!_disposedValue)
             {
+                _disposedValue = true;
                 IsClosed = true;
                 if (disposing)
                 {
@@ -264,18 +267,11 @@ namespace JannesP.Midi
                 NativeImports.midiInStop(_midiHandle);
                 NativeImports.midiInClose(_midiHandle);
 
-                try
+                foreach (var kvp in _longMessageBuffers)
                 {
-                    foreach (var kvp in _longMessageBuffers)
-                    {
-                        kvp.Value.Dispose();
-                    }
-                    _longMessageBuffers.Clear();
+                    kvp.Value.Dispose();
                 }
-                finally
-                {
-                    _disposedValue = true;
-                }
+                _longMessageBuffers.Clear();
             }
         }
 

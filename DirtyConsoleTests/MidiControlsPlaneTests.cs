@@ -19,7 +19,7 @@ namespace DirtyConsoleTests
 
         public static class SimDataDefinitions
         {
-            public static SimConnectDataDefinition PlaneHeadingDegreesMagnetic = new SimConnectDataDefinition(100, "PLANE HEADING DEGREES MAGNETIC", null/*"degrees"*/, SimConnectDataType.FLOAT64);
+            public static SimConnectDataDefinition PlaneHeadingDegreesMagnetic = new SimConnectDataDefinition(100, "PLANE HEADING DEGREES MAGNETIC", null, SimConnectDataType.FLOAT64);
             public static SimConnectDataDefinition AutopilotHeadingLockDir = new SimConnectDataDefinition(101, "AUTOPILOT HEADING LOCK DIR", null, SimConnectDataType.FLOAT64);
         }
 
@@ -72,8 +72,8 @@ namespace DirtyConsoleTests
                             return;
                         }
 
-                        //_intervalPlaneHeading = await _simConnect.IntervalRequestObjectByType<double>(500, SimDataDefinitions.PlaneHeadingDegreesMagnetic);
-                        //_intervalApHeading = await _simConnect.IntervalRequestObjectByType<double>(500, SimDataDefinitions.AutopilotHeadingLockDir);
+                        _intervalPlaneHeading = await _simConnect.IntervalRequestObjectByType<double>(50, SimDataDefinitions.PlaneHeadingDegreesMagnetic);
+                        _intervalApHeading = await _simConnect.IntervalRequestObjectByType<double>(50, SimDataDefinitions.AutopilotHeadingLockDir);
                         Console.ReadLine();
                     }
 
@@ -96,7 +96,6 @@ namespace DirtyConsoleTests
 
         private static void _simConnect_IntervalRequestResult(object sender, JannesP.SimConnectWrapper.EventArgs.IntervalRequestResultEventArgs e)
         {
-            Console.WriteLine($"[_simConnect_IntervalRequestResult] {e.DataDefinition.DataName}: {(double)e.Result}");
             if (e.Result == null) return;
             if (e.RequestId == _intervalPlaneHeading)
             {
