@@ -18,6 +18,7 @@ namespace JannesP.SimConnectWrapper
         private static Dictionary<IntPtr, MessagePumpWindow> _windows = new Dictionary<IntPtr, MessagePumpWindow>();
         private static WNDCLASSEX _wndClass = new WNDCLASSEX();
         private static ushort? _wndClassResult;
+        private static WndProc? _wndProcStatic;
 
         private readonly Thread _thread;
         private TaskCompletionSource<bool>? _createTaskCompletionSource;
@@ -97,7 +98,8 @@ namespace JannesP.SimConnectWrapper
                 _wndClass.cbSize = Marshal.SizeOf<WNDCLASSEX>();
                 _wndClass.hInstance = Marshal.GetHINSTANCE(typeof(MessagePumpWindow).Module);
                 _wndClass.lpszClassName = "XTouchMiniSimconnectBridgeMessagePump";
-                _wndClass.lpfnWndProc = Marshal.GetFunctionPointerForDelegate((WndProc)WndProcStatic);
+                _wndProcStatic = new WndProc(WndProcStatic);
+                _wndClass.lpfnWndProc = Marshal.GetFunctionPointerForDelegate(_wndProcStatic);
                 _wndClassResult = Win32.RegisterClassEx(ref _wndClass);
                 Marshal.ThrowExceptionForHR(Marshal.GetLastWin32Error());
             }
