@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="DeviceSimConnectBridgeModule.cpp" />
+    <ClCompile Include="BridgeProtocol.cpp">
+      <Filter>Protocol</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="DeviceSimConnectBridgeModule.h" />
+    <ClInclude Include="BridgeProtocol.h">
+      <Filter>Protocol</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Protocol">
+      <UniqueIdentifier>{1045b7e8-d928-44e9-9a49-75e2ded99588}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

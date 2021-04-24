@@ -1,0 +1,18 @@
+﻿<Window x:Class="JannesP.DeviceSimConnectBridge.WpfApp.View.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:JannesP.DeviceSimConnectBridge.WpfApp.View"
+        xmlns:vm="clr-namespace:JannesP.DeviceSimConnectBridge.WpfApp.ViewModel"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800"
+        d:DataContext="{d:DesignInstance IsDesignTimeCreatable=True, Type=vm:MainWindowViewModel}" WindowStyle="ThreeDBorderWindow">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="393*"/>
+            <ColumnDefinition Width="407*"/>
+        </Grid.ColumnDefinitions>
+        <TextBlock Text="{Binding Path=SimConnectManagerViewModel.ConnectionStateText}" Grid.ColumnSpan="2"/>
+    </Grid>
+</Window>
