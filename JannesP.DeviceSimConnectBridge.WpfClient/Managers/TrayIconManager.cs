@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace JannesP.DeviceSimConnectBridge.WpfApp.Manager
+namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
 {
     internal class TrayIconManager : IDisposable
     {

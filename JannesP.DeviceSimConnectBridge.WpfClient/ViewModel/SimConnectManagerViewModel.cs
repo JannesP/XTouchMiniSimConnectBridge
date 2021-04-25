@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
-using JannesP.DeviceSimConnectBridge.WpfApp.Manager;
+using JannesP.DeviceSimConnectBridge.WpfApp.Managers;
 
 namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel
 {

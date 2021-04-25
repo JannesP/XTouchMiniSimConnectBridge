@@ -1,13 +1,21 @@
-﻿namespace JannesP.DeviceSimConnectBridge.Device
+﻿using System;
+
+namespace JannesP.DeviceSimConnectBridge.Device
 {
     public interface IDeviceEncoder : IDeviceInput { }
 
-    public interface IDeviceEncoderEventArgs
+    public class DeviceEncoderEventArgs : EventArgs
     {
-        IDeviceEncoder Encoder { get; }
+        public DeviceEncoderEventArgs(IDeviceEncoder encoder, int steps)
+        {
+            Encoder = encoder;
+            Steps = steps;
+        }
+
+        public IDeviceEncoder Encoder { get; }
         /// <summary>
         /// The amount of steps turned since the last event. Positive steps are clockwise, negative steps are anticlockwise.
         /// </summary>
-        int Steps { get; }
+        public int Steps { get; }
     }
 }

@@ -8,7 +8,7 @@ using JannesP.SimConnectWrapper;
 using JannesP.DeviceSimConnectBridge.WpfApp.Options;
 using Microsoft.Extensions.Logging;
 
-namespace JannesP.DeviceSimConnectBridge.WpfApp.Manager
+namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
 {
     public class SimConnectManager : IDisposable
     {

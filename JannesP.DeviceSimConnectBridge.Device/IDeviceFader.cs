@@ -1,14 +1,22 @@
-﻿namespace JannesP.DeviceSimConnectBridge.Device
+﻿using System;
+
+namespace JannesP.DeviceSimConnectBridge.Device
 {
     public interface IDeviceFader : IDeviceInput { }
 
-    public interface IDeviceFaderEventArgs
+    public class DeviceFaderEventArgs : EventArgs
     {
-        IDeviceFader Fader { get; }
+        public DeviceFaderEventArgs(IDeviceFader fader, double value)
+        {
+            Fader = fader;
+            Value = value;
+        }
+
+        public IDeviceFader Fader { get; }
         /// <summary>
         /// Value from 0 to 1
         /// </summary>
-        double Value { get; }
+        public double Value { get; }
 
     }
 }

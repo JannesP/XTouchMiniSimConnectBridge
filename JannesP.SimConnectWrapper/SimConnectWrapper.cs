@@ -213,7 +213,10 @@ namespace JannesP.SimConnectWrapper
             try
             {
                 IsOpen = false;
-                SimConnectClose?.Invoke(this, new System.EventArgs());
+                if (_simConnect != null)
+                {
+                    SimConnectClose?.Invoke(this, new System.EventArgs());
+                }
                 _simConnect?.Dispose();
                 _simConnect = null;
                 _registeredDataDefinitions.Clear();
@@ -309,7 +312,15 @@ namespace JannesP.SimConnectWrapper
             switch (msg)
             {
                 case (WindowMessage)_wmAppSimConnect:
-                    _simConnect?.ReceiveMessage();
+                    try
+                    {
+                        _simConnect?.ReceiveMessage();
+                    }
+                    catch (COMException)
+                    {
+                        //dispose if there's a COM Exception. The application could just reconnect if the connection is still required.
+                        Dispose();
+                    }
                     break;
             }
             return IntPtr.Zero;

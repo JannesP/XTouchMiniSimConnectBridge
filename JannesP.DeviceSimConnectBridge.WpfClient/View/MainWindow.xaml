@@ -9,10 +9,6 @@
         Title="MainWindow" Height="450" Width="800"
         d:DataContext="{d:DesignInstance IsDesignTimeCreatable=True, Type=vm:MainWindowViewModel}" WindowStyle="ThreeDBorderWindow">
     <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="393*"/>
-            <ColumnDefinition Width="407*"/>
-        </Grid.ColumnDefinitions>
         <TextBlock Text="{Binding Path=SimConnectManagerViewModel.ConnectionStateText}" Grid.ColumnSpan="2"/>
     </Grid>
 </Window>

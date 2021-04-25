@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+	<Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\JannesP.DeviceSimConnectBridge.Device\JannesP.DeviceSimConnectBridge.Device.csproj" />
+    <ProjectReference Include="..\JannesP.XTouchMini\JannesP.XTouchMini.csproj" />
+  </ItemGroup>
+
+</Project>

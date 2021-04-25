@@ -10,7 +10,7 @@ using JannesP.DeviceSimConnectBridge.WpfApp.Options;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace JannesP.DeviceSimConnectBridge.WpfApp.Manager
+namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
 {
     internal class SingleInstanceManager : IDisposable
     {

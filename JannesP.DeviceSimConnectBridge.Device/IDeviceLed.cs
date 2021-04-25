@@ -3,7 +3,7 @@
 namespace JannesP.DeviceSimConnectBridge.Device
 {
     public interface IDeviceLed : IDeviceOutput 
-    { 
+    {
         DeviceLedState ValidStates { get; }
     }
 

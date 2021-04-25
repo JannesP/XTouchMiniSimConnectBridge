@@ -1,9 +1,16 @@
-﻿namespace JannesP.DeviceSimConnectBridge.Device
+﻿using System;
+
+namespace JannesP.DeviceSimConnectBridge.Device
 {
     public interface IDeviceButton : IDeviceInput { }
 
-    public interface IDeviceButtonEventArgs
+    public class DeviceButtonEventArgs : EventArgs
     {
-        IDeviceButton Button { get; }
+        public DeviceButtonEventArgs(IDeviceButton button)
+        {
+            Button = button;
+        }
+
+        public IDeviceButton Button { get; }
     }
 }

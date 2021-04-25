@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
 using JannesP.DeviceSimConnectBridge.WpfApp.Extensions;
-using JannesP.DeviceSimConnectBridge.WpfApp.Manager;
+using JannesP.DeviceSimConnectBridge.WpfApp.Managers;
 using JannesP.DeviceSimConnectBridge.WpfApp.Options;
 using JannesP.DeviceSimConnectBridge.WpfApp.Resources;
 using JannesP.DeviceSimConnectBridge.WpfApp.Utility;

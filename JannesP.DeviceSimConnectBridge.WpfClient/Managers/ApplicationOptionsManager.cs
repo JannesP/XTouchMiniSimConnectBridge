@@ -9,7 +9,7 @@ using JannesP.DeviceSimConnectBridge.WpfApp.Utility;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
-namespace JannesP.DeviceSimConnectBridge.WpfApp.Manager
+namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
 {
     internal class ApplicationOptionsManager
     {

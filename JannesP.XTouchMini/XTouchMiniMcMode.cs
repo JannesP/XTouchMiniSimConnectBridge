@@ -14,7 +14,7 @@ namespace JannesP.XTouchMini
     {
         public static string MidiDeviceName { get; } = "X-TOUCH MINI";
 
-        enum State
+        public enum ConnectionState
         {
             Closed,
             Opening,
@@ -24,7 +24,7 @@ namespace JannesP.XTouchMini
         }
 
         private readonly object _syncRoot = new object();
-        private State _state = State.Closed;
+        private ConnectionState _state = ConnectionState.Closed;
 
         private Win32MidiInput? _midiIn;
         private Win32MidiOutput? _midiOut;
@@ -35,71 +35,79 @@ namespace JannesP.XTouchMini
         public event EventHandler<XTouchMiniMcModeButtonEventArgs>? ButtonUp;
         public event EventHandler<XTouchMiniMcModeEncoderTurnedEventArgs>? EncoderTurned;
         public event EventHandler<XTouchMiniMcModeFaderMovedEventArgs>? FaderMoved;
+        public event EventHandler? Connected;
+        public event EventHandler? Disconnected;
+
+        protected virtual void OnButtonDown(XTouchMiniMcButton button) => ButtonDown?.Invoke(this, new XTouchMiniMcModeButtonEventArgs(button));
+        protected virtual void OnButtonUp(XTouchMiniMcButton button) => ButtonUp?.Invoke(this, new XTouchMiniMcModeButtonEventArgs(button));
+        protected virtual void OnEncoderTurned(XTouchMiniMcEncoder encoder, int ticks) => EncoderTurned?.Invoke(this, new XTouchMiniMcModeEncoderTurnedEventArgs(encoder, ticks));
+        protected virtual void OnFaderMoved(XTouchMiniMcFader fader, double value) => FaderMoved?.Invoke(this, new XTouchMiniMcModeFaderMovedEventArgs(fader, value));
+        protected virtual void OnConnected() => Connected?.Invoke(this, new System.EventArgs());
+        protected virtual void OnDisconnected() => Disconnected?.Invoke(this, new System.EventArgs());
+
+        public ConnectionState State => _state;
 
         public Task<bool> OpenDeviceAsync()
         {
             lock (_syncRoot)
             {
-                if (_state != State.Closed)
+                if (_state != ConnectionState.Closed)
                 {
-                    throw new InvalidOperationException($"OpenDevice is only possible if the state is {State.Closed}.");
+                    throw new InvalidOperationException($"OpenDevice is only possible if the state is {ConnectionState.Closed}.");
                 }
-                _state = State.Opening;
+                _state = ConnectionState.Opening;
             }
             return Task.Run<bool>(() =>
             {
-                uint? inputId = Win32MidiInput.FindInputIdByName(MidiDeviceName);
-                uint? outputId = null;
-                if (inputId != null)
-                {
-                    outputId = Win32MidiOutput.FindOutputIdByName(MidiDeviceName);
-                }
-                if (inputId == null || outputId == null)
-                {
-                    return false;
-                }
-                _midiIn = new Win32MidiInput(inputId.Value);
-                _midiIn.MidiEventReceived += MidiIn_MidiEventReceived;
-                try
-                {
-                    _midiOut = new Win32MidiOutput(outputId.Value);
-                }
-                catch
-                {
-                    lock (_syncRoot)
-                    {
-                        UnsafeDispose();
-                        _state = State.Closed;
-                    }
-                    throw;
-                }
                 lock (_syncRoot)
                 {
-                    if (_state == State.Disposed)
+                    uint? inputId = Win32MidiInput.FindInputIdByName(MidiDeviceName);
+                    uint? outputId = null;
+                    if (inputId != null)
+                    {
+                        outputId = Win32MidiOutput.FindOutputIdByName(MidiDeviceName);
+                    }
+                    if (inputId == null || outputId == null)
+                    {
+                        return false;
+                    }
+                    _midiIn = new Win32MidiInput(inputId.Value);
+                    _midiIn.MidiEventReceived += MidiIn_MidiEventReceived;
+                    try
+                    {
+                        _midiOut = new Win32MidiOutput(outputId.Value);
+                    }
+                    catch
+                    {
+
+                        UnsafeDispose();
+                        _state = ConnectionState.Closed;
+
+                        throw;
+                    }
+                    if (_state == ConnectionState.Disposed)
                     {
                         UnsafeDispose();
                     }
                     else
                     {
-                        _state = State.Open;
+                        _state = ConnectionState.Open;
                     }
-                }
-                try
-                {
-                    //set OpMode to Mackie Control (MC)
-                    _midiOut.Send(MidiEventStatusType.CC, 0x7f, (byte)OpMode.MackieControl);
-                    ResetState();
-                }
-                catch
-                {
-                    lock (_syncRoot)
+                    try
+                    {
+                        //set OpMode to Mackie Control (MC)
+                        _midiOut.Send(MidiEventStatusType.CC, 0x7f, (byte)OpMode.MackieControl);
+                        ResetDeviceState();
+                        OnConnected();
+                    }
+                    catch
                     {
                         UnsafeDispose();
-                        _state = State.Closed;
+                        _state = ConnectionState.Closed;
+                        throw;
                     }
-                    throw;
+                    return true;
                 }
-                return true;
             });
         }
 
@@ -112,12 +120,12 @@ namespace JannesP.XTouchMini
                         if (e.MidiEvent.Arg2 == (byte)McButtonState.Down)
                         {
                             //button down
-                            ButtonDown?.Invoke(this, new XTouchMiniMcModeButtonEventArgs(button));
+                            OnButtonDown(button);
                         }
                         else if (e.MidiEvent.Arg2 == (byte)McButtonState.Up)
                         {
                             //button up
-                            ButtonUp?.Invoke(this, new XTouchMiniMcModeButtonEventArgs(button));
+                            OnButtonUp(button);
                         }
                         else
                         {
@@ -126,7 +134,6 @@ namespace JannesP.XTouchMini
                     }
                     break;
                 case MidiEventStatusType.CC:
-                    if (EncoderTurned == null) return;
                     if (XTouchMiniMcEncoder.Controls.TryGetValue(e.MidiEvent.Arg1, out XTouchMiniMcEncoder encoder))
                     {
                         /*
@@ -151,18 +158,17 @@ namespace JannesP.XTouchMini
                         {
                             ticks = e.MidiEvent.Arg2;
                         }
-                        EncoderTurned?.Invoke(this, new XTouchMiniMcModeEncoderTurnedEventArgs(encoder, ticks));
+                        OnEncoderTurned(encoder, ticks);
                     }
                     break;
                 case MidiEventStatusType.Pitch:
-                    if (FaderMoved == null) return;
                     if (XTouchMiniMcFader.Controls.TryGetValue(e.MidiEvent.Channel, out XTouchMiniMcFader fader))
                     {
                         /*
                          * translate the native value range from 0-127 to a double 0-1
                          */
                         double value = ((double)e.MidiEvent.Arg2) / 127d;
-                        FaderMoved?.Invoke(this, new XTouchMiniMcModeFaderMovedEventArgs(XTouchMiniMcFader.Encoder1, value));
+                        OnFaderMoved(fader, value);
                     }
                     break;
                 default:
@@ -177,39 +183,40 @@ namespace JannesP.XTouchMini
             {
                 lock (_syncRoot)
                 {
-                    if (_state != State.Open)
+                    if (_state != ConnectionState.Open)
                     {
-                        throw new InvalidOperationException($"CloseDevice is only possible if the state is {State.Open}.");
+                        throw new InvalidOperationException($"CloseDevice is only possible if the state is {ConnectionState.Open}.");
                     }
-                    ResetState();
-                    _state = State.Closing;
+                    ResetDeviceState();
+                    _state = ConnectionState.Closing;
 
                     UnsafeDispose();
-                    _state = State.Closed;
+                    _state = ConnectionState.Closed;
                 }
+                OnDisconnected();
             });
         }
 
         public void SetButtonLed(XTouchMiniMcButton button, McLedState ledState)
         {
-            if (_state != State.Open)
+            if (_state != ConnectionState.Open)
             {
-                throw new InvalidOperationException($"SetButtonLight is only possible if the state is {State.Open}.");
+                throw new InvalidOperationException($"SetButtonLed is only possible if the state is {ConnectionState.Open}.");
             }
             _midiOut?.Send(MidiEventStatusType.NoteOn, button.MidiCode, (byte)ledState);
         }
 
         public void SetEncoderLed(XTouchMiniMcEncoder encoder, McEncoderRingStyle ringStyle, byte value)
         {
-            if (_state != State.Open)
+            if (_state != ConnectionState.Open)
             {
-                throw new InvalidOperationException($"SetButtonLight is only possible if the state is {State.Open}.");
+                throw new InvalidOperationException($"SetEncoderLed is only possible if the state is {ConnectionState.Open}.");
             }
             if (value > 0x0F) throw new ArgumentOutOfRangeException(nameof(value), value, "Maximum value for Encoder LEDs is 0xF");
             _midiOut?.Send(MidiEventStatusType.CC, encoder.LedMidiCode, (byte)((byte)ringStyle + value));
         }
 
-        public void ResetState()
+        public void ResetDeviceState()
         {
             foreach (var entry in XTouchMiniMcButton.Controls) SetButtonLed(entry.Value, McLedState.Off);
             foreach (var entry in XTouchMiniMcEncoder.Controls) SetEncoderLed(entry.Value, McEncoderRingStyle.Fan, 0x0);       
@@ -223,11 +230,11 @@ namespace JannesP.XTouchMini
             _midiOut = null;
         }
 
-        public void Dispose()
+        public virtual void Dispose()
         {
             lock (_syncRoot)
             {
-                _state = State.Disposed;
+                _state = ConnectionState.Disposed;
                 UnsafeDispose();
             }
         }
