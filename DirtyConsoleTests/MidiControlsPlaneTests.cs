@@ -64,8 +64,8 @@ namespace DirtyConsoleTests
                     using (var simConnect = new SimConnectWrapper("XTouchMiniBridge"))
                     {
                         _simConnect = simConnect;
-                        _simConnect.SimConnectOpen += _simConnect_SimConnectOpen;
-                        _simConnect.IntervalRequestResult += _simConnect_IntervalRequestResult;
+                        _simConnect.SimConnectOpen += SimConnect_SimConnectOpen;
+                        _simConnect.IntervalRequestResult += SimConnect_IntervalRequestResult;
                         if (!await simConnect.TryConnect())
                         {
                             Console.WriteLine("Couldn't connect to SimConnect!");
@@ -88,13 +88,13 @@ namespace DirtyConsoleTests
             
         }
 
-        private static async void _simConnect_SimConnectOpen(object sender, EventArgs e)
+        private static async void SimConnect_SimConnectOpen(object sender, EventArgs e)
         {
             _planeHeading = await _simConnect.RequestObjectByType<double>(SimDataDefinitions.PlaneHeadingDegreesMagnetic);
             _apHeading = await _simConnect.RequestObjectByType<double>(SimDataDefinitions.AutopilotHeadingLockDir);
         }
 
-        private static void _simConnect_IntervalRequestResult(object sender, JannesP.SimConnectWrapper.EventArgs.IntervalRequestResultEventArgs e)
+        private static void SimConnect_IntervalRequestResult(object sender, JannesP.SimConnectWrapper.EventArgs.IntervalRequestResultEventArgs e)
         {
             if (e.Result == null) return;
             if (e.RequestId == _intervalPlaneHeading)
@@ -147,6 +147,17 @@ namespace DirtyConsoleTests
         {
             Console.WriteLine("[Midi][Control_EncoderTurned] {0}: {1}", e.Control.Name, e.Ticks);
             string simEvent = null;
+            bool ignoreTicks = false;
+            if (e.Control == XTouchMiniMcEncoder.Encoder1)
+            {
+                simEvent = e.Ticks > 0 ? "COM_RADIO_WHOLE_INC" : "COM_RADIO_WHOLE_DEC";
+                ignoreTicks = true;
+            }
+            if (e.Control == XTouchMiniMcEncoder.Encoder2)
+            {
+                simEvent = e.Ticks > 0 ? "COM_RADIO_FRACT_INC" : "COM_RADIO_FRACT_DEC";
+                ignoreTicks = true;
+            }
             if (e.Control == XTouchMiniMcEncoder.Encoder5)
             { 
                 simEvent = e.Ticks > 0 ? SimconnectTests.SimEvent.AP_VS_VAR_INC.Name : SimconnectTests.SimEvent.AP_VS_VAR_DEC.Name;
@@ -165,9 +176,16 @@ namespace DirtyConsoleTests
             }
             if (simEvent != null)
             {
-                for (var remaining = Math.Abs(e.Ticks); remaining > 0; remaining--)
+                if (ignoreTicks)
                 {
                     await _simConnect.SendEvent(simEvent);
+                }
+                else
+                {
+                    for (var remaining = Math.Abs(e.Ticks); remaining > 0; remaining--)
+                    {
+                        await _simConnect.SendEvent(simEvent);
+                    }
                 }
             }
         }

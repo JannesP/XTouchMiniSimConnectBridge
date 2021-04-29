@@ -2,8 +2,9 @@
 
 namespace JannesP.DeviceSimConnectBridge.WpfApp.BindableActions
 {
+
     [AttributeUsage(AttributeTargets.Property, Inherited = true, AllowMultiple = false)]
-    internal abstract class ActionSettingAttribute : Attribute
+    public abstract class ActionSettingAttribute : Attribute
     {
         public ActionSettingAttribute(string name)
         {
@@ -11,10 +12,12 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.BindableActions
         }
 
         public string Name { get; }
+
+        public abstract string? ValidateValue(object value);
     }
 
     [AttributeUsage(AttributeTargets.Property, Inherited = true, AllowMultiple = false)]
-    internal class StringActionSettingAttribute : ActionSettingAttribute
+    public class StringActionSettingAttribute : ActionSettingAttribute
     {
         public StringActionSettingAttribute(string name) : base(name) { }
 
@@ -22,27 +25,32 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.BindableActions
         public virtual int? MaxLength { get; set; } = null;
         public virtual int? MinLength { get; set; } = null;
 
-        public string? ValidateValue(string value)
+        public override string? ValidateValue(object value)
         {
+            string? sValue = value as string;
+
             if (!CanBeEmpty)
             {
-                if (string.IsNullOrEmpty(value))
+                if (string.IsNullOrEmpty(sValue))
                 {
                     return "The value cannot be empty.";
                 }
             }
-            if (MaxLength.HasValue)
+            if (sValue != null)
             {
-                if (value.Length > MaxLength.Value)
+                if (MaxLength.HasValue)
                 {
-                    return $"The value cannot be longer than {MaxLength.Value} characters.";
+                    if (sValue.Length > MaxLength.Value)
+                    {
+                        return $"The value cannot be longer than {MaxLength.Value} characters.";
+                    }
                 }
-            }
-            if (MinLength.HasValue)
-            {
-                if (value.Length < MinLength.Value)
+                if (MinLength.HasValue)
                 {
-                    return $"The value cannot be longer than {MinLength.Value} characters.";
+                    if (sValue.Length < MinLength.Value)
+                    {
+                        return $"The value cannot be longer than {MinLength.Value} characters.";
+                    }
                 }
             }
             return null;

@@ -5,11 +5,11 @@ using System.Text;
 using System.Threading.Tasks;
 using JannesP.DeviceSimConnectBridge.Device;
 
-namespace JannesP.DeviceSimConnectBridge.XTouchMiniDevice
+namespace JannesP.DeviceSimConnectBridge.Device.XTouchMini
 {
-    internal class DeviceButton : IDeviceButton, IDeviceLed
+    internal class DeviceEncoder : IDeviceEncoder
     {
-        public DeviceButton(int id, string name)
+        public DeviceEncoder(int id, string name)
         {
             Id = id;
             Name = name;
@@ -18,7 +18,5 @@ namespace JannesP.DeviceSimConnectBridge.XTouchMiniDevice
         public int Id { get; }
 
         public string Name { get; }
-
-        public DeviceLedState ValidStates { get; } = DeviceLedState.Off | DeviceLedState.On | DeviceLedState.Blinking;
     }
 }

@@ -7,13 +7,19 @@ namespace JannesP.DeviceSimConnectBridge.Device
 {
     public interface IDevice : IDisposable
     {
+        string DeviceName { get; }
+
+        string TechnicalDeviceIdentifier { get; }
+
         bool IsConnected { get; }
 
         event EventHandler? Connected;
         event EventHandler? Disconnected;
 
-        public Task<bool> ConnectAsync();
-        public Task DisconnectAsync();
+        Task<bool> ConnectAsync();
+        Task DisconnectAsync();
+
+        Task ResetDeviceState();
 
         IEnumerable<IDeviceButton> Buttons { get; }
         event EventHandler<DeviceButtonEventArgs>? ButtonDown;
@@ -26,7 +32,7 @@ namespace JannesP.DeviceSimConnectBridge.Device
         event EventHandler<DeviceFaderEventArgs>? FaderMoved;
 
         IEnumerable<IDeviceLed> Leds { get; }
-        void SetLedState(IDeviceLed deviceLed, DeviceLedState ledState);
+        Task SetLedState(IDeviceLed deviceLed, DeviceLedState ledState);
     }
 
     public interface IDeviceControl

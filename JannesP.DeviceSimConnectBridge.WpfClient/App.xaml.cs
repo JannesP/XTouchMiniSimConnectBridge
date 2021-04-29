@@ -6,9 +6,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
+using JannesP.DeviceSimConnectBridge.Device;
+using JannesP.DeviceSimConnectBridge.Device.XTouchMini;
 using JannesP.DeviceSimConnectBridge.WpfApp.Extensions;
 using JannesP.DeviceSimConnectBridge.WpfApp.Managers;
 using JannesP.DeviceSimConnectBridge.WpfApp.Options;
+using JannesP.DeviceSimConnectBridge.WpfApp.Repositories;
 using JannesP.DeviceSimConnectBridge.WpfApp.Resources;
 using JannesP.DeviceSimConnectBridge.WpfApp.Utility;
 using JannesP.DeviceSimConnectBridge.WpfApp.View;
@@ -27,6 +30,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp
     {
         public IHost Host { get; }
         private readonly Lazy<ILogger<App>> _logger;
+        private IDevice? _xTouchMini;
 
         public App()
         {
@@ -42,17 +46,27 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp
                 })
                 .ConfigureServices((context, services) =>
                 {
-                    services.Configure<ApplicationOptions>(context.Configuration);
-
-                    services.AddSingleton<TrayIconManager>(provider => new TrayIconManager(ResourcePaths.TrayIcon));
-                    services.AddSingleton<SingleInstanceManager>();
+                    //configuration
+                    services.Configure<ApplicationConfiguration>(context.Configuration);
                     services.AddSingleton<ApplicationOptionsManager>();
-                    services.AddSingleton<SimConnectManager>();
-
                     services.AddTransient<ApplicationOptions>(provider => provider.GetRequiredService<ApplicationOptionsManager>().Options);
 
+                    //basic application lifecycle services
+                    services.AddSingleton<TrayIconManager>(provider => new TrayIconManager(ResourcePaths.TrayIcon));
+                    services.AddSingleton<SingleInstanceManager>();
+
+                    //repositories
+                    services.AddSingleton<DeviceRepository>();
+
+                    //managers
+                    services.AddSingleton<SimConnectManager>();
+                    services.AddSingleton<DeviceBindingManager>();
+                    
+                    //viewmodels
                     services.AddTransient<SimConnectManagerViewModel>(provider => new SimConnectManagerViewModel(provider.GetRequiredService<SimConnectManager>()));
                     services.AddTransient<MainWindowViewModel>(provider => new MainWindowViewModel(provider.GetRequiredService<SimConnectManagerViewModel>()));
+                    
+                    //views
                     services.AddTransient<MainWindow>();
                 })
                 .Build();
@@ -109,6 +123,8 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp
             }
             var scm = Host.Services.GetRequiredService<SimConnectManager>();
             await scm.StartAsync();
+            var dbm = Host.Services.GetRequiredService<DeviceBindingManager>();
+            dbm.Enable();
         }
 
         private void OnSecondInstanceStarted(object? sender, EventArgs e)
@@ -138,6 +154,9 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp
         {
             base.OnExit(e);
             Current.MainWindow?.Close();
+            _xTouchMini?.ResetDeviceState().Wait();
+            _xTouchMini?.DisconnectAsync().Wait();
+            _xTouchMini?.Dispose();
             using (Host)
             {
                 Host.StopAsync(TimeSpan.FromSeconds(2)).Wait();

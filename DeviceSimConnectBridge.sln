@@ -23,7 +23,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JannesP.DeviceSimConnectBridge.Device", "JannesP.DeviceSimConnectBridge.Device\JannesP.DeviceSimConnectBridge.Device.csproj", "{4C6464D6-64C0-4FD3-AA57-F5489CA79E8D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JannesP.DeviceSimConnectBridge.XTouchMiniDevice", "JannesP.DeviceSimConnectBridge.XTouchMiniDevice\JannesP.DeviceSimConnectBridge.XTouchMiniDevice.csproj", "{3524865A-E19F-4511-A699-6AA998F42296}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JannesP.DeviceSimConnectBridge.Device.XTouchMini", "JannesP.DeviceSimConnectBridge.Device.XTouchMini\JannesP.DeviceSimConnectBridge.Device.XTouchMini.csproj", "{3524865A-E19F-4511-A699-6AA998F42296}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

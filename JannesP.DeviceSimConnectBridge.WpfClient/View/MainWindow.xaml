@@ -8,7 +8,24 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800"
         d:DataContext="{d:DesignInstance IsDesignTimeCreatable=True, Type=vm:MainWindowViewModel}" WindowStyle="ThreeDBorderWindow">
-    <Grid>
-        <TextBlock Text="{Binding Path=SimConnectManagerViewModel.ConnectionStateText}" Grid.ColumnSpan="2"/>
-    </Grid>
+    <DockPanel>
+        <Grid DockPanel.Dock="Bottom" Height="24" Background="WhiteSmoke">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <Rectangle Grid.Row="0" Fill="DarkGray" Height="1"/>
+            <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="2">
+                <TextBlock TextAlignment="Center" VerticalAlignment="Center" Text="SimConnect Status: "/>
+                <Canvas Margin="2,0" Height="16" Width="16" Background="{Binding Path=SimConnectManagerViewModel.ConnectionStateBrush}" VerticalAlignment="Center"/>
+                <TextBlock TextAlignment="Center" VerticalAlignment="Center" Text="{Binding Path=SimConnectManagerViewModel.ConnectionStateText}"/>
+                <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Margin="4,0"/>
+            </StackPanel>
+        </Grid>
+        
+
+        <Grid>
+            <TextBlock Text="{Binding Path=SimConnectManagerViewModel.ConnectionStateText}" Grid.ColumnSpan="2"/>
+        </Grid>
+    </DockPanel>
 </Window>

@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using JannesP.DeviceSimConnectBridge.Device;
 
-namespace JannesP.DeviceSimConnectBridge.XTouchMiniDevice
+namespace JannesP.DeviceSimConnectBridge.Device.XTouchMini
 {
     class DeviceFader : IDeviceFader
     {
