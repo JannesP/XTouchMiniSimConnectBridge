@@ -66,5 +66,19 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Options
                 }
             }
         }
+
+        private Guid? _currentProfileUniqueId = null;
+        public Guid? CurrentProfileUniqueId
+        {
+            get => _currentProfileUniqueId;
+            set
+            {
+                if (_currentProfileUniqueId != value)
+                {
+                    _currentProfileUniqueId = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
     }
 }

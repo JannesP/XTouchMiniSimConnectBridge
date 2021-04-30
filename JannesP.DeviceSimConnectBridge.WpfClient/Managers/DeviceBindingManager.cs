@@ -3,63 +3,35 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using JannesP.DeviceSimConnectBridge.Device;
-using JannesP.DeviceSimConnectBridge.WpfApp.BindableActions;
-using JannesP.DeviceSimConnectBridge.WpfApp.BindableActions.SimConnectActions;
-using JannesP.DeviceSimConnectBridge.Device.XTouchMini;
-using JannesP.DeviceSimConnectBridge.WpfApp.ActionBindings;
-using Microsoft.Extensions.Logging;
-using JannesP.DeviceSimConnectBridge.WpfApp.Repositories;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using JannesP.DeviceSimConnectBridge.Device;
+using JannesP.DeviceSimConnectBridge.WpfApp.Repositories;
+using JannesP.DeviceSimConnectBridge.WpfApp.Options;
 
 namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
 {
     internal class DeviceBindingManager
     {
-        private class DeviceBindingConfiguration
-        {
-            public string? TechnicalDeviceIdentifier { get; set; }
-            public List<ActionBinding> Bindings { get; set; } = new List<ActionBinding>();
-        }
-
-        private readonly List<DeviceBindingConfiguration> _actionBindings;
         private readonly ILogger<DeviceBindingManager> _logger;
         private readonly DeviceRepository _deviceRepository;
+        private readonly ProfileManager _profileManager;
         private readonly IServiceProvider _serviceProvider;
 
         public DeviceBindingManager(IServiceProvider serviceProvider)
         {
             _logger = serviceProvider.GetRequiredService<ILogger<DeviceBindingManager>>();
             _deviceRepository = serviceProvider.GetRequiredService<DeviceRepository>();
+            _profileManager = serviceProvider.GetRequiredService<ProfileManager>();
 
-            _actionBindings = new List<DeviceBindingConfiguration>()
-            {
-                new DeviceBindingConfiguration()
-                {
-                    TechnicalDeviceIdentifier = "behringer_xtouch_mini",
-                    Bindings = new List<ActionBinding>()
-                    {
-                        new EncoderActionBinding()
-                        {
-                            DeviceControlId = 0x16,
-                            TurnClockwise = new SimConnectActionSimEvent()
-                            {
-                                SimConnectEventName = "HEADING_BUG_INC",
-                            },
-                            TurnAntiClockwise = new SimConnectActionSimEvent()
-                            {
-                                SimConnectEventName = "HEADING_BUG_DEC",
-                            },
-                        },
-                    }
-                }
-            };
             _serviceProvider = serviceProvider;
         }
 
-        public void Enable()
+        public async Task Enable()
         {
-            foreach (DeviceBindingConfiguration? bindingConfiguration in _actionBindings)
+            BindingProfile? profile = await _profileManager.GetCurrentProfileAsync().ConfigureAwait(false);
+            if (profile.BindingConfigurations == null) throw new Exception("F");
+            foreach (DeviceBindingConfiguration? bindingConfiguration in profile.BindingConfigurations)
             {
                 if (bindingConfiguration.TechnicalDeviceIdentifier == null)
                 {

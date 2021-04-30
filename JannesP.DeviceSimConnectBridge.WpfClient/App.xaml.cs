@@ -30,7 +30,6 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp
     {
         public IHost Host { get; }
         private readonly Lazy<ILogger<App>> _logger;
-        private IDevice? _xTouchMini;
 
         public App()
         {
@@ -56,9 +55,11 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp
                     services.AddSingleton<SingleInstanceManager>();
 
                     //repositories
+                    services.AddSingleton<ProfileRepository>();
                     services.AddSingleton<DeviceRepository>();
 
                     //managers
+                    services.AddSingleton<ProfileManager>();
                     services.AddSingleton<SimConnectManager>();
                     services.AddSingleton<DeviceBindingManager>();
                     
@@ -122,9 +123,9 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp
                 this.ShowCreateMainWindow();
             }
             var scm = Host.Services.GetRequiredService<SimConnectManager>();
-            await scm.StartAsync();
+            await scm.StartAsync().ConfigureAwait(false);
             var dbm = Host.Services.GetRequiredService<DeviceBindingManager>();
-            dbm.Enable();
+            await dbm.Enable().ConfigureAwait(false);
         }
 
         private void OnSecondInstanceStarted(object? sender, EventArgs e)
@@ -154,9 +155,8 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp
         {
             base.OnExit(e);
             Current.MainWindow?.Close();
-            _xTouchMini?.ResetDeviceState().Wait();
-            _xTouchMini?.DisconnectAsync().Wait();
-            _xTouchMini?.Dispose();
+            var repo = Host.Services.GetRequiredService<ProfileRepository>();
+            repo.PersistProfilesAsync().Wait();
             using (Host)
             {
                 Host.StopAsync(TimeSpan.FromSeconds(2)).Wait();

@@ -73,7 +73,7 @@ namespace JannesP.SimConnectWrapper
                             _simConnect.OnRecvClientData += OnSimConnect_OnRecvClientData;
                             _simConnect.OnRecvException += OnSimConnect_OnRecvException;
                             _simConnect.OnRecvSimobjectDataBytype += OnSimConnect_OnRecvSimobjectDataBytype;
-                        });
+                        }).ConfigureAwait(false);
                     }
                     catch (COMException)
                     {
@@ -135,7 +135,7 @@ namespace JannesP.SimConnectWrapper
                             {
                                 try
                                 {
-                                    TRes result = await RequestObjectByType<TRes>(dataDefinition);
+                                    TRes result = await RequestObjectByType<TRes>(dataDefinition).ConfigureAwait(false);
                                     IntervalRequestResult?.Invoke(this, new IntervalRequestResultEventArgs(result, intervalId, dataDefinition));
                                 }
                                 catch(Exception ex)
@@ -144,7 +144,7 @@ namespace JannesP.SimConnectWrapper
                                 }
                             }
                         }
-                        await Task.Delay(requestToRequestMs, cts.Token);
+                        await Task.Delay(requestToRequestMs, cts.Token).ConfigureAwait(false);
                     }
                 }, cts.Token);
             

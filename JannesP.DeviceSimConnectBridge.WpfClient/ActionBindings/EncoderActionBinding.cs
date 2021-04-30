@@ -61,13 +61,13 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ActionBindings
                     if (!action.IsInitialized) action.Initialize(base.ServiceProvider);
                     if (IgnoreSpeed)
                     {
-                        await action.ExecuteAsync();
+                        await action.ExecuteAsync().ConfigureAwait(false);
                     }
                     else
                     {
                         for (var remaining = Math.Abs(e.Steps); remaining > 0; remaining--)
                         {
-                            await action.ExecuteAsync();
+                            await action.ExecuteAsync().ConfigureAwait(false);
                         }
                     }
                 }

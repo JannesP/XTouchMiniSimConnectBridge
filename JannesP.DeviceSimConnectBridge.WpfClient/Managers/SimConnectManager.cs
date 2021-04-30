@@ -102,7 +102,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
         public async Task StopAsync()
         {
             _logger.LogInformation("Stopping SimConnectManager ...");
-            State oldState = await TransitionStateAsync(State.Disconnecting);
+            State oldState = await TransitionStateAsync(State.Disconnecting).ConfigureAwait(false);
             OnStateTransition(oldState, State.Disconnecting);
             try
             {
@@ -126,7 +126,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
             }
             finally
             {
-                await TransitionStateAsync(State.Disconnected);
+                await TransitionStateAsync(State.Disconnected).ConfigureAwait(false);
                 OnStateTransition(State.Disconnecting, State.Disconnected);
             }
             _logger.LogTrace("Stopped SimConnectManager!");
@@ -146,7 +146,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
 
         private async Task StartConnectLoopAsync()
         {
-            if (await TransitionStateAsync(State.Disconnected, State.Connecting))
+            if (await TransitionStateAsync(State.Disconnected, State.Connecting).ConfigureAwait(false))
             {
                 OnStateTransition(State.Disconnected, State.Connecting);
                 _ctsConnect = new CancellationTokenSource();
@@ -166,7 +166,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
                         if (await ConnectAsync().ConfigureAwait(false))
                         {
                             _logger.LogTrace("SimConnect Connect() == true");                            
-                            await TransitionStateAsync(State.Connecting, State.ConnectingWaitingForResponse);
+                            await TransitionStateAsync(State.Connecting, State.ConnectingWaitingForResponse).ConfigureAwait(false);
                             break;
                         }
                         else
@@ -204,7 +204,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
                 _simConnect.SimConnectOpen += OnSimConnect_SimConnectOpen;
                 _simConnect.SimConnectClose += OnSimConnect_SimConnectClose;
             }
-            return await _simConnect.TryConnect();
+            return await _simConnect.TryConnect().ConfigureAwait(false);
         }
 
         private async void OnSimConnect_SimConnectClose(object? sender, EventArgs e)
@@ -213,8 +213,8 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
             if (ConnectionState == State.Connected)
             {
                 _logger.LogInformation("State was '{0}', recycling for reconnect ...", nameof(State.Connected));
-                await StopAsync();
-                await StartAsync();
+                await StopAsync().ConfigureAwait(false);
+                await StartAsync().ConfigureAwait(false);
                 _logger.LogInformation("Recycle complete.");
             }
         }
@@ -222,7 +222,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
         private async void OnSimConnect_SimConnectOpen(object? sender, EventArgs e)
         {
             _logger.LogInformation("SimConnect connected.");
-            if (await TransitionStateAsync(State.ConnectingWaitingForResponse, State.Connected))
+            if (await TransitionStateAsync(State.ConnectingWaitingForResponse, State.Connected).ConfigureAwait(false))
             {
                 OnStateTransition(State.ConnectingWaitingForResponse, State.Connected);
             }
