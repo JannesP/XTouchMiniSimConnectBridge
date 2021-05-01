@@ -27,9 +27,9 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
             _serviceProvider = serviceProvider;
         }
 
-        public async Task Enable()
+        public void Enable()
         {
-            BindingProfile? profile = await _profileManager.GetCurrentProfileAsync().ConfigureAwait(false);
+            BindingProfile? profile = _profileManager.GetCurrentProfile();
             if (profile.BindingConfigurations == null) throw new Exception("F");
             foreach (DeviceBindingConfiguration? bindingConfiguration in profile.BindingConfigurations)
             {

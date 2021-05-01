@@ -29,6 +29,8 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Repositories
         private List<BindingProfile>? _profiles = null;
 
         public event EventHandler? ProfilesLoaded;
+        public event EventHandler<ProfileEventArgs>? ProfileAdded;
+        public event EventHandler<ProfileEventArgs>? ProfileRemoved;
 
         public ProfileRepository(ILogger<ProfileRepository> logger)
         {
@@ -43,16 +45,13 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Repositories
         /// </summary>
         /// <exception cref="UserMessageException"></exception>
         /// <returns>The list of profiles.</returns>
-        public async Task<List<BindingProfile>> GetProfilesAsync()
+        public List<BindingProfile> GetProfiles()
         {
             List<BindingProfile> result;
-            await _semProfiles.WaitAsync().ConfigureAwait(false);
+            _semProfiles.Wait();
             try
             {
-                if (_profiles == null)
-                {
-                    _profiles = await UnsafeLoadProfilesAsync().ConfigureAwait(false);
-                }
+                EnsureProfilesLoaded();
                 result = _profiles;
             }
             finally
@@ -62,15 +61,12 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Repositories
             return result;
         }
 
-        public async Task AddProfileAsync(BindingProfile profile)
+        public void AddProfile(BindingProfile profile)
         {
-            await _semProfiles.WaitAsync().ConfigureAwait(false);
+            _semProfiles.Wait();
             try
             {
-                if (_profiles == null)
-                {
-                    _profiles = await UnsafeLoadProfilesAsync().ConfigureAwait(false);
-                }
+                EnsureProfilesLoaded();
                 if (_profiles.Any(p => p.FileName == profile.FileName || p.Name == profile.Name))
                 {
                     throw new UserMessageException("A profile with the same filename or name already exists.");
@@ -81,7 +77,39 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Repositories
             {
                 _semProfiles.Release();
             }
+            ProfileAdded?.Invoke(profile, new ProfileEventArgs(profile));
+        }
 
+        public async Task DeleteProfile(Guid profileId)
+        {
+            BindingProfile bp;
+            _semProfiles.Wait();
+            try
+            {
+                EnsureProfilesLoaded();
+                bp = _profiles.Single(p => p.UniqueId == profileId);
+                if (bp.FileName == null) throw new Exception($"Profile with id {profileId} didn't have a FileName");
+                string filePath = Path.Combine(_directoryInfo.FullName, $"{bp.FileName}.profile.json");
+                await Task.Run(() =>
+                {
+                    if (File.Exists(filePath))
+                    {
+                        File.Delete(filePath);
+                    }
+                });
+                _profiles.Remove(bp);
+            }
+            finally
+            {
+                _semProfiles.Release();
+            }
+            ProfileRemoved?.Invoke(this, new ProfileEventArgs(bp));
+        }
+
+        [MemberNotNull(nameof(_profiles))]
+        private void EnsureProfilesLoaded()
+        {
+            if (_profiles == null) throw new InvalidOperationException("Profiles aren't loaded yet. Please call 'Task LoadProfilesAsync()' first.");
         }
 
         /// <summary>
@@ -191,7 +219,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Repositories
                 {
                     try
                     {
-                        ProfilesLoaded?.Invoke(this, new EventArgs());
+                        ProfilesLoaded?.Invoke(this, EventArgs.Empty);
                     }
                     catch (Exception ex)
                     {
@@ -200,6 +228,16 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Repositories
                 });
             }
             return _profiles;
+        }
+
+        public class ProfileEventArgs : EventArgs
+        {
+            public BindingProfile Profile { get; }
+
+            public ProfileEventArgs(BindingProfile profile)
+            {
+                Profile = profile;
+            }
         }
     }
 }

@@ -16,6 +16,7 @@ using JannesP.DeviceSimConnectBridge.WpfApp.Resources;
 using JannesP.DeviceSimConnectBridge.WpfApp.Utility;
 using JannesP.DeviceSimConnectBridge.WpfApp.View;
 using JannesP.DeviceSimConnectBridge.WpfApp.ViewModel;
+using JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.WindowViewModels;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -64,10 +65,12 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp
                     services.AddSingleton<DeviceBindingManager>();
                     
                     //viewmodels
-                    services.AddTransient<SimConnectManagerViewModel>(provider => new SimConnectManagerViewModel(provider.GetRequiredService<SimConnectManager>()));
-                    services.AddTransient<MainWindowViewModel>(provider => new MainWindowViewModel(provider.GetRequiredService<SimConnectManagerViewModel>()));
-                    
+                    services.AddTransient<SimConnectManagerViewModel>();
+                    services.AddTransient<MainWindowViewModel>();
+                    services.AddTransient<ProfileManagementWindowViewModel>();
+
                     //views
+                    services.AddTransient<ProfileManagementWindow>();
                     services.AddTransient<MainWindow>();
                 })
                 .Build();
@@ -96,7 +99,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp
 
             singleInstanceManager.SecondInstanceStarted += OnSecondInstanceStarted;
 
-            var createUi = true;
+            bool createUi = true;
             foreach (string arg in e.Args)
             {
                 switch (arg)
@@ -122,10 +125,12 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp
                 _logger.Value.LogInformation("Creating MainWindow on startup.");
                 this.ShowCreateMainWindow();
             }
-            var scm = Host.Services.GetRequiredService<SimConnectManager>();
+            ProfileRepository profileRepository = Host.Services.GetRequiredService<ProfileRepository>();
+            await profileRepository.LoadProfilesAsync().ConfigureAwait(false);
+            SimConnectManager scm = Host.Services.GetRequiredService<SimConnectManager>();
             await scm.StartAsync().ConfigureAwait(false);
-            var dbm = Host.Services.GetRequiredService<DeviceBindingManager>();
-            await dbm.Enable().ConfigureAwait(false);
+            DeviceBindingManager dbm = Host.Services.GetRequiredService<DeviceBindingManager>();
+            dbm.Enable();
         }
 
         private void OnSecondInstanceStarted(object? sender, EventArgs e)
@@ -134,10 +139,8 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp
             base.Dispatcher.Invoke(this.ShowCreateMainWindow);
         }
 
-        private void App_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
-        {
-            _logger.Value.LogCritical(e.Exception, "Error caught in App_DispatcherUnhandledException, crashing ...");
-        }
+        private void App_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e) 
+            => _logger.Value.LogCritical(e.Exception, "Error caught in App_DispatcherUnhandledException, crashing ...");
 
         private void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
@@ -155,7 +158,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp
         {
             base.OnExit(e);
             Current.MainWindow?.Close();
-            var repo = Host.Services.GetRequiredService<ProfileRepository>();
+            ProfileRepository? repo = Host.Services.GetRequiredService<ProfileRepository>();
             repo.PersistProfilesAsync().Wait();
             using (Host)
             {

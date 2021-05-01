@@ -66,13 +66,13 @@ namespace JannesP.DeviceSimConnectBridge.Device.XTouchMini
         protected override void OnConnected()
         {
             base.OnConnected();
-            Connected?.Invoke(this, new EventArgs());
+            Connected?.Invoke(this, EventArgs.Empty);
         }
 
         protected override void OnDisconnected()
         {
             base.OnDisconnected();
-            Disconnected?.Invoke(this, new EventArgs());
+            Disconnected?.Invoke(this, EventArgs.Empty);
         }
 
         protected override void OnEncoderTurned(XTouchMiniMcEncoder encoder, int ticks)

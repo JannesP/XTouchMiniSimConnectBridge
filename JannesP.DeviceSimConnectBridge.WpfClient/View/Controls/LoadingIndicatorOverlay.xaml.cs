@@ -16,11 +16,11 @@ using System.Windows.Shapes;
 namespace JannesP.DeviceSimConnectBridge.WpfApp.View.Controls
 {
     /// <summary>
-    /// Interaction logic for ListMappingEditor.xaml
+    /// Interaction logic for LoadingIndicatorOverlay.xaml
     /// </summary>
-    public partial class ListMappingEditor : UserControl
+    public partial class LoadingIndicatorOverlay : UserControl
     {
-        public ListMappingEditor()
+        public LoadingIndicatorOverlay()
         {
             InitializeComponent();
         }

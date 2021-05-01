@@ -12,7 +12,9 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using JannesP.DeviceSimConnectBridge.WpfApp.ViewModel;
+using JannesP.DeviceSimConnectBridge.WpfApp.Extensions;
+using JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.WindowViewModels;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace JannesP.DeviceSimConnectBridge.WpfApp.View
 {
@@ -21,10 +23,19 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.View
     /// </summary>
     public partial class MainWindow : Window
     {
-        public MainWindow(MainWindowViewModel viewModel)
+        private readonly IServiceProvider _serviceProvider;
+
+        public MainWindow(IServiceProvider serviceProvider, MainWindowViewModel viewModel)
         {
-            this.DataContext = viewModel;
+            base.DataContext = viewModel;
             InitializeComponent();
+            _serviceProvider = serviceProvider;
+        }
+
+        private void ButtonOpenProfileManager_Click(object sender, RoutedEventArgs e)
+        {
+            ProfileManagementWindow profileManagementWindow = _serviceProvider.GetRequiredService<ProfileManagementWindow>();
+            profileManagementWindow.ShowDialogCentered(this);
         }
     }
 }

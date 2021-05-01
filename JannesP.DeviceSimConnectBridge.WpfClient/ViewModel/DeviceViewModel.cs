@@ -5,15 +5,25 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using JannesP.DeviceSimConnectBridge.Device;
-using JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.DesignTimeModels;
+using JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.DesignTime;
 
 namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel
 {
-    public class DeviceViewModel : ViewModelBase
+    public interface IDeviceViewModel
+    {
+        string DisplayName { get; }
+        string StatusString { get; }
+    }
+
+    public class DesignTimeDeviceViewModel : IDeviceViewModel
+    {
+        public string DisplayName => "DesignTime Device";
+        public string StatusString => "DesignStatus";
+    }
+
+    public class DeviceViewModel : ViewModelBase, IDeviceViewModel
     {
         private readonly IDevice _device;
-
-        public DeviceViewModel() : this(new DesignTimeDevice()) { }
 
         public DeviceViewModel(IDevice device)
         {

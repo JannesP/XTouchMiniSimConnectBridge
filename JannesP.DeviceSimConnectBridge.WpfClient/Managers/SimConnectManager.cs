@@ -68,11 +68,9 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
             throw new Exception("Error transitioning state.");
         }
 
-        private void OnStateTransition(State oldState, State newState)
-        {
-            StateChanged?.Invoke(this, new StateChangedEventArgs(oldState, newState));
-        }
-        
+        private void OnStateTransition(State oldState, State newState) 
+            => StateChanged?.Invoke(this, new StateChangedEventArgs(oldState, newState));
+
 
 
         private void OnOptions_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -142,6 +140,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
             _simConnect?.Dispose();
             _simConnect = null;
             TransitionStateAsync(State.Disconnected).Wait();
+            GC.SuppressFinalize(this);
         }
 
         private async Task StartConnectLoopAsync()
@@ -185,7 +184,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Connect loop error!");
-                ConnectLoopError?.Invoke(this, new EventArgs());
+                ConnectLoopError?.Invoke(this, EventArgs.Empty);
             }
             finally
             {

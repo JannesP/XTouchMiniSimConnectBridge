@@ -9,7 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace JannesP.DeviceSimConnectBridge.WpfApp.Extensions
 {
-    internal static class ApplicationExtensions
+    static internal class ApplicationExtensions
     {
         /// <summary>
         /// Shows the main window or creates it.
@@ -47,9 +47,6 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Extensions
         /// Shows the main window or creates it.
         /// </summary>
         /// <returns></returns>
-        public static MainWindow ShowCreateMainWindow(this App app)
-        {
-            return app.ShowCreateMainWindow(out _);
-        }
+        public static MainWindow ShowCreateMainWindow(this App app) => app.ShowCreateMainWindow(out _);
     }
 }

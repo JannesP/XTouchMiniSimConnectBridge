@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -23,17 +24,18 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
             _profileRepository = profileRepository;
         }
 
-        public async Task<BindingProfile> GetCurrentProfileAsync()
+        public BindingProfile GetCurrentProfile()
         {
-            await _semProfile.WaitAsync().ConfigureAwait(false);
+            BindingProfile result;
+            bool profileChanged = false;
+            _semProfile.Wait();
             try
             {
-                BindingProfile result;
-                List<BindingProfile> profiles = await _profileRepository.GetProfilesAsync().ConfigureAwait(false);
+                List<BindingProfile> profiles = _profileRepository.GetProfiles();
                 if (_options.CurrentProfileUniqueId == null)
                 {
-                    result = await CreateSetDefaultProfileAsync(profiles).ConfigureAwait(false);
-                    CurrentProfileChanged?.Invoke(this, new ProfileChangedEventArgs(result));
+                    result = CreateSetDefaultProfile(profiles);
+                    profileChanged = true;
                 }
                 else
                 {
@@ -47,31 +49,74 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
                         }
                         else
                         {
-                            profile = await CreateSetDefaultProfileAsync(profiles).ConfigureAwait(false);
+                            profile = CreateSetDefaultProfile(profiles);
                         }
-                        CurrentProfileChanged?.Invoke(this, new ProfileChangedEventArgs(profile));
+                        profileChanged = true;
                     }
                     result = profile;
                 }
-                return result;
             }
             finally
             {
                 _semProfile.Release();
             }
-            
+            if (profileChanged) OnCurrentProfileChanged(result);
+            return result;
         }
 
-        private async Task<BindingProfile> CreateSetDefaultProfileAsync(List<BindingProfile> profiles)
+        private void OnCurrentProfileChanged(BindingProfile profile) 
+            => CurrentProfileChanged?.Invoke(this, new ProfileChangedEventArgs(profile));
+
+        public void SetCurrentProfile(Guid uniqueId)
+        {
+            BindingProfile? profile = null;
+            bool profileChanged = false;
+            _semProfile.Wait();
+            try
+            {
+                List<BindingProfile>? profiles = _profileRepository.GetProfiles();
+                profile = profiles.Single(p => p.UniqueId == uniqueId);
+                if (_options.CurrentProfileUniqueId != profile.UniqueId)
+                {
+                    _options.CurrentProfileUniqueId = profile.UniqueId;
+                    profileChanged = true;
+                }
+            }
+            finally
+            {
+                _semProfile.Release();
+            }
+            if (profileChanged && profile != null) 
+            {
+                OnCurrentProfileChanged(profile);
+            }
+        }
+
+        private BindingProfile CreateSetDefaultProfile(List<BindingProfile> profiles)
         {
             BindingProfile? defaultProfile = profiles.FirstOrDefault();
             if (defaultProfile == null)
             {
                 defaultProfile = BindingProfile.CreateDefaultProfile();
-                await _profileRepository.AddProfileAsync(defaultProfile).ConfigureAwait(false);
+                _profileRepository.AddProfile(defaultProfile);
             }
             _options.CurrentProfileUniqueId = defaultProfile.UniqueId;
             return defaultProfile;
+        }
+
+        public void CreateNewProfile(string name) 
+        {
+            char[] fileNameInvalidChars = Path.GetInvalidFileNameChars();
+            string fileName = new(name.ToLowerInvariant().Select(c => fileNameInvalidChars.Contains(c) ? '_' : c).ToArray());
+            
+            var profile = new BindingProfile() 
+            { 
+                UniqueId = Guid.NewGuid(),
+                Name = name,
+                FileName = fileName,
+            };
+
+            _profileRepository.AddProfile(profile);
         }
 
         public class ProfileChangedEventArgs : EventArgs

@@ -4,10 +4,10 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:JannesP.DeviceSimConnectBridge.WpfApp.View"
-        xmlns:vm="clr-namespace:JannesP.DeviceSimConnectBridge.WpfApp.ViewModel"
+        xmlns:vm="clr-namespace:JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.WindowViewModels"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800"
-        d:DataContext="{d:DesignInstance IsDesignTimeCreatable=True, Type=vm:MainWindowViewModel}" WindowStyle="ThreeDBorderWindow">
+        d:DataContext="{d:DesignInstance IsDesignTimeCreatable=True, Type=vm:DesignTimeMainWindowViewModel}" WindowStyle="ThreeDBorderWindow">
     <DockPanel>
         <Grid DockPanel.Dock="Bottom" Height="24" Background="WhiteSmoke">
             <Grid.RowDefinitions>
@@ -23,9 +23,9 @@
             </StackPanel>
         </Grid>
         
-
-        <Grid>
+        <StackPanel Margin="4" Orientation="Vertical">
             <TextBlock Text="{Binding Path=SimConnectManagerViewModel.ConnectionStateText}" Grid.ColumnSpan="2"/>
-        </Grid>
+            <Button Content="Open Profile Manager" Grid.ColumnSpan="2" Click="ButtonOpenProfileManager_Click"/>
+        </StackPanel>
     </DockPanel>
 </Window>

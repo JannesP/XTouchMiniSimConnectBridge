@@ -23,10 +23,10 @@ namespace JannesP.SimConnectWrapper
 
         private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1); 
 
-        private Dictionary<int, SimConnectDataDefinition> _registeredDataDefinitions = new Dictionary<int, SimConnectDataDefinition>();
-        private Dictionary<string, int> _registeredEventDefinitions = new Dictionary<string, int>();
-        private Dictionary<int, (Task, CancellationTokenSource)> _registeredIntervalRequests = new Dictionary<int, (Task, CancellationTokenSource)>();
-        private Dictionary<uint, SimConnectRequest> _requests = new Dictionary<uint, SimConnectRequest>();
+        private readonly Dictionary<int, SimConnectDataDefinition> _registeredDataDefinitions = new Dictionary<int, SimConnectDataDefinition>();
+        private readonly Dictionary<string, int> _registeredEventDefinitions = new Dictionary<string, int>();
+        private readonly Dictionary<int, (Task, CancellationTokenSource)> _registeredIntervalRequests = new Dictionary<int, (Task, CancellationTokenSource)>();
+        private readonly Dictionary<uint, SimConnectRequest> _requests = new Dictionary<uint, SimConnectRequest>();
         private readonly string _appName;
         private MessagePumpWindow? _msgPump;
         private SimConnect? _simConnect;
@@ -88,10 +88,7 @@ namespace JannesP.SimConnectWrapper
             }
         }
 
-        public Task<TRes> RequestObjectByType<TRes>(SimConnectDataDefinition dataDefinition)
-        {
-            return Request(new SimConnectRequestObjectByType<TRes>(dataDefinition));
-        }
+        public Task<TRes> RequestObjectByType<TRes>(SimConnectDataDefinition dataDefinition) => Request(new SimConnectRequestObjectByType<TRes>(dataDefinition));
 
         public async Task<TRes> Request<TRes>(SimConnectRequest<TRes> request)
         {
@@ -221,7 +218,7 @@ namespace JannesP.SimConnectWrapper
                 _simConnect = null;
                 _registeredDataDefinitions.Clear();
                 _registeredEventDefinitions.Clear();
-                foreach (var req in _requests)
+                foreach (KeyValuePair<uint, SimConnectRequest> req in _requests)
                 {
                     try
                     {
@@ -246,7 +243,7 @@ namespace JannesP.SimConnectWrapper
         {
             if (_requests.TryGetValue(data.dwRequestID, out SimConnectRequest request))
             {
-                var result = data.dwData?.FirstOrDefault();
+                object? result = data.dwData?.FirstOrDefault();
                 if (result == null)
                 {
                     request.SetException(new Exception("Request got no result."));
@@ -271,7 +268,7 @@ namespace JannesP.SimConnectWrapper
             await _semaphore.WaitAsync().ConfigureAwait(false);
             try
             {
-                var request = _requests.FirstOrDefault(kvp => kvp.Value.SendId == data.dwSendID).Value;
+                SimConnectRequest? request = _requests.FirstOrDefault(kvp => kvp.Value.SendId == data.dwSendID).Value;
                 if (request != null)
                 {
                     _requests.Remove(request.RequestId);
@@ -302,10 +299,7 @@ namespace JannesP.SimConnectWrapper
             SimConnectOpen?.Invoke(this, new System.EventArgs());
         }
 
-        private void OnSimConnect_OnRecvClientData(SimConnect sender, SIMCONNECT_RECV_CLIENT_DATA data)
-        {
-            Console.WriteLine("OnSimConnect_OnRecvClientData");
-        }
+        private void OnSimConnect_OnRecvClientData(SimConnect sender, SIMCONNECT_RECV_CLIENT_DATA data) => Console.WriteLine("OnSimConnect_OnRecvClientData");
 
         private IntPtr WndProc(IntPtr hWnd, WindowMessage msg, IntPtr wParam, IntPtr lParam)
         {
