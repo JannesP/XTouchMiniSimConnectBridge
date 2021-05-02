@@ -11,5 +11,6 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp
         public static string ProfileDirectory => "Profiles";
         public static string ProfileFileEnding => ".profile.json";
         public static string DefaultProfileName => "Default";
+        public static string GithubLink => "https://github.com/JannesP/XTouchMiniSimConnectBridge";
     }
 }

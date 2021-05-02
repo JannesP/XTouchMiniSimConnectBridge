@@ -48,6 +48,56 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Options
                     {
                         new EncoderActionBinding()
                         {
+                            DeviceControlId = 0x10,
+                            IgnoreSpeed = true,
+                            TurnClockwise = new SimConnectActionSimEvent()
+                            {
+                                SimConnectEventName = "COM_RADIO_WHOLE_INC",
+                            },
+                            TurnAntiClockwise = new SimConnectActionSimEvent()
+                            {
+                                SimConnectEventName = "COM_RADIO_WHOLE_DEC",
+                            },
+                        },
+                        new EncoderActionBinding()
+                        {
+                            DeviceControlId = 0x11,
+                            IgnoreSpeed = true,
+                            TurnClockwise = new SimConnectActionSimEvent()
+                            {
+                                SimConnectEventName = "COM_RADIO_FRACT_INC",
+                            },
+                            TurnAntiClockwise = new SimConnectActionSimEvent()
+                            {
+                                SimConnectEventName = "COM_RADIO_FRACT_DEC",
+                            },
+                        },
+                        new EncoderActionBinding()
+                        {
+                            DeviceControlId = 0x14,
+                            TurnClockwise = new SimConnectActionSimEvent()
+                            {
+                                SimConnectEventName = "AP_VS_VAR_INC",
+                            },
+                            TurnAntiClockwise = new SimConnectActionSimEvent()
+                            {
+                                SimConnectEventName = "AP_VS_VAR_DEC",
+                            },
+                        },
+                        new EncoderActionBinding()
+                        {
+                            DeviceControlId = 0x15,
+                            TurnClockwise = new SimConnectActionSimEvent()
+                            {
+                                SimConnectEventName = "AP_SPD_VAR_INC",
+                            },
+                            TurnAntiClockwise = new SimConnectActionSimEvent()
+                            {
+                                SimConnectEventName = "AP_SPD_VAR_DEC",
+                            },
+                        },
+                        new EncoderActionBinding()
+                        {
                             DeviceControlId = 0x16,
                             TurnClockwise = new SimConnectActionSimEvent()
                             {
@@ -56,6 +106,27 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Options
                             TurnAntiClockwise = new SimConnectActionSimEvent()
                             {
                                 SimConnectEventName = "HEADING_BUG_DEC",
+                            },
+                        },
+                        new EncoderActionBinding()
+                        {
+                            DeviceControlId = 0x17,
+                            TurnClockwise = new SimConnectActionSimEvent()
+                            {
+                                SimConnectEventName = "AP_ALT_VAR_INC",
+                            },
+                            TurnAntiClockwise = new SimConnectActionSimEvent()
+                            {
+                                SimConnectEventName = "AP_ALT_VAR_DEC",
+                            },
+                        },
+                        new ButtonActionBinding()
+                        {
+                            DeviceControlId = 0x26,
+                            TriggerOnRelease = false,
+                            ButtonPressed = new SimConnectActionSimEvent()
+                            {
+                                SimConnectEventName = "HEADING_BUG_SET",
                             },
                         },
                     }

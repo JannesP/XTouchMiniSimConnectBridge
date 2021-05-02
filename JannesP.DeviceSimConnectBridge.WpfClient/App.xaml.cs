@@ -63,8 +63,9 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp
                     services.AddSingleton<ProfileManager>();
                     services.AddSingleton<SimConnectManager>();
                     services.AddSingleton<DeviceBindingManager>();
-                    
+
                     //viewmodels
+                    services.AddTransient<ProfileManagementViewModel>();
                     services.AddTransient<SimConnectManagerViewModel>();
                     services.AddTransient<MainWindowViewModel>();
                     services.AddTransient<ProfileManagementWindowViewModel>();
@@ -120,17 +121,20 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp
             trayIconManager.ItemExitClick += (sender, eventArgs) => base.Shutdown(0);
             trayIconManager.DoubleClick += (sender, eventArgs) => this.ShowCreateMainWindow();
 
+            ProfileRepository profileRepository = Host.Services.GetRequiredService<ProfileRepository>();
+            await profileRepository.LoadProfilesAsync();
+
             if (createUi)
             {
                 _logger.Value.LogInformation("Creating MainWindow on startup.");
                 this.ShowCreateMainWindow();
             }
-            ProfileRepository profileRepository = Host.Services.GetRequiredService<ProfileRepository>();
-            await profileRepository.LoadProfilesAsync().ConfigureAwait(false);
+
             SimConnectManager scm = Host.Services.GetRequiredService<SimConnectManager>();
-            await scm.StartAsync().ConfigureAwait(false);
+            await scm.StartAsync();
             DeviceBindingManager dbm = Host.Services.GetRequiredService<DeviceBindingManager>();
             dbm.Enable();
+            
         }
 
         private void OnSecondInstanceStarted(object? sender, EventArgs e)

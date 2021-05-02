@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,6 +15,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ActionBindings
         public int? DeviceControlId { get; set; }
         public string? Description { get; set; }
 
+        [MemberNotNull(nameof(Device), nameof(ServiceProvider))]
         public virtual void Enable(IServiceProvider serviceProvider, IDevice device)
         {
             ServiceProvider = serviceProvider;

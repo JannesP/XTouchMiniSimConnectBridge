@@ -22,6 +22,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
         {
             _options = options;
             _profileRepository = profileRepository;
+            GetCurrentProfile();
         }
 
         public BindingProfile GetCurrentProfile()

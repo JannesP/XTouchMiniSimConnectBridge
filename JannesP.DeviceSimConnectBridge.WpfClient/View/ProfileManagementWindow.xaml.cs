@@ -23,7 +23,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.View
     /// </summary>
     public partial class ProfileManagementWindow : Window
     {
-        private readonly ProfileManagementWindowViewModel _viewModel;
+        private readonly IProfileManagementWindowViewModel _viewModel;
 
         public ProfileManagementWindow(ProfileManagementWindowViewModel viewModel)
         {
@@ -43,10 +43,10 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.View
 
         private void AddProfileButton_Click(object sender, RoutedEventArgs e)
         {
-            var dialog = new TextInputDialog("Enter a name.", "Please enter a name for the new profile.", _viewModel.ValidateNewProfileName);
+            var dialog = new TextInputDialog("Enter a name.", "Please enter a name for the new profile.", _viewModel.ProfileManagement.ValidateNewProfileName);
             if (dialog.ShowDialogCentered() == true)
             {
-                _viewModel.CommandAddProfile.Execute(dialog.Result);
+                _viewModel.ProfileManagement.CommandAddProfile.Execute(dialog.Result);
             }
         }
 
@@ -57,10 +57,10 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.View
                 throw new Exception("Expected to find a DataContext of type IBindingProfileViewModel.");
             }
 
-            var dialog = new TextInputDialog("Enter a name.", $"Please enter a new name for the profile \"{profile.Name}\".", _viewModel.ValidateNewProfileName);
+            var dialog = new TextInputDialog("Enter a name.", $"Please enter a new name for the profile \"{profile.Name}\".", _viewModel.ProfileManagement.ValidateNewProfileName);
             if (dialog.ShowDialogCentered() == true && dialog.Result != null)
             {
-                _viewModel.RenameProfile(profile, dialog.Result);
+                _viewModel.ProfileManagement.RenameProfile(profile, dialog.Result);
             }
         }
 
@@ -81,7 +81,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.View
             {
                 throw new Exception("Expected to find a DataContext of type IBindingProfileViewModel.");
             }
-            _viewModel.ChangeProfile(profile);
+            _viewModel.ProfileManagement.ChangeProfile(profile);
         }
     }
 }

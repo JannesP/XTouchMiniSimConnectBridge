@@ -44,6 +44,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
                     _logger.LogInformation("Couldn't find device '{0}' for a BindingConfiguration.", bindingConfiguration.TechnicalDeviceIdentifier);
                     continue;
                 }
+                device.ConnectAsync();
                 bindingConfiguration.Bindings.ForEach(ab => ab.Enable(_serviceProvider, device));
             }
         }

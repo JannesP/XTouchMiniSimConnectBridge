@@ -10,9 +10,6 @@
         Title="Manage Profiles" Height="400" Width="400" WindowStartupLocation="CenterOwner"
         d:DataContext="{d:DesignInstance IsDesignTimeCreatable=True, Type=vm:DesignTimeProfileManagementWindowViewModel}" 
         WindowStyle="ThreeDBorderWindow" KeyDown="Window_KeyDown">
-    <Window.Resources>
-        <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
-    </Window.Resources>
     <Grid>
         <Grid Margin="4,4,4,4" Grid.ColumnSpan="2">
             <Grid.RowDefinitions>
@@ -20,7 +17,7 @@
                 <RowDefinition Height="auto"/>
             </Grid.RowDefinitions>
             <ScrollViewer Grid.Row="0" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
-                <ListView ItemsSource="{Binding Path=ProfileList}" HorizontalContentAlignment="Stretch">
+                <ListView ItemsSource="{Binding Path=ProfileManagement.ProfileList}" HorizontalContentAlignment="Stretch">
                     <ListView.ItemContainerStyle>
                         <Style TargetType="ListViewItem">
                             <Setter Property="Padding" Value="0"/>
@@ -57,7 +54,7 @@
                                         <Button Margin="4,0,0,0"
                                             Content="Delete" 
                                             Click="DeleteProfileButton_Click" 
-                                            Command="{Binding Path=DataContext.CommandDeleteProfile, RelativeSource={RelativeSource AncestorType=ListView}}"
+                                            Command="{Binding Path=DataContext.ProfileManagement.CommandDeleteProfile, RelativeSource={RelativeSource AncestorType=ListView}}"
                                             CommandParameter="{Binding}"/>
                                     </StackPanel>
 
@@ -76,6 +73,5 @@
                 <Button Grid.Column="1" Content="Add new Profile" Click="AddProfileButton_Click" HorizontalAlignment="Center"/>
             </Grid>
         </Grid>
-        <controls:LoadingIndicatorOverlay Visibility="{Binding Path=IsLoading, Converter={StaticResource BoolToVisConverter}}" Grid.ColumnSpan="2"/>
     </Grid>
 </Window>

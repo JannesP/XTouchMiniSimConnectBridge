@@ -10,7 +10,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Repositories
 {
     public class DeviceRepository
     {
-        private readonly Dictionary<string, IDevice> _availableDevices = new Dictionary<string, IDevice>();
+        private readonly Dictionary<string, IDevice> _availableDevices = new();
 
         public DeviceRepository()
         {
@@ -19,10 +19,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Repositories
         }
 
         public IReadOnlyDictionary<string, IDevice> AvailableDevices => _availableDevices;
-        public void AddDevice(IDevice device)
-        {
-            _availableDevices.Add(device.TechnicalDeviceIdentifier, device);
-        }
+        public void AddDevice(IDevice device) => _availableDevices.Add(device.TechnicalDeviceIdentifier, device);
 
         public IDevice? FindDeviceByTechnicalIdentifier(string identifier) => AvailableDevices.GetValueOrDefault(identifier);
     }
