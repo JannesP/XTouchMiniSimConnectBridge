@@ -7,20 +7,26 @@
         xmlns:vm="clr-namespace:JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.WindowViewModels"
         xmlns:controls="clr-namespace:JannesP.DeviceSimConnectBridge.WpfApp.View.Controls"
         mc:Ignorable="d"
-        Title="Manage Profiles" Height="400" Width="400"
-        d:DataContext="{d:DesignInstance IsDesignTimeCreatable=True, Type=vm:DesignTimeProfileManagementWindowViewModel}" WindowStyle="ThreeDBorderWindow">
+        Title="Manage Profiles" Height="400" Width="400" WindowStartupLocation="CenterOwner"
+        d:DataContext="{d:DesignInstance IsDesignTimeCreatable=True, Type=vm:DesignTimeProfileManagementWindowViewModel}" 
+        WindowStyle="ThreeDBorderWindow" KeyDown="Window_KeyDown">
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
     </Window.Resources>
     <Grid>
-        <StackPanel Orientation="Vertical" Margin="4,4,4,4" Grid.ColumnSpan="2">
-            <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+        <Grid Margin="4,4,4,4" Grid.ColumnSpan="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="auto"/>
+            </Grid.RowDefinitions>
+            <ScrollViewer Grid.Row="0" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
                 <ListView ItemsSource="{Binding Path=ProfileList}" HorizontalContentAlignment="Stretch">
                     <ListView.ItemContainerStyle>
                         <Style TargetType="ListViewItem">
                             <Setter Property="Padding" Value="0"/>
-                            <Setter Property="Margin" Value="0"/>
+                            <Setter Property="Margin" Value="1"/>
                             <Setter Property="BorderThickness" Value="1"/>
+                            <EventSetter Event="MouseDoubleClick" Handler="ProfileListViewItem_MouseDoubleClick"/>
                         </Style>
                     </ListView.ItemContainerStyle>
                     <ListView.ItemTemplate>
@@ -47,7 +53,8 @@
                                     <TextBlock Grid.Column="0" Text="{Binding Path=Name}" />
 
                                     <StackPanel Grid.Column="2" Orientation="Horizontal">
-                                        <Button 
+                                        <Button Content="Rename" Click="RenameProfileButton_Click"/>
+                                        <Button Margin="4,0,0,0"
                                             Content="Delete" 
                                             Click="DeleteProfileButton_Click" 
                                             Command="{Binding Path=DataContext.CommandDeleteProfile, RelativeSource={RelativeSource AncestorType=ListView}}"
@@ -60,7 +67,7 @@
                     </ListView.ItemTemplate>
                 </ListView>
             </ScrollViewer>
-            <Grid Margin="0,4">
+            <Grid Grid.Row="1" Margin="0,4,0,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="auto"/>
@@ -68,7 +75,7 @@
                 </Grid.ColumnDefinitions>
                 <Button Grid.Column="1" Content="Add new Profile" Click="AddProfileButton_Click" HorizontalAlignment="Center"/>
             </Grid>
-        </StackPanel>
+        </Grid>
         <controls:LoadingIndicatorOverlay Visibility="{Binding Path=IsLoading, Converter={StaticResource BoolToVisConverter}}" Grid.ColumnSpan="2"/>
     </Grid>
 </Window>

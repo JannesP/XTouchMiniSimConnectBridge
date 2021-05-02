@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -24,6 +26,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.WindowViewModels
         ICommand CommandDeleteProfile { get; }
         ICommand CommandAddProfile { get; }
         string? ErrorMessage { get; }
+        ValidationResult? ValidateNewProfileName(object value);
     }
 
     public class DesignTimeProfileManagementWindowViewModel : IProfileManagementWindowViewModel
@@ -46,6 +49,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.WindowViewModels
         public ICommand CommandDeleteProfile { get; } = RelayCommand.Empty;
         public ICommand CommandAddProfile { get; } = RelayCommand.Empty;
         public string? ErrorMessage => "Design Error YEP";
+        public ValidationResult? ValidateNewProfileName(object value) => null;
     }
 
     public class ProfileManagementWindowViewModel : ViewModelBase, IProfileManagementWindowViewModel
@@ -64,22 +68,46 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.WindowViewModels
             _profileRepository = profileRepository;
             _logger = logger;
             WeakEventManager<ProfileManager, ProfileManager.ProfileChangedEventArgs>.AddHandler(profileManager, nameof(profileManager.CurrentProfileChanged), ProfileManager_OnCurrentProfileChanged);
+            WeakEventManager<ProfileRepository, ProfileRepository.ProfileEventArgs>.AddHandler(profileRepository, nameof(profileRepository.ProfileAdded), ProfileRepository_OnProfileAdded);
+            WeakEventManager<ProfileRepository, ProfileRepository.ProfileEventArgs>.AddHandler(profileRepository, nameof(profileRepository.ProfileRemoved), ProfileRepository_OnProfileRemoved);
             ProfileList = new ObservableCollection<IBindingProfileViewModel>();
             _commandDeleteProfile = new RelayCommand(DeleteProfile, CanDeleteProfile);
             CommandAddProfile = new RelayCommand(AddNewProfile);
             LoadProfiles();
         }
 
+        private void ProfileRepository_OnProfileRemoved(object? sender, ProfileRepository.ProfileEventArgs e)
+        {
+            IBindingProfileViewModel profile = ProfileList.Single(p => p.UniqueId == e.Profile.UniqueId);
+            ProfileList.Remove(profile);
+        }
+
+        private void ProfileRepository_OnProfileAdded(object? sender, ProfileRepository.ProfileEventArgs e) 
+            => ProfileList.Add(new BindingProfileViewModel(e.Profile, _profileManager, _profileRepository));
+
         private void AddNewProfile(object? obj)
         {
-            string? name = obj as string;
-            if (string.IsNullOrWhiteSpace(name))
+            ValidationResult? validation = ValidateNewProfileName(obj);
+            if (validation != null)
             {
-                ErrorMessage = "The new profile name need to be empty.";
+                ErrorMessage = validation.ErrorMessage ?? "An error occured.";
                 return;
             }
-            _profileManager.CreateNewProfile(name);
+            _profileManager.CreateNewProfile((string)obj!);
             ErrorMessage = null;
+        }
+
+        public ValidationResult? ValidateNewProfileName(object? value)
+        {
+            if (value is string newName)
+            {
+                string? error = _profileRepository.IsNewProfileNameValid(newName);
+                return error == null ? null : new ValidationResult(error);
+            }
+            else
+            {
+                throw new ArgumentException("Parameter is expected to be of type string.", nameof(value));
+            }
         }
 
         private void LoadProfiles()
@@ -92,7 +120,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.WindowViewModels
                 List<BindingProfile>? profiles = _profileRepository.GetProfiles();
                 foreach (BindingProfile profile in profiles)
                 {
-                    var newViewModel = new BindingProfileViewModel(profile)
+                    var newViewModel = new BindingProfileViewModel(profile, _profileManager, _profileRepository)
                     {
                         IsCurrent = profile.UniqueId == currentProfileId,
                     };
@@ -106,6 +134,26 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.WindowViewModels
             {
                 IsLoaded = true;
             }
+        }
+
+        public void RenameProfile(IBindingProfileViewModel profile, string newName)
+        {
+            ValidationResult? validationResult = ValidateNewProfileName(newName);
+            if (validationResult == null)
+            {
+                if (!profile.UniqueId.HasValue) throw new Exception("Profile didn't have a UniqueId");
+                _profileRepository.RenameProfile(profile.UniqueId.Value, newName);
+            }
+            else
+            {
+                ErrorMessage = validationResult.ErrorMessage ?? "A validation error occured.";
+            }
+        }
+
+        public void ChangeProfile(IBindingProfileViewModel profile)
+        {
+            if (!profile.UniqueId.HasValue) throw new Exception("Profile didn't have a UniqueId");
+            _profileManager.SetCurrentProfile(profile.UniqueId.Value);
         }
 
         private async void DeleteProfile(object? param)

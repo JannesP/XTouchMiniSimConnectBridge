@@ -6,6 +6,7 @@
     <UseWPF>true</UseWPF>
 	<UseWindowsForms>true</UseWindowsForms>
 	<Nullable>enable</Nullable>
+	<WarningsAsErrors>nullable</WarningsAsErrors>
 	<AssemblyName>DeviceSimConnectBridge</AssemblyName>
 	<ApplicationIcon>Resources\tray.ico</ApplicationIcon>
 	<Platforms>AnyCPU;x64</Platforms>

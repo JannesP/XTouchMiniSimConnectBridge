@@ -107,8 +107,8 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
         public void CreateNewProfile(string name) 
         {
             char[] fileNameInvalidChars = Path.GetInvalidFileNameChars();
-            string fileName = new(name.ToLowerInvariant().Select(c => fileNameInvalidChars.Contains(c) ? '_' : c).ToArray());
-            
+            string fileName = new(name.Trim().ToLowerInvariant().Select(c => fileNameInvalidChars.Contains(c) ? '_' : c).ToArray());
+
             var profile = new BindingProfile() 
             { 
                 UniqueId = Guid.NewGuid(),

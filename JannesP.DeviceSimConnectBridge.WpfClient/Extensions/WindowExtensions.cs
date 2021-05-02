@@ -9,12 +9,9 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Extensions
 {
     public static class WindowExtensions
     {
-        public static bool? ShowDialogCentered(this Window window, Window parent)
+        public static bool? ShowDialogCentered(this Window window)
         {
-            double newLeft = parent.Left + (parent.ActualWidth / 2.0d) - (window.Width / 2.0d);
-            double newTop = parent.Top + (parent.ActualHeight / 2.0d) - (window.Height / 2.0d);
-            window.Left = newLeft;
-            window.Top = newTop;
+            window.WindowStartupLocation = WindowStartupLocation.CenterOwner;
             return window.ShowDialog();
         }
     }

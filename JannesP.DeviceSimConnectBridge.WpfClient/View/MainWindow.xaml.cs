@@ -35,7 +35,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.View
         private void ButtonOpenProfileManager_Click(object sender, RoutedEventArgs e)
         {
             ProfileManagementWindow profileManagementWindow = _serviceProvider.GetRequiredService<ProfileManagementWindow>();
-            profileManagementWindow.ShowDialogCentered(this);
+            profileManagementWindow.ShowDialogCentered();
         }
     }
 }

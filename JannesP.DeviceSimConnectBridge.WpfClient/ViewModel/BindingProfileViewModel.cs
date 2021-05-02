@@ -3,7 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
+using JannesP.DeviceSimConnectBridge.WpfApp.Managers;
 using JannesP.DeviceSimConnectBridge.WpfApp.Options;
+using JannesP.DeviceSimConnectBridge.WpfApp.Repositories;
 
 namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel
 {
@@ -27,10 +30,23 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel
     {
         private readonly BindingProfile _model;
 
-        public BindingProfileViewModel(BindingProfile model)
+        public BindingProfileViewModel(BindingProfile model, ProfileManager profileManager, ProfileRepository profileRepository)
         {
             _model = model;
             _name = model.Name;
+            WeakEventManager<ProfileRepository, ProfileRepository.ProfileEventArgs>.AddHandler(profileRepository, nameof(profileRepository.ProfileChanged), ProfileRepository_ProfileChanged);
+            WeakEventManager<ProfileManager, ProfileManager.ProfileChangedEventArgs>.AddHandler(profileManager, nameof(profileManager.CurrentProfileChanged), ProfileManager_OnCurrentProfileChanged);
+        }
+
+        private void ProfileManager_OnCurrentProfileChanged(object? sender, ProfileManager.ProfileChangedEventArgs e) 
+            => IsCurrent = e.NewProfile.UniqueId == UniqueId;
+
+        private void ProfileRepository_ProfileChanged(object? sender, ProfileRepository.ProfileEventArgs e)
+        {
+            if (e.Profile.UniqueId == UniqueId)
+            {
+                Name = e.Profile.Name;
+            }
         }
 
         public Guid? UniqueId => _model.UniqueId;

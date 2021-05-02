@@ -31,6 +31,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Repositories
         public event EventHandler? ProfilesLoaded;
         public event EventHandler<ProfileEventArgs>? ProfileAdded;
         public event EventHandler<ProfileEventArgs>? ProfileRemoved;
+        public event EventHandler<ProfileEventArgs>? ProfileChanged;
 
         public ProfileRepository(ILogger<ProfileRepository> logger)
         {
@@ -67,9 +68,9 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Repositories
             try
             {
                 EnsureProfilesLoaded();
-                if (_profiles.Any(p => p.FileName == profile.FileName || p.Name == profile.Name))
+                if (_profiles.Any(p => p.Name == profile.Name))
                 {
-                    throw new UserMessageException("A profile with the same filename or name already exists.");
+                    throw new UserMessageException("A profile with the same name already exists.");
                 }
                 _profiles.Add(profile);
             }
@@ -77,7 +78,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Repositories
             {
                 _semProfiles.Release();
             }
-            ProfileAdded?.Invoke(profile, new ProfileEventArgs(profile));
+            ProfileAdded?.Invoke(this, new ProfileEventArgs(profile));
         }
 
         public async Task DeleteProfile(Guid profileId)
@@ -104,6 +105,46 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Repositories
                 _semProfiles.Release();
             }
             ProfileRemoved?.Invoke(this, new ProfileEventArgs(bp));
+        }
+
+        public void RenameProfile(Guid profileId, string newName)
+        {
+            BindingProfile? bp = null;
+            _semProfiles.Wait();
+            try
+            {
+                EnsureProfilesLoaded();
+                if (SafeIsNewProfileNameValid(newName, _profiles) == null)
+                {
+                    bp = _profiles.Single(p => p.UniqueId == profileId);
+                    bp.Name = newName;
+                }
+            }
+            finally
+            {
+                _semProfiles.Release();
+            }
+            if (bp != null) ProfileChanged?.Invoke(this, new ProfileEventArgs(bp));
+        }
+
+        /// <summary>
+        /// Checks if the profile name would be valid.
+        /// </summary>
+        /// <param name="newName"></param>
+        /// <returns>An error message or null</returns>
+        public string? IsNewProfileNameValid(string newName) => SafeIsNewProfileNameValid(newName, GetProfiles());
+
+        private static string? SafeIsNewProfileNameValid(string newName, List<BindingProfile> profiles)
+        {
+            if (string.IsNullOrWhiteSpace(newName))
+            {
+                return "The profile name cannot be empty.";
+            }
+            if (profiles.Any(p => p.Name == newName))
+            {
+                return $"There already exists a profile with the name '{newName}'.";
+            }
+            return null;
         }
 
         [MemberNotNull(nameof(_profiles))]
@@ -138,12 +179,21 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Repositories
                 {
                     await Task.Run(async () =>
                     {
+                        HashSet<string> usedFileNames = new();
                         EnsureDirectoryExists();
                         foreach (BindingProfile profile in _profiles)
                         {
                             try
                             {
-                                var file = new FileInfo(Path.Combine(_directoryInfo.FullName, $"{profile.FileName}.profile.json"));
+                                FileInfo file;
+                                int counter = 0;
+                                do
+                                {
+                                    file = new FileInfo(Path.Combine(_directoryInfo.FullName, $"{profile.FileName}{(counter++ == 0 ? "" : counter.ToString())}.profile.json"));
+                                }
+                                while (usedFileNames.Contains(file.FullName));
+                                usedFileNames.Add(file.FullName);
+
                                 await File.WriteAllTextAsync(file.FullName, JsonConvert.SerializeObject(profile, _serializerSettings)).ConfigureAwait(false);
                             }
                             catch (Exception ex)

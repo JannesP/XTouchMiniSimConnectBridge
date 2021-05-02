@@ -12,6 +12,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using JannesP.DeviceSimConnectBridge.WpfApp.Extensions;
 using JannesP.DeviceSimConnectBridge.WpfApp.ViewModel;
 using JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.WindowViewModels;
 
@@ -22,10 +23,14 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.View
     /// </summary>
     public partial class ProfileManagementWindow : Window
     {
+        private readonly ProfileManagementWindowViewModel _viewModel;
+
         public ProfileManagementWindow(ProfileManagementWindowViewModel viewModel)
         {
+            _viewModel = viewModel;
             base.DataContext = viewModel;
             InitializeComponent();
+            
         }
 
         private void DeleteProfileButton_Click(object sender, RoutedEventArgs e)
@@ -38,7 +43,45 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.View
 
         private void AddProfileButton_Click(object sender, RoutedEventArgs e)
         {
+            var dialog = new TextInputDialog("Enter a name.", "Please enter a name for the new profile.", _viewModel.ValidateNewProfileName);
+            if (dialog.ShowDialogCentered() == true)
+            {
+                _viewModel.CommandAddProfile.Execute(dialog.Result);
+            }
+        }
 
+        private void RenameProfileButton_Click(object sender, RoutedEventArgs e)
+        {
+            if ((sender as FrameworkElement)?.DataContext is not IBindingProfileViewModel profile)
+            {
+                throw new Exception("Expected to find a DataContext of type IBindingProfileViewModel.");
+            }
+
+            var dialog = new TextInputDialog("Enter a name.", $"Please enter a new name for the profile \"{profile.Name}\".", _viewModel.ValidateNewProfileName);
+            if (dialog.ShowDialogCentered() == true && dialog.Result != null)
+            {
+                _viewModel.RenameProfile(profile, dialog.Result);
+            }
+        }
+
+        private void Window_KeyDown(object sender, KeyEventArgs e)
+        {
+            switch (e.Key)
+            {
+                case Key.Escape:
+                    e.Handled = true;
+                    base.Close();
+                    break;
+            }
+        }
+
+        private void ProfileListViewItem_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if ((sender as FrameworkElement)?.DataContext is not IBindingProfileViewModel profile)
+            {
+                throw new Exception("Expected to find a DataContext of type IBindingProfileViewModel.");
+            }
+            _viewModel.ChangeProfile(profile);
         }
     }
 }
