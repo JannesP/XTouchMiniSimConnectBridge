@@ -4,10 +4,12 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:JannesP.DeviceSimConnectBridge.WpfApp.View"
-        xmlns:vm="clr-namespace:JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.WindowViewModels"
+        xmlns:vm="clr-namespace:JannesP.DeviceSimConnectBridge.WpfApp.ViewModel"
+        xmlns:windowVm="clr-namespace:JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.WindowViewModels"
+        xmlns:cc="clr-namespace:JannesP.DeviceSimConnectBridge.WpfApp.View.Controls"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800"
-        d:DataContext="{d:DesignInstance IsDesignTimeCreatable=True, Type=vm:DesignTimeMainWindowViewModel}" WindowStyle="ThreeDBorderWindow">
+        d:DataContext="{d:DesignInstance IsDesignTimeCreatable=True, Type=windowVm:DesignTimeMainWindowViewModel}" WindowStyle="ThreeDBorderWindow">
     <DockPanel>
         <Grid DockPanel.Dock="Bottom" Height="24" Background="WhiteSmoke">
             <Grid.RowDefinitions>
@@ -35,12 +37,19 @@
                 <MenuItem Header="_About" Click="MenuItemOpenAbout_Click"/>
             </MenuItem>
         </Menu>
-        
-        <StackPanel Margin="4" Orientation="Vertical">
-            <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
+
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <StackPanel Grid.Row="0" HorizontalAlignment="Center" Orientation="Horizontal">
                 <ComboBox Width="200" ItemsSource="{Binding Path=ProfileManagement.ProfileList}" SelectedItem="{Binding Path=ProfileManagement.CurrentProfile, Mode=OneWay}" SelectionChanged="ComboBoxProfile_SelectionChanged" DisplayMemberPath="Name"/>
                 <Button Padding="4,0" Margin="4,0,0,0" Content="Manage Profiles" Grid.ColumnSpan="2" Click="ButtonOpenProfileManager_Click"/>
             </StackPanel>
-        </StackPanel>
+            <ScrollViewer Grid.Row="1" Padding="4" VerticalAlignment="Stretch">
+                <cc:BindingProfileEditor/>
+            </ScrollViewer>
+        </Grid>
     </DockPanel>
 </Window>

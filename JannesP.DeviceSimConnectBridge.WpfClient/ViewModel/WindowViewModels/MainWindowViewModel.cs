@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using JannesP.DeviceSimConnectBridge.WpfApp.Utility.Wpf;
+using JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorViewModels;
 using JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.DesignTime;
 
 namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.WindowViewModels
@@ -15,6 +16,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.WindowViewModels
     {
         IProfileManagementViewModel ProfileManagement { get; }
         ISimConnectManagerViewModel SimConnectManager { get; }
+        IBindingProfileEditorViewModel ProfileEditor { get; } 
         ICommand CommandExit { get; }
         ICommand CommandOpenGithub { get; }
     }
@@ -25,6 +27,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.WindowViewModels
         public ISimConnectManagerViewModel SimConnectManager { get; } = new DesignTimeSimConnectManagerViewModel();
         public ICommand CommandExit => EmptyCommand;
         public ICommand CommandOpenGithub => EmptyCommand;
+        public IBindingProfileEditorViewModel ProfileEditor => throw new NotImplementedException();
     }
 
     public class MainWindowViewModel : ViewModelBase, IMainWindowViewModel
@@ -47,5 +50,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.WindowViewModels
         {
             new Process() { StartInfo = new ProcessStartInfo(Constants.GithubLink) { UseShellExecute = true } }.Start();
         });
+
+        public IBindingProfileEditorViewModel ProfileEditor => throw new NotImplementedException();
     }
 }

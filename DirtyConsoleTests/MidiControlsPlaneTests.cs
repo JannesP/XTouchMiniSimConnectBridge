@@ -182,7 +182,7 @@ namespace DirtyConsoleTests
                 }
                 else
                 {
-                    for (var remaining = Math.Abs(e.Ticks); remaining > 0; remaining--)
+                    for (int remaining = Math.Abs(e.Ticks); remaining > 0; remaining--)
                     {
                         await _simConnect.SendEvent(simEvent);
                     }

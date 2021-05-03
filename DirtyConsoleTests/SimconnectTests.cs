@@ -16,7 +16,7 @@ namespace DirtyConsoleTests
 
         public class SimEvent
         {
-            private static int KEY_ID_MIN = 0x00010000;
+            private static int _kEY_ID_MIN = 0x00010000;
             private SimEvent(int eventId, string name, string description)
             {
                 EventId = eventId;
@@ -27,14 +27,14 @@ namespace DirtyConsoleTests
             public string Name { get; }
             public string Description { get; }
 
-            public static SimEvent AP_ALT_VAR_INC = new SimEvent(KEY_ID_MIN + 356, "AP_ALT_VAR_INC", "Increments reference altitude");
-            public static SimEvent AP_ALT_VAR_DEC = new SimEvent(KEY_ID_MIN + 357, "AP_ALT_VAR_DEC", "Decrements reference altitude");
-            public static SimEvent AP_VS_VAR_INC = new SimEvent(KEY_ID_MIN + 356, "AP_VS_VAR_INC", "Increments vertical speed reference");
-            public static SimEvent AP_VS_VAR_DEC = new SimEvent(KEY_ID_MIN + 357, "AP_VS_VAR_DEC", "Decrements vertical speed reference");
-            public static SimEvent AP_SPD_VAR_INC = new SimEvent(KEY_ID_MIN + 356, "AP_SPD_VAR_INC", "Increments airspeed hold reference");
-            public static SimEvent AP_SPD_VAR_DEC = new SimEvent(KEY_ID_MIN + 357, "AP_SPD_VAR_DEC", "Decrements airspeed hold reference");
-            public static SimEvent HEADING_BUG_INC = new SimEvent(KEY_ID_MIN + 356, "HEADING_BUG_INC", "Increments heading hold reference bug");
-            public static SimEvent HEADING_BUG_DEC = new SimEvent(KEY_ID_MIN + 357, "HEADING_BUG_DEC", "Decrements heading hold reference bug");
+            public static SimEvent AP_ALT_VAR_INC = new SimEvent(_kEY_ID_MIN + 356, "AP_ALT_VAR_INC", "Increments reference altitude");
+            public static SimEvent AP_ALT_VAR_DEC = new SimEvent(_kEY_ID_MIN + 357, "AP_ALT_VAR_DEC", "Decrements reference altitude");
+            public static SimEvent AP_VS_VAR_INC = new SimEvent(_kEY_ID_MIN + 356, "AP_VS_VAR_INC", "Increments vertical speed reference");
+            public static SimEvent AP_VS_VAR_DEC = new SimEvent(_kEY_ID_MIN + 357, "AP_VS_VAR_DEC", "Decrements vertical speed reference");
+            public static SimEvent AP_SPD_VAR_INC = new SimEvent(_kEY_ID_MIN + 356, "AP_SPD_VAR_INC", "Increments airspeed hold reference");
+            public static SimEvent AP_SPD_VAR_DEC = new SimEvent(_kEY_ID_MIN + 357, "AP_SPD_VAR_DEC", "Decrements airspeed hold reference");
+            public static SimEvent HEADING_BUG_INC = new SimEvent(_kEY_ID_MIN + 356, "HEADING_BUG_INC", "Increments heading hold reference bug");
+            public static SimEvent HEADING_BUG_DEC = new SimEvent(_kEY_ID_MIN + 357, "HEADING_BUG_DEC", "Decrements heading hold reference bug");
         }
 
         public static async Task Run()

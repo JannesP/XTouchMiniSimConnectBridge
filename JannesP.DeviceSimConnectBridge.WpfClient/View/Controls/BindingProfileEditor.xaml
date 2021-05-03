@@ -1,0 +1,46 @@
+﻿<UserControl x:Class="JannesP.DeviceSimConnectBridge.WpfApp.View.Controls.BindingProfileEditor"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:JannesP.DeviceSimConnectBridge.WpfApp.View.Controls"
+             xmlns:bpvm="clr-namespace:JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorViewModels"
+             xmlns:bevm="clr-namespace:JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorViewModels.BindingEditorViewModel"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800"
+             d:DataContext="{d:DesignInstance IsDesignTimeCreatable=True, Type=bpvm:DesignTimeBindingProfileEditorViewModel}">
+    <Grid>
+        <TreeView ItemsSource="{Binding Path=Devices}">
+            <d:TreeView.ItemContainerStyle>
+                <Style TargetType="{x:Type TreeViewItem}">
+                    <Setter Property="IsExpanded" Value="True"/>
+                </Style>
+            </d:TreeView.ItemContainerStyle>
+            <!-- Add devices as source -->
+            <TreeView.Resources>
+                <HierarchicalDataTemplate DataType="{x:Type bpvm:IBindingProfileDeviceEditorViewModel}" ItemsSource="{Binding Path=BindingTypes}">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding Path=Name}" />
+                    </StackPanel>
+                </HierarchicalDataTemplate>
+                <HierarchicalDataTemplate DataType="{x:Type bpvm:IBindingListViewModel}" ItemsSource="{Binding Path=Editors}">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding Path=CategoryName}" />
+                    </StackPanel>
+                </HierarchicalDataTemplate>
+                <DataTemplate DataType="{x:Type bevm:IButtonBindingEditorViewModel}">
+                    <TextBlock Text="Button"/>
+                </DataTemplate>
+                <DataTemplate DataType="{x:Type bevm:IEncoderBindingEditorViewModel}">
+                    <TextBlock Text="Encoder"/>
+                </DataTemplate>
+                <DataTemplate DataType="{x:Type bevm:IFaderBindingEditorViewModel}">
+                    <TextBlock Text="Fader"/>
+                </DataTemplate>
+                <DataTemplate DataType="{x:Type bevm:ILedBindingEditorViewModel}">
+                    <TextBlock Text="Led"/>
+                </DataTemplate>
+            </TreeView.Resources>
+        </TreeView>
+    </Grid>
+</UserControl>
