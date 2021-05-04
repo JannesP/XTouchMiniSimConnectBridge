@@ -13,5 +13,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
 
     public class DesignTimeLedBindingEditorViewModel : ILedBindingEditorViewModel
     {
+        private static int _instanceCount = 0;
+        public override string Name { get; } = $"Design Time Led {++_instanceCount}";
     }
 }

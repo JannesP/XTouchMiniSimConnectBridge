@@ -29,16 +29,50 @@
                     </StackPanel>
                 </HierarchicalDataTemplate>
                 <DataTemplate DataType="{x:Type bevm:IButtonBindingEditorViewModel}">
-                    <TextBlock Text="Button"/>
+                    <Expander Background="GhostWhite" BorderBrush="Gainsboro" BorderThickness="1" Padding="2">
+                        <d:Expander.Style>
+                            <Style TargetType="{x:Type Expander}">
+                                <Setter Property="IsExpanded" Value="True"/>
+                            </Style>
+                        </d:Expander.Style>
+                        <Expander.Header>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Margin="0,0,4,0" Text="{Binding Path=Name}"/>
+                                <TextBlock Foreground="SlateGray" Text="{Binding Path=ButtonPressAction.Name}"/>
+                                <TextBlock Foreground="SlateGray" Text=" ("/>
+                                <TextBlock Foreground="SlateGray" Text="{Binding Path=ButtonPressAction.ConfigurationSummary}"/>
+                                <TextBlock Foreground="SlateGray" Text=")"/>
+                            </StackPanel>
+                        </Expander.Header>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock VerticalAlignment="Center" Text="On Button Press:"/>
+                            <ComboBox VerticalAlignment="Center" Margin="4,0" Width="200" ItemsSource="{Binding Path=AvailableActions}" SelectedItem="{Binding Path=ButtonPressAction}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="{Binding Path=Name}"/>
+                                            <TextBlock Grid.Column="1" Text="INFO" ToolTip="{Binding Path=Description}"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                            <Button VerticalAlignment="Stretch" Content="Settings"/>
+                            <CheckBox Margin="4,0,0,0" VerticalAlignment="Center" Content="Trigger on Button Release"/>
+                        </StackPanel>
+                    </Expander>
                 </DataTemplate>
                 <DataTemplate DataType="{x:Type bevm:IEncoderBindingEditorViewModel}">
-                    <TextBlock Text="Encoder"/>
+                    <TextBlock Text="{Binding Path=Name}"/>
                 </DataTemplate>
                 <DataTemplate DataType="{x:Type bevm:IFaderBindingEditorViewModel}">
-                    <TextBlock Text="Fader"/>
+                    <TextBlock Text="{Binding Path=Name}"/>
                 </DataTemplate>
                 <DataTemplate DataType="{x:Type bevm:ILedBindingEditorViewModel}">
-                    <TextBlock Text="Led"/>
+                    <TextBlock Text="{Binding Path=Name}"/>
                 </DataTemplate>
             </TreeView.Resources>
         </TreeView>

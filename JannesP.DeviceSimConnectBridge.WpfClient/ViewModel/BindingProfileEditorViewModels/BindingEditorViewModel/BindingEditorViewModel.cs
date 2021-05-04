@@ -8,5 +8,6 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
 {
     public abstract class IBindingEditorViewModel : ViewModelBase
     {
+        public abstract string Name { get; }
     }
 }
