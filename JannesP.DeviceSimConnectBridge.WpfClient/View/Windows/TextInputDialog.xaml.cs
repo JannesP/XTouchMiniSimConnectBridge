@@ -15,7 +15,7 @@ using System.Windows.Shapes;
 using JannesP.DeviceSimConnectBridge.WpfApp.Utility.Wpf;
 using JannesP.DeviceSimConnectBridge.WpfApp.ViewModel;
 
-namespace JannesP.DeviceSimConnectBridge.WpfApp.View
+namespace JannesP.DeviceSimConnectBridge.WpfApp.View.Windows
 {
     public class TextInputDialogViewModel : ViewModelBase
     {

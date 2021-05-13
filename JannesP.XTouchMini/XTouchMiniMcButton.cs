@@ -27,14 +27,14 @@ namespace JannesP.XTouchMini
         public static XTouchMiniMcButton ButtonLayerA = new XTouchMiniMcButton(0x54, "Button Layer A");
         public static XTouchMiniMcButton ButtonLayerB = new XTouchMiniMcButton(0x55, "Button Layer B");
 
-        public static XTouchMiniMcButton Encoder1 = new XTouchMiniMcButton(0x20 + 0x00, "Encoder 1");
-        public static XTouchMiniMcButton Encoder2 = new XTouchMiniMcButton(0x20 + 0x01, "Encoder 2");
-        public static XTouchMiniMcButton Encoder3 = new XTouchMiniMcButton(0x20 + 0x02, "Encoder 3");
-        public static XTouchMiniMcButton Encoder4 = new XTouchMiniMcButton(0x20 + 0x03, "Encoder 4");
-        public static XTouchMiniMcButton Encoder5 = new XTouchMiniMcButton(0x20 + 0x04, "Encoder 5");
-        public static XTouchMiniMcButton Encoder6 = new XTouchMiniMcButton(0x20 + 0x05, "Encoder 6");
-        public static XTouchMiniMcButton Encoder7 = new XTouchMiniMcButton(0x20 + 0x06, "Encoder 7");
-        public static XTouchMiniMcButton Encoder8 = new XTouchMiniMcButton(0x20 + 0x07, "Encoder 8");
+        public static XTouchMiniMcButton Encoder1 = new XTouchMiniMcButton(0x20 + 0x00, "Button Encoder 1");
+        public static XTouchMiniMcButton Encoder2 = new XTouchMiniMcButton(0x20 + 0x01, "Button Encoder 2");
+        public static XTouchMiniMcButton Encoder3 = new XTouchMiniMcButton(0x20 + 0x02, "Button Encoder 3");
+        public static XTouchMiniMcButton Encoder4 = new XTouchMiniMcButton(0x20 + 0x03, "Button Encoder 4");
+        public static XTouchMiniMcButton Encoder5 = new XTouchMiniMcButton(0x20 + 0x04, "Button Encoder 5");
+        public static XTouchMiniMcButton Encoder6 = new XTouchMiniMcButton(0x20 + 0x05, "Button Encoder 6");
+        public static XTouchMiniMcButton Encoder7 = new XTouchMiniMcButton(0x20 + 0x06, "Button Encoder 7");
+        public static XTouchMiniMcButton Encoder8 = new XTouchMiniMcButton(0x20 + 0x07, "Button Encoder 8");
 
         private XTouchMiniMcButton(byte value, string name) : base(value, name) { }
     }

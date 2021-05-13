@@ -11,29 +11,42 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.BindableActions
     {
         string Name { get; }
         string Description { get; }
+        string UniqueIdentifier { get; }
         bool IsInitialized { get; }
         void Initialize(IServiceProvider serviceProvider);
+        void Deactivate();
     }
 
-    public interface ISimpleBindableAction : IBindableAction
+    public interface ISimpleBindableAction : IInputAction
     {
         Task ExecuteAsync();
     }
 
-    internal static class IBindableActionExtensions
+    public record BindableActionSetting(object Target, PropertyInfo Property, ActionSettingAttribute Attribute)
     {
-        public static IEnumerable<PropertyInfo> GetSettings(this IBindableAction action)
+        public object? Value { get => Property.GetValue(Target); set => Property.SetValue(Target, value); }
+    }
+
+    public static class IBindableActionExtensions
+    {
+        public static IEnumerable<BindableActionSetting> GetSettings(this IBindableAction action)
         {
             Type t = action.GetType();
-            PropertyInfo[]? props = t.GetProperties(BindingFlags.Public);
-            foreach (PropertyInfo? prop in props)
+            PropertyInfo[] props = t.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            foreach (PropertyInfo prop in props)
             {
-                var customAttr = prop.GetCustomAttribute<ActionSettingAttribute>();
-                if (customAttr != null)
+                ActionSettingAttribute? attribute = prop.GetCustomAttribute<ActionSettingAttribute>();
+                if (attribute != null)
                 {
-                    yield return prop;
+                    yield return new BindableActionSetting(action, prop, attribute);
                 }
             }
+        }
+
+        public static IBindableAction CreateNew(this IBindableAction action)
+        {
+            Type t = action.GetType();
+            return Activator.CreateInstance(t) as IBindableAction ?? throw new Exception($"Activator.CreateInstance returned null for {t.FullName}");
         }
     }
 }

@@ -48,7 +48,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel
             });
         }
 
-        public string DisplayName => _device.DeviceName;
+        public string DisplayName => _device.FriendlyName;
         public string StatusString => _device.IsConnected ? "Connected" : "Disconnected";
     }
 }

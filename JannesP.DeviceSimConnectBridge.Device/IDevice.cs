@@ -7,10 +7,9 @@ namespace JannesP.DeviceSimConnectBridge.Device
 {
     public interface IDevice : IDisposable
     {
-        string DeviceName { get; }
-
-        string TechnicalDeviceIdentifier { get; }
-
+        string FriendlyName { get; }
+        string DeviceType { get; }
+        string? DeviceId { get; }
         bool IsConnected { get; }
 
         event EventHandler? Connected;

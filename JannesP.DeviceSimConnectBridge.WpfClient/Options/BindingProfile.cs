@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using JannesP.DeviceSimConnectBridge.Device.XTouchMini;
 using JannesP.DeviceSimConnectBridge.WpfApp.ActionBindings;
+using JannesP.DeviceSimConnectBridge.WpfApp.BindableActions.DataSources;
 using JannesP.DeviceSimConnectBridge.WpfApp.BindableActions.SimConnectActions;
 using Newtonsoft.Json;
 
@@ -43,7 +45,9 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Options
             BindingConfigurations = new List<DeviceBindingConfiguration>() {
                 new DeviceBindingConfiguration
                 {
-                    TechnicalDeviceIdentifier = "behringer_xtouch_mini",
+                    DeviceType = "behringer_xtouch_mini",
+                    DeviceId = null,
+                    FriendlyName = "Behringer X-Touch Mini",
                     Bindings = new List<ActionBinding>()
                     {
                         new EncoderActionBinding()
@@ -129,6 +133,24 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Options
                                 SimConnectEventName = "HEADING_BUG_SET",
                             },
                         },
+                        new ButtonActionBinding()
+                        {
+                            DeviceControlId = 0x54,
+                            TriggerOnRelease = false,
+                            ButtonPressed = new SimConnectActionSimEvent()
+                            {
+                                SimConnectEventName = "AP_MASTER",
+                            },
+                        },
+                        new LedActionBinding()
+                        {
+                            DataSource = new SimVarBoolDataSource()
+                            {
+                                Interval = 1000,
+                                SimVarName = "AUTOPILOT MASTER",
+                            },
+                            DeviceControlId = 0x54,
+                        },
                     }
                 }
             }
@@ -137,7 +159,18 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Options
 
     public class DeviceBindingConfiguration
     {
-        public string? TechnicalDeviceIdentifier { get; set; }
+#pragma warning disable CS8774 // Member must have a non-null value when exiting.
+        [MemberNotNull(nameof(DeviceType), nameof(FriendlyName))]
+        public void ThrowIfNotComplete()
+        {
+            if (DeviceType == null) throw new Exception($"{nameof(DeviceType)} is null.");
+            if (FriendlyName == null) throw new Exception($"{nameof(FriendlyName)} is null.");
+        }
+#pragma warning restore CS8774 // Member must have a non-null value when exiting.
+
+        public string? DeviceType { get; set; }
+        public string? DeviceId { get; set; }
+        public string? FriendlyName { get; set; }
         public List<ActionBinding> Bindings { get; set; } = new List<ActionBinding>();
     }
 }

@@ -17,12 +17,17 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.BindableActions.SimConnectAction
 
         [JsonIgnore]
         public bool IsInitialized { get; private set; }
-
+        [JsonIgnore]
         public string Name => "Send SimConnect Event";
+        [JsonIgnore]
         public string Description => "Sends a simple Sim Event though SimConnect.";
+        [JsonIgnore]
+        public string UniqueIdentifier => nameof(SimConnectActionSimEvent);
 
-        [StringActionSetting("Event Name (eg. 'HEADING_BUG_INC')", CanBeEmpty = false)]
+        [StringActionSetting("Event Name", "You can find them in the MSFS docs. (for example 'HEADING_BUG_INC' and 'COM_RADIO_FRACT_DEC')", CanBeEmpty = false)]
         public string? SimConnectEventName { get; set; }
+
+        public void Deactivate() => IsInitialized = false;
 
         public async Task ExecuteAsync()
         {
@@ -46,8 +51,8 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.BindableActions.SimConnectAction
 
         public void Initialize(IServiceProvider serviceProvider) 
         {
-            _logger = serviceProvider.GetRequiredService<ILogger<SimConnectActionSimEvent>>();
-            _simConnectManager = serviceProvider.GetService<SimConnectManager>();
+            if (_logger == null) _logger = serviceProvider.GetRequiredService<ILogger<SimConnectActionSimEvent>>();
+            if (_simConnectManager == null ) _simConnectManager = serviceProvider.GetService<SimConnectManager>();
             IsInitialized = true;
         }
     }

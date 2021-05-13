@@ -16,7 +16,7 @@ using JannesP.DeviceSimConnectBridge.WpfApp.Extensions;
 using JannesP.DeviceSimConnectBridge.WpfApp.ViewModel;
 using JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.WindowViewModels;
 
-namespace JannesP.DeviceSimConnectBridge.WpfApp.View
+namespace JannesP.DeviceSimConnectBridge.WpfApp.View.Windows
 {
     /// <summary>
     /// Interaction logic for ProfileManagementWindow.xaml

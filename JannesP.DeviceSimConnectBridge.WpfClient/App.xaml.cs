@@ -6,15 +6,13 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
-using JannesP.DeviceSimConnectBridge.Device;
-using JannesP.DeviceSimConnectBridge.Device.XTouchMini;
 using JannesP.DeviceSimConnectBridge.WpfApp.Extensions;
 using JannesP.DeviceSimConnectBridge.WpfApp.Managers;
 using JannesP.DeviceSimConnectBridge.WpfApp.Options;
 using JannesP.DeviceSimConnectBridge.WpfApp.Repositories;
 using JannesP.DeviceSimConnectBridge.WpfApp.Resources;
 using JannesP.DeviceSimConnectBridge.WpfApp.Utility;
-using JannesP.DeviceSimConnectBridge.WpfApp.View;
+using JannesP.DeviceSimConnectBridge.WpfApp.View.Windows;
 using JannesP.DeviceSimConnectBridge.WpfApp.ViewModel;
 using JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.WindowViewModels;
 using Microsoft.Extensions.Configuration;
@@ -58,6 +56,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp
                     //repositories
                     services.AddSingleton<ProfileRepository>();
                     services.AddSingleton<DeviceRepository>();
+                    services.AddSingleton<BindingActionRepository>();
 
                     //managers
                     services.AddSingleton<ProfileManager>();

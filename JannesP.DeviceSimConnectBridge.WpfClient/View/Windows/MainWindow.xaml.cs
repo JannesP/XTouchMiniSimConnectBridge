@@ -17,7 +17,7 @@ using JannesP.DeviceSimConnectBridge.WpfApp.ViewModel;
 using JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.WindowViewModels;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace JannesP.DeviceSimConnectBridge.WpfApp.View
+namespace JannesP.DeviceSimConnectBridge.WpfApp.View.Windows
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml

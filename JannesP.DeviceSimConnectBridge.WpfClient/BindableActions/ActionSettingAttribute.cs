@@ -6,12 +6,14 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.BindableActions
     [AttributeUsage(AttributeTargets.Property, Inherited = true, AllowMultiple = false)]
     public abstract class ActionSettingAttribute : Attribute
     {
-        public ActionSettingAttribute(string name)
+        public ActionSettingAttribute(string name, string description)
         {
             Name = name;
+            Description = description;
         }
 
         public string Name { get; }
+        public string Description { get; }
 
         public abstract string? ValidateValue(object value);
     }
@@ -19,7 +21,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.BindableActions
     [AttributeUsage(AttributeTargets.Property, Inherited = true, AllowMultiple = false)]
     public class StringActionSettingAttribute : ActionSettingAttribute
     {
-        public StringActionSettingAttribute(string name) : base(name) { }
+        public StringActionSettingAttribute(string name, string description) : base(name, description) { }
 
         public virtual bool CanBeEmpty { get; set; } = true;
         public virtual int? MaxLength { get; set; } = null;
@@ -52,6 +54,35 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.BindableActions
                         return $"The value cannot be longer than {MinLength.Value} characters.";
                     }
                 }
+            }
+            return null;
+        }
+    }
+
+    [AttributeUsage(AttributeTargets.Property, Inherited = true, AllowMultiple = false)]
+    public class IntActionSettingAttribute : ActionSettingAttribute
+    {
+        public IntActionSettingAttribute(string name, string description) : base(name, description) { }
+
+        public virtual int Min { get; set; }
+        public virtual int Max { get; set; }
+
+        public override string? ValidateValue(object value)
+        {
+            if (value is int iValue)
+            {
+                if (Min != 0 && iValue < Min)
+                {
+                    return $"The value needs to be larger than or equal to {Min}";
+                }
+                if (Max != 0 && iValue > Max)
+                {
+                    return $"The value needs to be smaller than or equal to {Max}";
+                }
+            }
+            else
+            {
+                throw new ArgumentException("This method can only validate int.", nameof(value));
             }
             return null;
         }

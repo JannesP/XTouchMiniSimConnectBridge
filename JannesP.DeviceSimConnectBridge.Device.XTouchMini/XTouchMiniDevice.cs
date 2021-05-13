@@ -26,9 +26,11 @@ namespace JannesP.DeviceSimConnectBridge.Device.XTouchMini
 
         public bool IsConnected => State == ConnectionState.Open;
 
-        public string DeviceName => "Behringer X-Touch Mini";
+        public string FriendlyName => "Behringer X-Touch Mini";
 
-        public string TechnicalDeviceIdentifier => "behringer_xtouch_mini";
+        public string DeviceType => "behringer_xtouch_mini";
+
+        public string? DeviceId => null;
 
         public new event EventHandler? Connected;
         public new event EventHandler? Disconnected;
@@ -39,16 +41,10 @@ namespace JannesP.DeviceSimConnectBridge.Device.XTouchMini
 
         public Task<bool> ConnectAsync() => base.OpenDeviceAsync();
         public Task DisconnectAsync() => base.CloseDeviceAsync();
-        public void SetLedState(IDeviceLed deviceLed, DeviceLedState ledState)
+        public Task SetLedState(IDeviceLed deviceLed, DeviceLedState ledState)
         {
-            McLedState xTouchLedState = ledState switch
-            {
-                DeviceLedState.Off => McLedState.Off,
-                DeviceLedState.On => McLedState.On,
-                DeviceLedState.Blinking => McLedState.Blinking,
-                _ => throw new NotSupportedException("The given led state is not supported by this device."),
-            };
-            base.SetButtonLed(XTouchMiniMcButton.Controls[(byte)deviceLed.Id], xTouchLedState);
+            McLedState xTouchLedState = AsMcLedState(ledState);
+            return Task.Run(() => base.SetButtonLed(XTouchMiniMcButton.Controls[(byte)deviceLed.Id], xTouchLedState));
         }
 
         protected override void OnButtonDown(XTouchMiniMcButton button)
@@ -94,6 +90,13 @@ namespace JannesP.DeviceSimConnectBridge.Device.XTouchMini
                 base.ResetDeviceState();
             });
         }
-        Task IDevice.SetLedState(IDeviceLed deviceLed, DeviceLedState ledState) => throw new NotImplementedException();
+
+        private McLedState AsMcLedState(DeviceLedState ledState) => ledState switch
+        {
+            DeviceLedState.Off => McLedState.Off,
+            DeviceLedState.On => McLedState.On,
+            DeviceLedState.Blinking => McLedState.Blinking,
+            _ => throw new NotSupportedException($"The given led state {ledState} is not supported by this device."),
+        };
     }
 }

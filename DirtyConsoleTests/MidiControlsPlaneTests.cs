@@ -19,8 +19,8 @@ namespace DirtyConsoleTests
 
         public static class SimDataDefinitions
         {
-            public static SimConnectDataDefinition PlaneHeadingDegreesMagnetic = new SimConnectDataDefinition(100, "PLANE HEADING DEGREES MAGNETIC", null, SimConnectDataType.FLOAT64);
-            public static SimConnectDataDefinition AutopilotHeadingLockDir = new SimConnectDataDefinition(101, "AUTOPILOT HEADING LOCK DIR", null, SimConnectDataType.FLOAT64);
+            public static SimConnectDataDefinition PlaneHeadingDegreesMagnetic = new("PLANE HEADING DEGREES MAGNETIC", null, SimConnectDataType.FLOAT64);
+            public static SimConnectDataDefinition AutopilotHeadingLockDir = new("AUTOPILOT HEADING LOCK DIR", null, SimConnectDataType.FLOAT64);
         }
 
         private static List<double> _ledRadians = new List<double>();

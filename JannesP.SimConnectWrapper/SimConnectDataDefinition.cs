@@ -1,23 +1,35 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using Microsoft.FlightSimulator.SimConnect;
 
 namespace JannesP.SimConnectWrapper
 {
     public class SimConnectDataDefinition
     {
-        public SimConnectDataDefinition(int definitionId, string dataName, string unitName, SimConnectDataType dataType) 
+        private static int _definitionIdCount = 0;
+
+        /// <summary>
+        /// This is a VERY uncomplete list of typically used Sim units.
+        /// </summary>
+        public static class SimConnectUnitName
         {
-            DefinitionId = definitionId;
+            public static string Bool = "Bool";
+        } 
+
+        
+        public SimConnectDataDefinition(string dataName, string? unitName, SimConnectDataType dataType)
+        {
+            DefinitionId = Interlocked.Increment(ref _definitionIdCount);
             DataName = dataName;
             UnitName = unitName;
             DataType = dataType;
         }
 
-        public int DefinitionId { get; }
+        internal int DefinitionId { get; }
         public string DataName { get; }
-        public string UnitName { get; }
+        public string? UnitName { get; }
         public SimConnectDataType DataType { get; }
 
         internal SIMCONNECT_DATATYPE SimConnectDataType => (SIMCONNECT_DATATYPE)DataType;

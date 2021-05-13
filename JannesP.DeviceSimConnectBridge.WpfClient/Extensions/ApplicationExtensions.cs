@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
-using JannesP.DeviceSimConnectBridge.WpfApp.View;
+using JannesP.DeviceSimConnectBridge.WpfApp.View.Windows;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace JannesP.DeviceSimConnectBridge.WpfApp.Extensions

@@ -11,7 +11,7 @@ namespace DirtyConsoleTests
     {
         public static class SimDataDefinitions
         {
-            public static SimConnectDataDefinition PlaneHeadingDegreesMagnetic = new SimConnectDataDefinition(100, "PLANE HEADING DEGREES MAGNETIC", "degrees", SimConnectDataType.FLOAT64);
+            public static SimConnectDataDefinition PlaneHeadingDegreesMagnetic = new SimConnectDataDefinition("PLANE HEADING DEGREES MAGNETIC", "degrees", SimConnectDataType.FLOAT64);
         }
 
         public class SimEvent
