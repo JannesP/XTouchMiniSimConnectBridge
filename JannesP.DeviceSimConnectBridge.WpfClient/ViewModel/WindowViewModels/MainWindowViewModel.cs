@@ -59,10 +59,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.WindowViewModels
         public IProfileManagementViewModel ProfileManagement { get; }
         public ISimConnectManagerViewModel SimConnectManager { get; }
 
-        public ICommand CommandExit { get; } = new RelayCommand(o =>
-        {
-            Application.Current.Shutdown(0);
-        });
+        public ICommand CommandExit { get; } = new RelayCommand(async o => await App.GracefulShutdownAsync());
 
         public ICommand CommandOpenGithub { get; } = new RelayCommand(o =>
         {

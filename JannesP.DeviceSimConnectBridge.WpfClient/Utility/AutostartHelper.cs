@@ -16,22 +16,6 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Utility
         private static readonly string _autostartKeyName = AssemblyUtil.AssemblyNameWithoutExtension;
 
         /// <summary>
-        /// Restarts the current executable. You can use this if you used the WpfUtil Mutex to handle multiple instances.
-        /// </summary>
-        public static void Restart()
-        {
-            Application.Current.Exit += (o, args) =>
-            {
-                Process.Start(new ProcessStartInfo
-                {
-                    FileName = AssemblyUtil.FullAssemblyPath,
-                    WorkingDirectory = Process.GetCurrentProcess().StartInfo.WorkingDirectory
-                });
-            };
-            Application.Current.Shutdown();
-        }
-
-        /// <summary>
         /// Adds the program to the autostart in the registry. You should probably use some command line args to prevent the gui from opening.
         /// If the regkeyname is not set it will use the executable name without the extension.
         /// </summary>

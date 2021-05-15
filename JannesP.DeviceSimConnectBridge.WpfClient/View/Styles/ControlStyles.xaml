@@ -11,16 +11,38 @@
     <sys:Double x:Key="SpacingNormalValue">3.5</sys:Double>
     <Thickness x:Key="SpacingNormal" Left="{StaticResource SpacingNormalValue}" Top="{StaticResource SpacingNormalValue}" Right="{StaticResource SpacingNormalValue}" Bottom="{StaticResource SpacingNormalValue}"/>
     <Thickness x:Key="SpacingNormalLeft" Left="{StaticResource SpacingNormalValue}"/>
-    <Thickness x:Key="SpacingNormalLeftTop" Left="{StaticResource SpacingNormalValue}" Top="{StaticResource SpacingNormalValue}"/>
     <Thickness x:Key="SpacingNormalTop" Top="{StaticResource SpacingNormalValue}"/>
     <Thickness x:Key="SpacingNormalRight" Right="{StaticResource SpacingNormalValue}"/>
     <Thickness x:Key="SpacingNormalBottom" Bottom="{StaticResource SpacingNormalValue}"/>
-    
+    <Thickness x:Key="SpacingNormalLeftTop" Left="{StaticResource SpacingNormalValue}" Top="{StaticResource SpacingNormalValue}"/>
+
     <sys:Double x:Key="SpacingSmallValue">2</sys:Double>
     <Thickness x:Key="SpacingSmall" Left="{StaticResource SpacingSmallValue}" Top="{StaticResource SpacingSmallValue}" Right="{StaticResource SpacingSmallValue}" Bottom="{StaticResource SpacingSmallValue}"/>
     <Thickness x:Key="SpacingSmallLeft" Left="{StaticResource SpacingSmallValue}"/>
-    <Thickness x:Key="SpacingSmallLeftTop" Left="{StaticResource SpacingSmallValue}" Top="{StaticResource SpacingSmallValue}"/>
     <Thickness x:Key="SpacingSmallTop" Top="{StaticResource SpacingSmallValue}"/>
     <Thickness x:Key="SpacingSmallRight" Right="{StaticResource SpacingSmallValue}"/>
     <Thickness x:Key="SpacingSmallBottom" Bottom="{StaticResource SpacingSmallValue}"/>
+    <Thickness x:Key="SpacingSmallLeftTop" Left="{StaticResource SpacingSmallValue}" Top="{StaticResource SpacingSmallValue}"/>
+    <Thickness x:Key="SpacingSmallTopRight" Top="{StaticResource SpacingSmallValue}" Right="{StaticResource SpacingSmallValue}"/>
+
+
+    <Style TargetType="{x:Type TextBox}">
+        <Setter Property="Validation.ErrorTemplate">
+            <Setter.Value>
+                <ControlTemplate x:Name="TextErrorTemplate">
+                    <DockPanel LastChildFill="True">
+                        <AdornedElementPlaceholder>
+                            <Border BorderBrush="Red" BorderThickness="2" />
+                        </AdornedElementPlaceholder>
+                    </DockPanel>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="Padding" Value="{StaticResource SpacingSmall}"/>
+        <Style.Triggers>
+            <Trigger Property="Validation.HasError" Value="True">
+                <Setter Property="ToolTip" Value="{Binding RelativeSource={x:Static RelativeSource.Self}, Path=(Validation.Errors)/ErrorContent}"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
 </ResourceDictionary>

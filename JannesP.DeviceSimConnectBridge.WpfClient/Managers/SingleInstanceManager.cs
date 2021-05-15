@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 using JannesP.DeviceSimConnectBridge.WpfApp.Options;
+using JannesP.DeviceSimConnectBridge.WpfApp.Utility;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -21,6 +24,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
         private readonly EventWaitHandle? _evtNotifiedFromOtherProcess;
         private readonly Mutex _mutexCheckIfFirstInstance;
         private readonly ILogger<SingleInstanceManager> _logger;
+        private readonly Task? _waitHandleTask;
 
         /// <summary>
         /// Creates a new Instance that monitors for another process with the same WaitHandles and Mutexes.
@@ -66,7 +70,8 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
                         EventSignalName, out bool createdNew);
                     if (createdNew)
                     {
-                        Task.Run(() => WaitForEvent(_evtNotifiedFromOtherProcess, _cancellationTokenSource.Token));
+                        _waitHandleTask = new Task(() => WaitForEvent(_evtNotifiedFromOtherProcess, _cancellationTokenSource.Token), _cancellationTokenSource.Token, TaskCreationOptions.LongRunning);
+                        _waitHandleTask.Start();
                     }
                 }
                 catch (Exception ex)
@@ -74,6 +79,22 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
                     throw new IOException("Error creating event for listening to notify SecondInstanceStarted. See the InnerException for more details.", ex);
                 }
             }
+        }
+
+        /// <summary>
+        /// Restarts the current executable.
+        /// </summary>
+        public static void Restart()
+        {
+            Application.Current.Exit += (o, args) =>
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = AssemblyUtil.FullAssemblyPath,
+                    WorkingDirectory = Process.GetCurrentProcess().StartInfo.WorkingDirectory
+                });
+            };
+            Application.Current.Shutdown();
         }
 
         /// <summary>
@@ -87,15 +108,27 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
 
         private void WaitForEvent(EventWaitHandle ewh, CancellationToken token)
         {
-            while (!token.IsCancellationRequested)
+            try
             {
-                ewh.WaitOne();
-                if (!token.IsCancellationRequested)
+                while (!token.IsCancellationRequested)
                 {
-                    OnSecondInstanceStarted();
-                    ewh.Reset();
+                    int index = WaitHandle.WaitAny(new[] { ewh, token.WaitHandle });
+                    switch (index)
+                    {
+                        case 0: //ewh
+                            token.ThrowIfCancellationRequested();
+                            OnSecondInstanceStarted();
+                            ewh.Reset();
+                            break;
+                        case 1: //token
+                            //just exit the while loop on the next iteration
+                            break;
+                        default:
+                            throw new Exception("Wait ... what?");
+                    }
                 }
             }
+            catch (TaskCanceledException) { /* ignore */ }
         }
 
         private void OnSecondInstanceStarted()
@@ -122,7 +155,9 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
                 }
             }
             _mutexCheckIfFirstInstance.Dispose();
+            _cancellationTokenSource.Cancel();
             _cancellationTokenSource.Dispose();
+            GC.SuppressFinalize(this);
         }
     }
 }

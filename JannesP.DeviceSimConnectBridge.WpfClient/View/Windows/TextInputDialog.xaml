@@ -6,47 +6,22 @@
         xmlns:local="clr-namespace:JannesP.DeviceSimConnectBridge.WpfApp.View.Windows"
         mc:Ignorable="d"
         d:DataContext="{d:DesignInstance IsDesignTimeCreatable=False, Type=local:TextInputDialogViewModel}"
-        Title="TextInputDialog" Height="110" Width="317" WindowStartupLocation="CenterOwner" ResizeMode="NoResize" WindowStyle="ToolWindow"
+        Title="TextInputDialog" SizeToContent="WidthAndHeight" WindowStartupLocation="CenterOwner" ResizeMode="NoResize" WindowStyle="ToolWindow"
         FocusManager.FocusedElement="{Binding ElementName=TbInput}" KeyDown="Window_KeyDown">
-    <Grid Margin="4">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="auto"/>
-        </Grid.RowDefinitions>
-        <TextBlock Grid.Row="0" TextAlignment="Center" Text="{Binding DialogMessage}"/>
-        <TextBox Grid.Row="2" x:Name="TbInput" Text="{Binding Path=InputText, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, NotifyOnValidationError=True}" KeyDown="TextBox_KeyDown">
-            <TextBox.Style>
-                <Style TargetType="{x:Type TextBox}">
-                    <Setter Property="Validation.ErrorTemplate">
-                        <Setter.Value>
-                            <ControlTemplate x:Name="TextErrorTemplate">
-                                <DockPanel LastChildFill="True">
-                                    <AdornedElementPlaceholder>
-                                        <Border BorderBrush="Red" BorderThickness="2" />
-                                    </AdornedElementPlaceholder>
-                                </DockPanel>
-                            </ControlTemplate>
-                        </Setter.Value>
-                    </Setter>
-                    <Style.Triggers>
-                        <Trigger Property="Validation.HasError" Value="True">
-                            <Setter Property="ToolTip" Value="{Binding RelativeSource={x:Static RelativeSource.Self}, Path=(Validation.Errors)[0].ErrorContent}"/>
-                        </Trigger>
-                    </Style.Triggers>
-                </Style>
-            </TextBox.Style>
-        </TextBox>
-        <Grid Grid.Row="4">
+    <Window.Resources>
+    </Window.Resources>
+    <StackPanel Margin="{StaticResource SpacingNormal}">
+        <TextBlock TextAlignment="Center" Text="{Binding DialogMessage}"/>
+        <TextBox x:Name="TbInput" Margin="{StaticResource SpacingNormalTop}" Text="{Binding Path=InputText, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, NotifyOnValidationError=True}" KeyDown="TextBox_KeyDown"/>
+
+        <Grid Margin="{StaticResource SpacingNormalTop}" Grid.Row="4">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="auto"/>
-                <ColumnDefinition Width="*"/>
+                <ColumnDefinition MinWidth="50" Width="*"/>
                 <ColumnDefinition Width="auto"/>
             </Grid.ColumnDefinitions>
             <Button Grid.Column="0" Width="100" Content="Ok" IsEnabled="{Binding Path=HasNoErrors}" Click="OkButton_Click" />
             <Button Grid.Column="2" Width="100" Content="Cancel" Click="CancelButton_Click" />
         </Grid>
-    </Grid>
+    </StackPanel>
 </Window>

@@ -44,7 +44,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.View.Windows
         private void AddProfileButton_Click(object sender, RoutedEventArgs e)
         {
             var dialog = new TextInputDialog("Enter a name.", "Please enter a name for the new profile.", _viewModel.ProfileManagement.ValidateNewProfileName);
-            if (dialog.ShowDialogCentered() == true)
+            if (dialog.ShowDialogCentered(this) == true && !string.IsNullOrWhiteSpace(dialog.Result))
             {
                 _viewModel.ProfileManagement.CommandAddProfile.Execute(dialog.Result);
             }
@@ -58,7 +58,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.View.Windows
             }
 
             var dialog = new TextInputDialog("Enter a name.", $"Please enter a new name for the profile \"{profile.Name}\".", _viewModel.ProfileManagement.ValidateNewProfileName);
-            if (dialog.ShowDialogCentered() == true && dialog.Result != null)
+            if (dialog.ShowDialogCentered(this) == true && !string.IsNullOrWhiteSpace(dialog.Result))
             {
                 _viewModel.ProfileManagement.RenameProfile(profile, dialog.Result);
             }

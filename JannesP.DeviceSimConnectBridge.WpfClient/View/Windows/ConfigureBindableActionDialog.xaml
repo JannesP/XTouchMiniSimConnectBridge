@@ -4,23 +4,24 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:JannesP.DeviceSimConnectBridge.WpfApp.View.Windows"
+        xmlns:c="clr-namespace:JannesP.DeviceSimConnectBridge.WpfApp.View.Controls"
         xmlns:windowVm="clr-namespace:JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.WindowViewModels"
         xmlns:actionVms="clr-namespace:JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindableActionSettingsViewModels"
         mc:Ignorable="d"
-        Title="{Binding WindowTitle}" Height="700" Width="550" WindowStyle="ToolWindow"
+        Title="{Binding WindowTitle}" Height="250" Width="300" WindowStyle="ToolWindow"
         d:DataContext="{d:DesignInstance IsDesignTimeCreatable=True, Type=windowVm:DesignTimeConfigureBindableActionDialogViewModel}">
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="../Styles/StyleConstants.xaml"/>
+                <ResourceDictionary Source="../Styles/ControlStyles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
 
             <DataTemplate x:Key="StringTemplate" DataType="{x:Type actionVms:StringActionSettingViewModel}">
-                <TextBox Text="{Binding Value}"/>
+                <TextBox Margin="{StaticResource SpacingSmallTopRight}" Text="{Binding Value}"/>
             </DataTemplate>
 
             <DataTemplate x:Key="IntTemplate" DataType="{x:Type actionVms:IntActionSettingViewModel}">
-                <TextBox Text="{Binding Value}"/>
+                <c:NumericTextBox Margin="{StaticResource SpacingSmallTopRight}" Text="{Binding Value}"/>
             </DataTemplate>
 
             <local:SettingTemplateSelector x:Key="SettingTemplateSelector"
@@ -28,19 +29,23 @@
                 IntTemplate="{StaticResource IntTemplate}" />
         </ResourceDictionary>
     </Window.Resources>
-    <Grid>
-        <DataGrid ItemsSource="{Binding Path=BindableAction.Settings}" AutoGenerateColumns="False" Width="auto" HeadersVisibility="None" GridLinesVisibility="None">
+    <Grid Margin="{StaticResource SpacingNormal}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="auto"/>
+        </Grid.RowDefinitions>
+        <DataGrid Grid.Row="0" ItemsSource="{Binding Path=BindableAction.Settings}" AutoGenerateColumns="False" Width="auto" HeadersVisibility="None" GridLinesVisibility="None">
             <DataGrid.Columns>
                 <DataGridTemplateColumn Width="auto">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <TextBlock Text="{Binding Name}"/>
+                            <TextBlock Margin="{StaticResource SpacingSmall}" VerticalAlignment="Center" Text="{Binding Name}"/>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
                 <DataGridTemplateColumn Width="*" CellTemplateSelector="{StaticResource SettingTemplateSelector}"/>
             </DataGrid.Columns>
         </DataGrid>
-
+        <Button Margin="{StaticResource SpacingNormalTop}" Grid.Row="1" Content="Ok"/>
     </Grid>
 </Window>

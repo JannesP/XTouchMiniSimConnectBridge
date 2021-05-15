@@ -10,6 +10,13 @@
         Title="Manage Profiles" Height="400" Width="400" WindowStartupLocation="CenterOwner"
         d:DataContext="{d:DesignInstance IsDesignTimeCreatable=True, Type=vm:DesignTimeProfileManagementWindowViewModel}" 
         WindowStyle="ThreeDBorderWindow" KeyDown="Window_KeyDown">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../Styles/ControlStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
     <Grid>
         <Grid Margin="4,4,4,4" Grid.ColumnSpan="2">
             <Grid.RowDefinitions>

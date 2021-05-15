@@ -12,7 +12,7 @@
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="../Styles/StyleConstants.xaml"/>
+                <ResourceDictionary Source="../Styles/ControlStyles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
 
             <DataTemplate x:Key="DataTemplateItemComboBoxAction">

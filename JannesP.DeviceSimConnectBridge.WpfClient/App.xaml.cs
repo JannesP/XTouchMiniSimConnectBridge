@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
@@ -28,6 +29,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp
     public partial class App : Application
     {
         public IHost Host { get; }
+        private int _isTeardown = 0;
         private readonly Lazy<ILogger<App>> _logger;
 
         public App()
@@ -117,7 +119,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp
             _logger.Value.LogTrace("Setting up tray icon.");
             TrayIconManager trayIconManager = Host.Services.GetRequiredService<TrayIconManager>();
             trayIconManager.IconVisible = true;
-            trayIconManager.ItemExitClick += (sender, eventArgs) => base.Shutdown(0);
+            trayIconManager.ItemExitClick += (sender, eventArgs) => _ = App.GracefulShutdownAsync();
             trayIconManager.DoubleClick += (sender, eventArgs) => this.ShowCreateMainWindow();
 
             ProfileRepository profileRepository = Host.Services.GetRequiredService<ProfileRepository>();
@@ -133,7 +135,6 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp
             await scm.StartAsync();
             DeviceBindingManager dbm = Host.Services.GetRequiredService<DeviceBindingManager>();
             dbm.Enable();
-            
         }
 
         private void OnSecondInstanceStarted(object? sender, EventArgs e)
@@ -151,21 +152,38 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp
             _logger.Value.LogCritical(ex, "Error caught in CurrentDomain_UnhandledException, crashing ...");
         }
 
+        public static async Task GracefulShutdownAsync()
+        {
+            await Teardown((App)Current, false);
+            Current.Shutdown();
+        }
+
         protected override void OnSessionEnding(SessionEndingCancelEventArgs e)
         {
             base.OnSessionEnding(e);
-            base.Shutdown(0);
+            base.Shutdown();
         }
 
         protected override void OnExit(ExitEventArgs e)
         {
             base.OnExit(e);
-            Current.MainWindow?.Close();
-            ProfileRepository? repo = Host.Services.GetRequiredService<ProfileRepository>();
-            repo.PersistProfilesAsync().Wait();
-            using (Host)
+            Teardown(this, true).Wait();
+        }
+
+        private static async Task Teardown(App app, bool fastTeardown)
+        {
+            if (Interlocked.Exchange(ref app._isTeardown, 1) == 0)
             {
-                Host.StopAsync(TimeSpan.FromSeconds(2)).Wait();
+                app.Dispatcher.Invoke(() => Current.MainWindow?.Close());
+                if (!fastTeardown)
+                {
+                    ProfileRepository? repo = app.Host.Services.GetRequiredService<ProfileRepository>();
+                    await repo.PersistProfilesAsync().ConfigureAwait(false);
+                }
+                using (app.Host)
+                {
+                    await app.Host.StopAsync();
+                }
             }
         }
     }
