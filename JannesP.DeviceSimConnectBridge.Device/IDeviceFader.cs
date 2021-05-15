@@ -13,10 +13,10 @@ namespace JannesP.DeviceSimConnectBridge.Device
         }
 
         public IDeviceFader Fader { get; }
+
         /// <summary>
         /// Value from 0 to 1
         /// </summary>
         public double Value { get; }
-
     }
 }

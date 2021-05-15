@@ -1,15 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using JannesP.DeviceSimConnectBridge.WpfApp.View.Windows;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace JannesP.DeviceSimConnectBridge.WpfApp.Extensions
 {
-    static internal class ApplicationExtensions
+    internal static class ApplicationExtensions
     {
         /// <summary>
         /// Shows the main window or creates it.

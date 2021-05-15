@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace JannesP.SimConnectWrapper.EventArgs
+﻿namespace JannesP.SimConnectWrapper.EventArgs
 {
     public class IntervalRequestResultEventArgs : System.EventArgs
     {
@@ -13,8 +9,8 @@ namespace JannesP.SimConnectWrapper.EventArgs
             DataDefinition = dataDefinition;
         }
 
-        public object? Result { get; }
-        public int RequestId { get; }
         public SimConnectDataDefinition DataDefinition { get; }
+        public int RequestId { get; }
+        public object? Result { get; }
     }
 }

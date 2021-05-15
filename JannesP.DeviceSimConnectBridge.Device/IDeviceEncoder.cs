@@ -13,6 +13,7 @@ namespace JannesP.DeviceSimConnectBridge.Device
         }
 
         public IDeviceEncoder Encoder { get; }
+
         /// <summary>
         /// The amount of steps turned since the last event. Positive steps are clockwise, negative steps are anticlockwise.
         /// </summary>

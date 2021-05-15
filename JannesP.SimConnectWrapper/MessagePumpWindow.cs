@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using static JannesP.SimConnectWrapper.Win32;
@@ -15,23 +14,21 @@ namespace JannesP.SimConnectWrapper
         public event EventHandler? MessagePumpDestroyed;
 
         private static readonly object _syncRoot = new object();
-        private static Dictionary<IntPtr, MessagePumpWindow> _windows = new Dictionary<IntPtr, MessagePumpWindow>();
+        private static readonly Dictionary<IntPtr, MessagePumpWindow> _windows = new Dictionary<IntPtr, MessagePumpWindow>();
         private static WNDCLASSEX _wndClass = new WNDCLASSEX();
         private static ushort? _wndClassResult;
         private static WndProc? _wndProcStatic;
 
         private readonly Thread _thread;
+        private readonly WndProc _wndProc;
         private TaskCompletionSource<bool>? _createTaskCompletionSource;
-        private WndProc _wndProc;
         private bool _disposedValue;
-        
 
         public MessagePumpWindow(WndProc wndProc)
         {
             _wndProc = wndProc;
             lock (_syncRoot)
             {
-                
                 _thread = new Thread(MessagePump);
                 RegisterWindowClass();
             }
@@ -130,7 +127,7 @@ namespace JannesP.SimConnectWrapper
                 {
                     // TODO: dispose managed state (managed objects)
                 }
-                lock (_syncRoot) 
+                lock (_syncRoot)
                 {
                     if (Handle != null)
                     {

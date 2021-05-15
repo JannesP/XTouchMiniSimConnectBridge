@@ -1,19 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
+﻿using System.Diagnostics;
 using System.Security;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
 using Microsoft.Win32;
 
 namespace JannesP.DeviceSimConnectBridge.WpfApp.Utility
 {
     internal static class AutostartHelper
     {
-        private static readonly string _registryAutostartKey = @"Software\Microsoft\Windows\CurrentVersion\Run";
         private static readonly string _autostartKeyName = AssemblyUtil.AssemblyNameWithoutExtension;
+        private static readonly string _registryAutostartKey = @"Software\Microsoft\Windows\CurrentVersion\Run";
 
         /// <summary>
         /// Adds the program to the autostart in the registry. You should probably use some command line args to prevent the gui from opening.

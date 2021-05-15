@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using JannesP.DeviceSimConnectBridge.Device;
 using JannesP.XTouchMini;
 using JannesP.XTouchMini.Enums;
 
@@ -10,37 +9,51 @@ namespace JannesP.DeviceSimConnectBridge.Device.XTouchMini
 {
     public class XTouchMiniDevice : XTouchMiniMcMode, IDevice
     {
-        public XTouchMiniDevice() : base() { }
-
         private readonly Dictionary<byte, IDeviceButton> _buttons = XTouchMiniMcButton.Controls.Select(v => new DeviceButton((int)v.Value.MidiCode, v.Value.Name)).Cast<IDeviceButton>().ToDictionary(v => (byte)v.Id);
-        public IEnumerable<IDeviceButton> Buttons => _buttons.Values;
 
         private readonly Dictionary<byte, IDeviceEncoder> _encoders = XTouchMiniMcEncoder.Controls.Select(v => new DeviceEncoder((int)v.Value.MidiCode, v.Value.Name)).Cast<IDeviceEncoder>().ToDictionary(v => (byte)v.Id);
-        public IEnumerable<IDeviceEncoder> Encoders => _encoders.Values;
 
         private readonly Dictionary<byte, IDeviceFader> _faders = XTouchMiniMcFader.Controls.Select(v => new DeviceFader((int)v.Value.MidiCode, v.Value.Name)).Cast<IDeviceFader>().ToDictionary(v => (byte)v.Id);
-        public IEnumerable<IDeviceFader> Faders => _faders.Values;
 
         private readonly Dictionary<byte, IDeviceLed> _leds = XTouchMiniMcButton.Controls.Select(v => new DeviceButton((int)v.Value.MidiCode, v.Value.Name)).Cast<IDeviceLed>().ToDictionary(v => (byte)v.Id);
-        public IEnumerable<IDeviceLed> Leds => _leds.Values;
 
-        public bool IsConnected => State == ConnectionState.Open;
+        public XTouchMiniDevice() : base()
+        {
+        }
 
-        public string FriendlyName => "Behringer X-Touch Mini";
+        public new event EventHandler<DeviceButtonEventArgs>? ButtonDown;
 
-        public string DeviceType => "behringer_xtouch_mini";
-
-        public string? DeviceId => null;
+        public new event EventHandler<DeviceButtonEventArgs>? ButtonUp;
 
         public new event EventHandler? Connected;
+
         public new event EventHandler? Disconnected;
-        public new event EventHandler<DeviceButtonEventArgs>? ButtonDown;
-        public new event EventHandler<DeviceButtonEventArgs>? ButtonUp;
+
         public new event EventHandler<DeviceEncoderEventArgs>? EncoderTurned;
+
         public new event EventHandler<DeviceFaderEventArgs>? FaderMoved;
 
+        public IEnumerable<IDeviceButton> Buttons => _buttons.Values;
+        public string? DeviceId => null;
+        public string DeviceType => "behringer_xtouch_mini";
+        public IEnumerable<IDeviceEncoder> Encoders => _encoders.Values;
+        public IEnumerable<IDeviceFader> Faders => _faders.Values;
+        public string FriendlyName => "Behringer X-Touch Mini";
+        public bool IsConnected => State == ConnectionState.Open;
+        public IEnumerable<IDeviceLed> Leds => _leds.Values;
+
         public Task<bool> ConnectAsync() => base.OpenDeviceAsync();
+
         public Task DisconnectAsync() => base.CloseDeviceAsync();
+
+        public new Task ResetDeviceState()
+        {
+            return Task.Run(() =>
+            {
+                base.ResetDeviceState();
+            });
+        }
+
         public Task SetLedState(IDeviceLed deviceLed, DeviceLedState ledState)
         {
             McLedState xTouchLedState = AsMcLedState(ledState);
@@ -83,15 +96,7 @@ namespace JannesP.DeviceSimConnectBridge.Device.XTouchMini
             FaderMoved?.Invoke(this, new DeviceFaderEventArgs(_faders[fader.MidiCode], value));
         }
 
-        public new Task ResetDeviceState() 
-        {
-            return Task.Run(() =>
-            {
-                base.ResetDeviceState();
-            });
-        }
-
-        private McLedState AsMcLedState(DeviceLedState ledState) => ledState switch
+        private static McLedState AsMcLedState(DeviceLedState ledState) => ledState switch
         {
             DeviceLedState.Off => McLedState.Off,
             DeviceLedState.On => McLedState.On,

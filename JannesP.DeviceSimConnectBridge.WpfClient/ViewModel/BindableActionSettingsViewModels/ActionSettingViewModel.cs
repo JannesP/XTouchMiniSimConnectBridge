@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using JannesP.DeviceSimConnectBridge.WpfApp.BindableActions;
 
@@ -11,6 +10,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindableActionSettings
     public abstract class ActionSettingViewModel : RevertibleViewModelBase
     {
         private object? _value;
+
         protected ActionSettingViewModel(BindableActionSetting setting)
         {
             Setting = setting;
@@ -19,6 +19,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindableActionSettings
 
         public string Description => Setting.Attribute.Description;
         public string Name => Setting.Attribute.Name;
+
         [CustomValidation(typeof(ViewModelBase), nameof(ViewModelBase.ValidateProperty))]
         public object? Value
         {
@@ -34,6 +35,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindableActionSettings
         }
 
         protected BindableActionSetting Setting { get; }
+
         public static ActionSettingViewModel Create(BindableActionSetting setting)
         {
             return setting.Attribute switch
@@ -76,12 +78,19 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindableActionSettings
         }
 
         public virtual string Description => Model.Description;
-        public virtual string Name => Model.Name;
         public IBindableAction Model { get; }
+        public virtual string Name => Model.Name;
         public IEnumerable<ActionSettingViewModel> Settings { get; }
 
-        protected override void OnApplyChanges() { /* nothing to do here */ }
-        protected override void OnRevertChanges() { /* nothing to do here */ }
+        protected override void OnApplyChanges()
+        {
+            /* nothing to do here */
+        }
+
+        protected override void OnRevertChanges()
+        {
+            /* nothing to do here */
+        }
     }
 
     public class DesignTimeBindableAction : IBindableAction, ISimpleBindableAction
@@ -97,17 +106,24 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindableActionSettings
 
         [StringActionSetting("String Setting", "This is a description for a DesignTime string setting.")]
         public string TestString { get; set; } = "SUPER EVENT";
+
         public string UniqueIdentifier => nameof(DesignTimeBindableAction);
+
         public Task DeactivateAsync() => throw new NotSupportedException();
+
         public Task ExecuteAsync() => throw new NotImplementedException();
+
         public Task InitializeAsync(IServiceProvider serviceProvider) => throw new NotSupportedException();
     }
 
     public class DesignTimeBindableActionViewModel : BindableActionViewModel
     {
-        public DesignTimeBindableActionViewModel() : base(new DesignTimeBindableAction()) { }
+        public DesignTimeBindableActionViewModel() : base(new DesignTimeBindableAction())
+        {
+        }
 
         protected override void OnApplyChanges() => throw new NotSupportedException();
+
         protected override void OnRevertChanges() => throw new NotSupportedException();
     }
 }

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace JannesP.XTouchMini.Enums
+﻿namespace JannesP.XTouchMini.Enums
 {
     public enum McLedState : byte
     {

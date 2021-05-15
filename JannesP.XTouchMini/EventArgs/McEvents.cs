@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace JannesP.XTouchMini.EventArgs
+﻿namespace JannesP.XTouchMini.EventArgs
 {
-    public abstract class XTouchMiniMcControlEventArgs<T> : System.EventArgs 
+    public abstract class XTouchMiniMcControlEventArgs<T> : System.EventArgs
         where T : ControlDefinition<T>
     {
         public XTouchMiniMcControlEventArgs(T control)
@@ -17,7 +13,9 @@ namespace JannesP.XTouchMini.EventArgs
 
     public class XTouchMiniMcModeButtonEventArgs : XTouchMiniMcControlEventArgs<XTouchMiniMcButton>
     {
-        public XTouchMiniMcModeButtonEventArgs(XTouchMiniMcButton button) : base(button) { }
+        public XTouchMiniMcModeButtonEventArgs(XTouchMiniMcButton button) : base(button)
+        {
+        }
     }
 
     public class XTouchMiniMcModeEncoderTurnedEventArgs : XTouchMiniMcControlEventArgs<XTouchMiniMcEncoder>
@@ -26,6 +24,7 @@ namespace JannesP.XTouchMini.EventArgs
         {
             Ticks = ticks;
         }
+
         public int Ticks { get; }
     }
 
@@ -35,6 +34,7 @@ namespace JannesP.XTouchMini.EventArgs
         {
             Value = value;
         }
+
         /// <summary>
         /// ranges from 0-1
         /// </summary>

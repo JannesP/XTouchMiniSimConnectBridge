@@ -1,14 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Text;
-using Microsoft.FlightSimulator.SimConnect;
 
 namespace JannesP.SimConnectWrapper
 {
     internal static class Win32
     {
+        public static IntPtr HWND_MESSAGE = new IntPtr(-3);
+
         internal delegate IntPtr WndProc(IntPtr hWnd, WindowMessage msg, IntPtr wParam, IntPtr lParam);
 
         internal enum WindowMessage : uint
@@ -16,7 +14,34 @@ namespace JannesP.SimConnectWrapper
             WM_DESTROY = 0x0002,
             WM_CLOSE = 0x0010,
             WM_APP = 0x8000,
-        }        
+        }
+
+        [Flags]
+        internal enum WindowStyles : uint
+        {
+            WS_BORDER = 0x800000,
+            WS_CAPTION = 0xc00000,
+            WS_CHILD = 0x40000000,
+            WS_CLIPCHILDREN = 0x2000000,
+            WS_CLIPSIBLINGS = 0x4000000,
+            WS_DISABLED = 0x8000000,
+            WS_DLGFRAME = 0x400000,
+            WS_GROUP = 0x20000,
+            WS_HSCROLL = 0x100000,
+            WS_MAXIMIZE = 0x1000000,
+            WS_MAXIMIZEBOX = 0x10000,
+            WS_MINIMIZE = 0x20000000,
+            WS_MINIMIZEBOX = 0x20000,
+            WS_OVERLAPPED = 0x0,
+            WS_OVERLAPPEDWINDOW = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_SIZEFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX,
+            WS_POPUP = 0x80000000u,
+            WS_POPUPWINDOW = WS_POPUP | WS_BORDER | WS_SYSMENU,
+            WS_SIZEFRAME = 0x40000,
+            WS_SYSMENU = 0x80000,
+            WS_TABSTOP = 0x10000,
+            WS_VISIBLE = 0x10000000,
+            WS_VSCROLL = 0x200000
+        }
 
         [Flags]
         internal enum WindowStylesEx : uint
@@ -50,53 +75,35 @@ namespace JannesP.SimConnectWrapper
             WS_EX_WINDOWEDGE = 0x00000100
         }
 
-        [Flags]
-        internal enum WindowStyles : uint
-        {
-            WS_BORDER = 0x800000,
-            WS_CAPTION = 0xc00000,
-            WS_CHILD = 0x40000000,
-            WS_CLIPCHILDREN = 0x2000000,
-            WS_CLIPSIBLINGS = 0x4000000,
-            WS_DISABLED = 0x8000000,
-            WS_DLGFRAME = 0x400000,
-            WS_GROUP = 0x20000,
-            WS_HSCROLL = 0x100000,
-            WS_MAXIMIZE = 0x1000000,
-            WS_MAXIMIZEBOX = 0x10000,
-            WS_MINIMIZE = 0x20000000,
-            WS_MINIMIZEBOX = 0x20000,
-            WS_OVERLAPPED = 0x0,
-            WS_OVERLAPPEDWINDOW = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_SIZEFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX,
-            WS_POPUP = 0x80000000u,
-            WS_POPUPWINDOW = WS_POPUP | WS_BORDER | WS_SYSMENU,
-            WS_SIZEFRAME = 0x40000,
-            WS_SYSMENU = 0x80000,
-            WS_TABSTOP = 0x10000,
-            WS_VISIBLE = 0x10000000,
-            WS_VSCROLL = 0x200000
-        }
+        [DllImport("user32.dll", EntryPoint = "CreateWindowEx", SetLastError = true)]
+        internal static extern IntPtr CreateWindowEx(
+           WindowStylesEx dwExStyle,
+           IntPtr registerClassResult,
+           [MarshalAs(UnmanagedType.LPWStr)] string lpWindowName,
+           WindowStyles dwStyle,
+           int x,
+           int y,
+           int nWidth,
+           int nHeight,
+           IntPtr hWndParent,
+           IntPtr hMenu,
+           IntPtr hInstance,
+           IntPtr lpParam);
 
-        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
-        internal struct WNDCLASSEX
-        {
-            [MarshalAs(UnmanagedType.U4)]
-            public int cbSize;
-            [MarshalAs(UnmanagedType.U4)]
-            public int style;
-            public IntPtr lpfnWndProc;
-            public int cbClsExtra;
-            public int cbWndExtra;
-            public IntPtr hInstance;
-            public IntPtr hIcon;
-            public IntPtr hCursor;
-            public IntPtr hbrBackground;
-            public string lpszMenuName;
-            public string lpszClassName;
-            public IntPtr hIconSm;
-        }
+        [DllImport("user32.dll", SetLastError = true)]
+        internal static extern IntPtr DefWindowProc(IntPtr hWnd, WindowMessage uMsg, IntPtr wParam, IntPtr lParam);
 
-        public static IntPtr HWND_MESSAGE = new IntPtr(-3);
+        [DllImport("user32.dll", SetLastError = true)]
+        internal static extern bool DestroyWindow(IntPtr hWnd);
+
+        [DllImport("user32.dll")]
+        internal static extern IntPtr DispatchMessage(ref MSG lpmsg);
+
+        [DllImport("user32.dll")]
+        internal static extern sbyte GetMessage(out MSG lpMsg, IntPtr hWnd, uint wMsgFilterMin, uint wMsgFilterMax);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        internal static extern void PostQuitMessage(int exitCode);
 
         /// <summary>
         /// The CreateWindowEx function creates an overlapped, pop-up, or child window with an extended window style; otherwise, this function is identical to the CreateWindow function.
@@ -123,34 +130,14 @@ namespace JannesP.SimConnectWrapper
         /// <item>The WH_CBT hook is installed and returns a failure code</item>
         /// <item>if one of the controls in the dialog template is not registered, or its window window procedure fails WM_CREATE or WM_NCCREATE</item>
         /// </list></returns>
-
-        [DllImport("user32.dll", EntryPoint = "CreateWindowEx", SetLastError = true)]
-        internal static extern IntPtr CreateWindowEx(
-           WindowStylesEx dwExStyle,
-           IntPtr registerClassResult,
-           [MarshalAs(UnmanagedType.LPWStr)] string lpWindowName,
-           WindowStyles dwStyle,
-           int x,
-           int y,
-           int nWidth,
-           int nHeight,
-           IntPtr hWndParent,
-           IntPtr hMenu,
-           IntPtr hInstance,
-           IntPtr lpParam);
-
         [DllImport("user32.dll", SetLastError = true, EntryPoint = "RegisterClassEx")]
         internal static extern ushort RegisterClassEx([In] ref WNDCLASSEX lpWndClass);
 
-        [DllImport("user32.dll", SetLastError = true)]
-        internal static extern IntPtr DefWindowProc(IntPtr hWnd, WindowMessage uMsg, IntPtr wParam, IntPtr lParam);
+        [DllImport("user32.dll")]
+        internal static extern IntPtr SendMessage(IntPtr hWnd, WindowMessage msg, IntPtr wParam, IntPtr lParam);
 
-        [DllImport("user32.dll", SetLastError = true)]
-        internal static extern void PostQuitMessage(int exitCode);
-
-        [DllImport("user32.dll", SetLastError = true)]
-        internal static extern bool DestroyWindow(IntPtr hWnd);
-
+        [DllImport("user32.dll")]
+        internal static extern bool TranslateMessage(ref MSG lpMsg);
 
         [StructLayout(LayoutKind.Sequential)]
         public struct MSG
@@ -171,14 +158,25 @@ namespace JannesP.SimConnectWrapper
             public int Y;
         }
 
-        [DllImport("user32.dll")]
-        internal static extern bool TranslateMessage(ref MSG lpMsg);
-        [DllImport("user32.dll")]
-        internal static extern IntPtr DispatchMessage(ref MSG lpmsg);
-        [DllImport("user32.dll")]
-        internal static extern IntPtr SendMessage(IntPtr hWnd, WindowMessage msg, IntPtr wParam, IntPtr lParam);
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+        internal struct WNDCLASSEX
+        {
+            [MarshalAs(UnmanagedType.U4)]
+            public int cbSize;
 
-        [DllImport("user32.dll")]
-        internal static extern sbyte GetMessage(out MSG lpMsg, IntPtr hWnd, uint wMsgFilterMin, uint wMsgFilterMax);
+            [MarshalAs(UnmanagedType.U4)]
+            public int style;
+
+            public IntPtr lpfnWndProc;
+            public int cbClsExtra;
+            public int cbWndExtra;
+            public IntPtr hInstance;
+            public IntPtr hIcon;
+            public IntPtr hCursor;
+            public IntPtr hbrBackground;
+            public string lpszMenuName;
+            public string lpszClassName;
+            public IntPtr hIconSm;
+        }
     }
 }

@@ -1,70 +1,68 @@
 ﻿<Window x:Class="JannesP.DeviceSimConnectBridge.WpfApp.View.Windows.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:JannesP.DeviceSimConnectBridge.WpfApp.View.Windows"
-        xmlns:vm="clr-namespace:JannesP.DeviceSimConnectBridge.WpfApp.ViewModel"
-        xmlns:windowVm="clr-namespace:JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.WindowViewModels"
         xmlns:cc="clr-namespace:JannesP.DeviceSimConnectBridge.WpfApp.View.Controls"
+        xmlns:windowVm="clr-namespace:JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.WindowViewModels"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800"
         d:DataContext="{d:DesignInstance IsDesignTimeCreatable=True, Type=windowVm:DesignTimeMainWindowViewModel}" WindowStyle="ThreeDBorderWindow">
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="../Styles/ControlStyles.xaml"/>
+                <ResourceDictionary Source="../Styles/ControlStyles.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Window.Resources>
     <DockPanel>
         <Grid DockPanel.Dock="Bottom" Height="24" Background="WhiteSmoke">
             <Grid.RowDefinitions>
-                <RowDefinition Height="auto"/>
-                <RowDefinition Height="*"/>
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="*" />
             </Grid.RowDefinitions>
-            <Rectangle Grid.Row="0" Fill="DarkGray" Height="1"/>
+            <Rectangle Grid.Row="0" Fill="DarkGray" Height="1" />
             <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="{StaticResource SpacingSmall}">
-                <TextBlock TextAlignment="Center" VerticalAlignment="Center" Text="SimConnect Status: "/>
-                <Canvas Margin="2,0" Height="16" Width="16" Background="{Binding Path=SimConnectManager.ConnectionStateBrush}" VerticalAlignment="Center"/>
-                <TextBlock TextAlignment="Center" VerticalAlignment="Center" Text="{Binding Path=SimConnectManager.ConnectionStateText}"/>
-                <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}"  Margin="{StaticResource SpacingNormalLeft}"/>
+                <TextBlock TextAlignment="Center" VerticalAlignment="Center" Text="SimConnect Status: " />
+                <Canvas Margin="2,0" Height="16" Width="16" Background="{Binding Path=SimConnectManager.ConnectionStateBrush}" VerticalAlignment="Center" />
+                <TextBlock TextAlignment="Center" VerticalAlignment="Center" Text="{Binding Path=SimConnectManager.ConnectionStateText}" />
+                <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}"  Margin="{StaticResource SpacingNormalLeft}" />
             </StackPanel>
         </Grid>
 
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="_File">
-                <MenuItem Header="Settings" Click="MenuItemOpenSettings_Click"/>
+                <MenuItem Header="Settings" Click="MenuItemOpenSettings_Click" />
                 <Separator />
-                <MenuItem Header="_Exit" Command="{Binding Path=CommandExit}"/>
+                <MenuItem Header="_Exit" Command="{Binding Path=CommandExit}" />
             </MenuItem>
             <MenuItem Header="_Help">
-                <MenuItem Header="Open Github" Command="{Binding Path=CommandOpenGithub}"/>
+                <MenuItem Header="Open Github" Command="{Binding Path=CommandOpenGithub}" />
                 <Separator />
-                <MenuItem Header="_About" Click="MenuItemOpenAbout_Click"/>
+                <MenuItem Header="_About" Click="MenuItemOpenAbout_Click" />
             </MenuItem>
         </Menu>
 
         <Grid>
             <Grid.RowDefinitions>
-                <RowDefinition Height="auto"/>
-                <RowDefinition Height="*"/>
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="*" />
             </Grid.RowDefinitions>
             <Grid Grid.Row="0" Margin="{StaticResource SpacingNormal}">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="auto"/>
-                    <ColumnDefinition Width="auto"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="auto"/>
-                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition Width="auto" />
+                    <ColumnDefinition Width="auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="auto" />
+                    <ColumnDefinition Width="auto" />
                 </Grid.ColumnDefinitions>
-                <Button Grid.Column="0" Content="Save" IsEnabled="{Binding Path=ProfileEditor.IsTouched}"/>
-                <Button Grid.Column="1" Margin="{StaticResource SpacingNormalLeft}" Content="Revert"/>
-                
-                <ComboBox Grid.Column="3" Width="200" ItemsSource="{Binding Path=ProfileManagement.ProfileList}" SelectedItem="{Binding Path=ProfileManagement.CurrentProfile, Mode=OneWay}" SelectionChanged="ComboBoxProfile_SelectionChanged" DisplayMemberPath="Name"/>
-                <Button Grid.Column="4" Margin="{StaticResource SpacingNormalLeft}" Content="Manage Profiles" Grid.ColumnSpan="2" Click="ButtonOpenProfileManager_Click"/>
+                <Button Grid.Column="0" Content="Save" IsEnabled="{Binding Path=ProfileEditor.IsTouched}" />
+                <Button Grid.Column="1" Margin="{StaticResource SpacingNormalLeft}" Content="Revert" />
+
+                <ComboBox Grid.Column="3" Width="200" ItemsSource="{Binding Path=ProfileManagement.ProfileList}" SelectedItem="{Binding Path=ProfileManagement.CurrentProfile, Mode=OneWay}" SelectionChanged="ComboBoxProfile_SelectionChanged" DisplayMemberPath="Name" />
+                <Button Grid.Column="4" Margin="{StaticResource SpacingNormalLeft}" Content="Manage Profiles" Grid.ColumnSpan="2" Click="ButtonOpenProfileManager_Click" />
             </Grid>
-            <cc:BindingProfileEditor Grid.Row="1" Margin="{StaticResource SpacingNormalLeftTop}" VerticalAlignment="Stretch" DataContext="{Binding Path=ProfileEditor}"/>
+            <cc:BindingProfileEditor Grid.Row="1" Margin="{StaticResource SpacingNormalLeftTop}" VerticalAlignment="Stretch" DataContext="{Binding Path=ProfileEditor}" />
         </Grid>
     </DockPanel>
 </Window>

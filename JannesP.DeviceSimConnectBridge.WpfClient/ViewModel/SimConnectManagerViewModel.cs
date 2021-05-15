@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Media;
 using JannesP.DeviceSimConnectBridge.WpfApp.Managers;
 
@@ -24,8 +19,8 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel
     public class SimConnectManagerViewModel : ViewModelBase, ISimConnectManagerViewModel
     {
         private readonly SimConnectManager? _simConnectManager;
-        private string _connectionStateText;
         private Brush _connectionStateBrush;
+        private string _connectionStateText;
 
         public SimConnectManagerViewModel(SimConnectManager simConnectManager)
         {
@@ -34,19 +29,6 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel
                 .AddHandler(simConnectManager, nameof(SimConnectManager.StateChanged), OnSimConnectManager_StateChanged);
             _connectionStateText = GetTextForState(_simConnectManager.ConnectionState);
             _connectionStateBrush = GetBrushForState(_simConnectManager.ConnectionState);
-        }
-
-        public string ConnectionStateText
-        {
-            get => _connectionStateText;
-            private set
-            {
-                if (_connectionStateText != value)
-                {
-                    _connectionStateText = value;
-                    OnPropertyChanged();
-                }
-            }
         }
 
         public Brush ConnectionStateBrush
@@ -62,16 +44,19 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel
             }
         }
 
-        private void OnSimConnectManager_StateChanged(object? sender, SimConnectManager.StateChangedEventArgs e)
+        public string ConnectionStateText
         {
-            Application.Current.Dispatcher.Invoke(() =>
+            get => _connectionStateText;
+            private set
             {
-                ConnectionStateText = GetTextForState(e.NewState);
-                ConnectionStateBrush = GetBrushForState(e.NewState);
-            });
+                if (_connectionStateText != value)
+                {
+                    _connectionStateText = value;
+                    OnPropertyChanged();
+                }
+            }
         }
 
-        private static string GetTextForState(SimConnectManager.State state) => state.ToString();
         private static Brush GetBrushForState(SimConnectManager.State state) => state switch
         {
             SimConnectManager.State.Connected => Brushes.Green,
@@ -82,6 +67,15 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel
             _ => Brushes.Purple,
         };
 
-        
+        private static string GetTextForState(SimConnectManager.State state) => state.ToString();
+
+        private void OnSimConnectManager_StateChanged(object? sender, SimConnectManager.StateChangedEventArgs e)
+        {
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                ConnectionStateText = GetTextForState(e.NewState);
+                ConnectionStateBrush = GetBrushForState(e.NewState);
+            });
+        }
     }
 }

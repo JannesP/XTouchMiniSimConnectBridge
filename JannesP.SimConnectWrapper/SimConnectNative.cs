@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Text;
 using Microsoft.FlightSimulator.SimConnect;
 
 namespace JannesP.SimConnectWrapper
@@ -13,7 +11,7 @@ namespace JannesP.SimConnectWrapper
     /// </summary>
     internal static class SimConnectNative
     {
-        private static Lazy<FieldInfo> _simConnectHandleFieldInfo = new Lazy<FieldInfo>(() => typeof(SimConnect).GetField("hSimConnect", BindingFlags.NonPublic | BindingFlags.Instance));
+        private static readonly Lazy<FieldInfo> _simConnectHandleFieldInfo = new Lazy<FieldInfo>(() => typeof(SimConnect).GetField("hSimConnect", BindingFlags.NonPublic | BindingFlags.Instance));
 
         public static IntPtr GetSimConnectHandle(this SimConnect simConnect)
         {

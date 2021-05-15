@@ -1,17 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using JannesP.DeviceSimConnectBridge.WpfApp.Extensions;
 using JannesP.DeviceSimConnectBridge.WpfApp.ViewModel;
 using JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.WindowViewModels;
@@ -41,16 +30,6 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.View.Windows
             profileManagementWindow.ShowDialogCentered(this);
         }
 
-        private void MenuItemOpenAbout_Click(object sender, RoutedEventArgs e)
-        {
-            MessageBox.Show("Here is going to be an about page at some point :)");
-        }
-
-        private void MenuItemOpenSettings_Click(object sender, RoutedEventArgs e)
-        {
-            MessageBox.Show("Here is going to be a settings page at some point :)");
-        }
-
         private void ComboBoxProfile_SelectionChanged(object sender, RoutedEventArgs e)
         {
             if (sender is ComboBox comboBox)
@@ -59,7 +38,17 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.View.Windows
                 {
                     _viewModel?.ProfileManagement.ChangeProfile(profile);
                 }
-            }            
+            }
+        }
+
+        private void MenuItemOpenAbout_Click(object sender, RoutedEventArgs e)
+        {
+            MessageBox.Show("Here is going to be an about page at some point :)");
+        }
+
+        private void MenuItemOpenSettings_Click(object sender, RoutedEventArgs e)
+        {
+            MessageBox.Show("Here is going to be a settings page at some point :)");
         }
     }
 }

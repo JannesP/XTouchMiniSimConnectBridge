@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 using JannesP.DeviceSimConnectBridge.WpfApp.Extensions;
 
 namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel
@@ -34,44 +31,12 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel
         }
 
         protected ObservableCollection<RevertibleViewModelBase> Children { get; }
-        protected void AddChildren(params RevertibleViewModelBase[] revertibleViewModels) => AddChildren(revertibleViewModels.AsEnumerable());
-        protected void AddChildren(IEnumerable<RevertibleViewModelBase> revertibleViewModels)
-        {
-            foreach (RevertibleViewModelBase vm in revertibleViewModels)
-            {
-                Children.Add(vm);
-            }
-        }
-
-        protected void RemoveChildren(params RevertibleViewModelBase[] revertibleViewModels) => RemoveChildren(revertibleViewModels.AsEnumerable());
-        protected void RemoveChildren(IEnumerable<RevertibleViewModelBase> revertibleViewModels)
-        {
-            foreach (RevertibleViewModelBase vm in revertibleViewModels)
-            {
-                Children.Remove(vm);
-            }
-        }
 
         public void ApplyChanges()
         {
             OnChildrenApplyChanges();
             OnApplyChanges();
             OnEndApplyChanged();
-        }
-
-        protected abstract void OnApplyChanges();
-
-        protected virtual void OnChildrenApplyChanges()
-        {
-            foreach (RevertibleViewModelBase child in Children.Cast<RevertibleViewModelBase>())
-            {
-                child.ApplyChanges();
-            }
-        }
-
-        protected virtual void OnEndApplyChanged()
-        {
-            IsTouched = false;
         }
 
         public void RevertChanges()
@@ -82,11 +47,30 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel
             OnEndRevertChanges();
         }
 
+        protected void AddChildren(params RevertibleViewModelBase[] revertibleViewModels) => AddChildren(revertibleViewModels.AsEnumerable());
+
+        protected void AddChildren(IEnumerable<RevertibleViewModelBase> revertibleViewModels)
+        {
+            foreach (RevertibleViewModelBase vm in revertibleViewModels)
+            {
+                Children.Add(vm);
+            }
+        }
+
+        protected abstract void OnApplyChanges();
+
         protected virtual void OnBeginRevertChanges()
         {
             _isRevertingChanges = true;
         }
-        protected abstract void OnRevertChanges();
+
+        protected virtual void OnChildrenApplyChanges()
+        {
+            foreach (RevertibleViewModelBase child in Children.Cast<RevertibleViewModelBase>())
+            {
+                child.ApplyChanges();
+            }
+        }
 
         protected virtual void OnChildrenRevertChanges()
         {
@@ -95,6 +79,12 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel
                 child.RevertChanges();
             }
         }
+
+        protected virtual void OnEndApplyChanged()
+        {
+            IsTouched = false;
+        }
+
         protected virtual void OnEndRevertChanges()
         {
             IsTouched = false;
@@ -109,6 +99,19 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel
                 IsTouched = true;
             }
         }
+
+        protected abstract void OnRevertChanges();
+
+        protected void RemoveChildren(params RevertibleViewModelBase[] revertibleViewModels) => RemoveChildren(revertibleViewModels.AsEnumerable());
+
+        protected void RemoveChildren(IEnumerable<RevertibleViewModelBase> revertibleViewModels)
+        {
+            foreach (RevertibleViewModelBase vm in revertibleViewModels)
+            {
+                Children.Remove(vm);
+            }
+        }
+
         private void Child_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(IsTouched) && (sender?.GetPropertyValueByName<bool>(e.PropertyName)) == true)

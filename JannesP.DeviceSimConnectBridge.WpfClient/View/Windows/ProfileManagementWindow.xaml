@@ -8,29 +8,29 @@
         xmlns:controls="clr-namespace:JannesP.DeviceSimConnectBridge.WpfApp.View.Controls"
         mc:Ignorable="d"
         Title="Manage Profiles" Height="400" Width="400" WindowStartupLocation="CenterOwner"
-        d:DataContext="{d:DesignInstance IsDesignTimeCreatable=True, Type=vm:DesignTimeProfileManagementWindowViewModel}" 
+        d:DataContext="{d:DesignInstance IsDesignTimeCreatable=True, Type=vm:DesignTimeProfileManagementWindowViewModel}"
         WindowStyle="ThreeDBorderWindow" KeyDown="Window_KeyDown">
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="../Styles/ControlStyles.xaml"/>
+                <ResourceDictionary Source="../Styles/ControlStyles.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Window.Resources>
     <Grid>
         <Grid Margin="4,4,4,4" Grid.ColumnSpan="2">
             <Grid.RowDefinitions>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="auto"/>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="auto" />
             </Grid.RowDefinitions>
             <ScrollViewer Grid.Row="0" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
                 <ListView ItemsSource="{Binding Path=ProfileManagement.ProfileList}" HorizontalContentAlignment="Stretch">
                     <ListView.ItemContainerStyle>
                         <Style TargetType="ListViewItem">
-                            <Setter Property="Padding" Value="0"/>
-                            <Setter Property="Margin" Value="1"/>
-                            <Setter Property="BorderThickness" Value="1"/>
-                            <EventSetter Event="MouseDoubleClick" Handler="ProfileListViewItem_MouseDoubleClick"/>
+                            <Setter Property="Padding" Value="0" />
+                            <Setter Property="Margin" Value="1" />
+                            <Setter Property="BorderThickness" Value="1" />
+                            <EventSetter Event="MouseDoubleClick" Handler="ProfileListViewItem_MouseDoubleClick" />
                         </Style>
                     </ListView.ItemContainerStyle>
                     <ListView.ItemTemplate>
@@ -38,33 +38,32 @@
                             <Border BorderThickness="1">
                                 <Border.Style>
                                     <Style TargetType="Border">
-                                        <Setter Property="Background" Value="GhostWhite"/>
-                                        <Setter Property="BorderBrush" Value="Gainsboro"/>
+                                        <Setter Property="Background" Value="GhostWhite" />
+                                        <Setter Property="BorderBrush" Value="Gainsboro" />
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding Path=IsCurrent}" Value="True">
-                                                <Setter Property="Background" Value="#C7EACA"/>
+                                                <Setter Property="Background" Value="#C7EACA" />
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
                                 </Border.Style>
                                 <Grid Margin="4">
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="auto"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="auto"/>
+                                        <ColumnDefinition Width="auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="auto" />
                                     </Grid.ColumnDefinitions>
 
                                     <TextBlock Grid.Column="0" Text="{Binding Path=Name}" />
 
                                     <StackPanel Grid.Column="2" Orientation="Horizontal">
-                                        <Button Content="Rename" Click="RenameProfileButton_Click"/>
+                                        <Button Content="Rename" Click="RenameProfileButton_Click" />
                                         <Button Margin="4,0,0,0"
-                                            Content="Delete" 
-                                            Click="DeleteProfileButton_Click" 
+                                            Content="Delete"
+                                            Click="DeleteProfileButton_Click"
                                             Command="{Binding Path=DataContext.ProfileManagement.CommandDeleteProfile, RelativeSource={RelativeSource AncestorType=ListView}}"
-                                            CommandParameter="{Binding}"/>
+                                            CommandParameter="{Binding}" />
                                     </StackPanel>
-
                                 </Grid>
                             </Border>
                         </DataTemplate>
@@ -73,11 +72,11 @@
             </ScrollViewer>
             <Grid Grid.Row="1" Margin="0,4,0,0">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="auto"/>
-                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="auto" />
+                    <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
-                <Button Grid.Column="1" Content="Add new Profile" Click="AddProfileButton_Click" HorizontalAlignment="Center"/>
+                <Button Grid.Column="1" Content="Add new Profile" Click="AddProfileButton_Click" HorizontalAlignment="Center" />
             </Grid>
         </Grid>
     </Grid>

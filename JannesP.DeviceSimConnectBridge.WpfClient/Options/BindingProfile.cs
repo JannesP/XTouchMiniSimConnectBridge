@@ -2,15 +2,10 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Linq;
 using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
-using JannesP.DeviceSimConnectBridge.Device.XTouchMini;
 using JannesP.DeviceSimConnectBridge.WpfApp.ActionBindings;
 using JannesP.DeviceSimConnectBridge.WpfApp.BindableActions.DataSources;
 using JannesP.DeviceSimConnectBridge.WpfApp.BindableActions.SimConnectActions;
-using Newtonsoft.Json;
 
 namespace JannesP.DeviceSimConnectBridge.WpfApp.Options
 {
@@ -19,10 +14,13 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Options
     {
         private string? _fileName;
 
-        public string? FileName 
-        { 
+        [DataMember]
+        public List<DeviceBindingConfiguration> BindingConfigurations { get; set; } = new List<DeviceBindingConfiguration>();
+
+        public string? FileName
+        {
             get => _fileName;
-            set 
+            set
             {
                 if (string.IsNullOrWhiteSpace(value) ||
                     value.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
@@ -30,21 +28,14 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Options
                     throw new ArgumentException("The given FileName is not a valid filename.", nameof(value));
                 }
                 _fileName = value;
-            } 
+            }
         }
+
+        [DataMember]
+        public string? Name { get; set; }
 
         [DataMember]
         public Guid? UniqueId { get; set; }
-        [DataMember]
-        public string? Name { get; set; }
-        [DataMember]
-        public List<DeviceBindingConfiguration> BindingConfigurations { get; set; } = new List<DeviceBindingConfiguration>();
-
-        [OnDeserialized]
-        public void OnDeserialized(StreamingContext context)
-        {
-            if (BindingConfigurations == null) BindingConfigurations = new List<DeviceBindingConfiguration>();
-        }
 
         public static BindingProfile CreateDefaultProfile() => new()
         {
@@ -164,17 +155,28 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Options
                 }
             }
         };
+
+        [OnDeserialized]
+        public void OnDeserialized(StreamingContext context)
+        {
+            if (BindingConfigurations == null) BindingConfigurations = new List<DeviceBindingConfiguration>();
+        }
     }
 
     [DataContract]
     public class DeviceBindingConfiguration
     {
-        [MemberNotNull(nameof(DeviceType), nameof(FriendlyName))]
-        public void ThrowIfNotComplete()
-        {
-            if (DeviceType == null) throw new Exception($"{nameof(DeviceType)} is null.");
-            if (FriendlyName == null) throw new Exception($"{nameof(FriendlyName)} is null.");
-        }
+        [DataMember]
+        public List<ActionBinding> Bindings { get; set; } = new List<ActionBinding>();
+
+        [DataMember]
+        public string? DeviceId { get; set; }
+
+        [DataMember]
+        public string? DeviceType { get; set; }
+
+        [DataMember]
+        public string? FriendlyName { get; set; }
 
         [OnDeserialized]
         public void OnDeserialized(StreamingContext context)
@@ -182,13 +184,11 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Options
             if (Bindings == null) Bindings = new List<ActionBinding>();
         }
 
-        [DataMember]
-        public string? DeviceType { get; set; }
-        [DataMember]
-        public string? DeviceId { get; set; }
-        [DataMember]
-        public string? FriendlyName { get; set; }
-        [DataMember]
-        public List<ActionBinding> Bindings { get; set; } = new List<ActionBinding>();
+        [MemberNotNull(nameof(DeviceType), nameof(FriendlyName))]
+        public void ThrowIfNotComplete()
+        {
+            if (DeviceType == null) throw new Exception($"{nameof(DeviceType)} is null.");
+            if (FriendlyName == null) throw new Exception($"{nameof(FriendlyName)} is null.");
+        }
     }
 }

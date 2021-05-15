@@ -1,20 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using JannesP.DeviceSimConnectBridge.Device;
+using JannesP.DeviceSimConnectBridge.WpfApp.Options;
+using JannesP.DeviceSimConnectBridge.WpfApp.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using JannesP.DeviceSimConnectBridge.Device;
-using JannesP.DeviceSimConnectBridge.WpfApp.Repositories;
-using JannesP.DeviceSimConnectBridge.WpfApp.Options;
 
 namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
 {
     internal class DeviceBindingManager
     {
-        private readonly ILogger<DeviceBindingManager> _logger;
         private readonly DeviceRepository _deviceRepository;
+        private readonly ILogger<DeviceBindingManager> _logger;
         private readonly ProfileManager _profileManager;
         private readonly IServiceProvider _serviceProvider;
 

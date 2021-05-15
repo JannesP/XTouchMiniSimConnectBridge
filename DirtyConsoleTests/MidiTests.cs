@@ -1,14 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using JannesP.XTouchMini;
 using JannesP.XTouchMini.Enums;
 
 namespace DirtyConsoleTests
 {
-    class MidiTests
+    internal class MidiTests
     {
         public static async Task Run()
         {
@@ -41,14 +38,9 @@ namespace DirtyConsoleTests
             Console.ReadLine();
         }
 
-        private static void Control_FaderMoved(object sender, JannesP.XTouchMini.EventArgs.XTouchMiniMcModeFaderMovedEventArgs e)
+        private static void Control_ButtonDown(object sender, JannesP.XTouchMini.EventArgs.XTouchMiniMcModeButtonEventArgs e)
         {
-            Console.WriteLine("[Control_FaderMoved] {0}: {1}", e.Control.Name, e.Value);
-        }
-
-        private static void Control_EncoderTurned(object sender, JannesP.XTouchMini.EventArgs.XTouchMiniMcModeEncoderTurnedEventArgs e)
-        {
-            Console.WriteLine("[Control_EncoderTurned] {0}: {1}", e.Control.Name, e.Ticks);
+            Console.WriteLine("[Control_ButtonDown] {0}: DOWN", e.Control.Name);
         }
 
         private static void Control_ButtonUp(object sender, JannesP.XTouchMini.EventArgs.XTouchMiniMcModeButtonEventArgs e)
@@ -56,9 +48,14 @@ namespace DirtyConsoleTests
             Console.WriteLine("[Control_ButtonUp] {0}: UP", e.Control.Name);
         }
 
-        private static void Control_ButtonDown(object sender, JannesP.XTouchMini.EventArgs.XTouchMiniMcModeButtonEventArgs e)
+        private static void Control_EncoderTurned(object sender, JannesP.XTouchMini.EventArgs.XTouchMiniMcModeEncoderTurnedEventArgs e)
         {
-            Console.WriteLine("[Control_ButtonDown] {0}: DOWN", e.Control.Name);
+            Console.WriteLine("[Control_EncoderTurned] {0}: {1}", e.Control.Name, e.Ticks);
+        }
+
+        private static void Control_FaderMoved(object sender, JannesP.XTouchMini.EventArgs.XTouchMiniMcModeFaderMovedEventArgs e)
+        {
+            Console.WriteLine("[Control_FaderMoved] {0}: {1}", e.Control.Name, e.Value);
         }
     }
 }

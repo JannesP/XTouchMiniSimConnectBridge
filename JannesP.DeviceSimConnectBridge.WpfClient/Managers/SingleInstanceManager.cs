@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -17,13 +14,11 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
 {
     internal class SingleInstanceManager : IDisposable
     {
-        private readonly string _syncNamesBase;
-        private string MutexName => _syncNamesBase + "_isFirstInstanceMutex";
-        private string EventSignalName => _syncNamesBase + "_notifyFirstInstanceEvent";
         private readonly CancellationTokenSource _cancellationTokenSource = new();
         private readonly EventWaitHandle? _evtNotifiedFromOtherProcess;
-        private readonly Mutex _mutexCheckIfFirstInstance;
         private readonly ILogger<SingleInstanceManager> _logger;
+        private readonly Mutex _mutexCheckIfFirstInstance;
+        private readonly string _syncNamesBase;
         private readonly Task? _waitHandleTask;
 
         /// <summary>
@@ -82,6 +77,19 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
         }
 
         /// <summary>
+        /// Gets called when this process is notified by another process.
+        /// </summary>
+        public event EventHandler? SecondInstanceStarted;
+
+        /// <summary>
+        /// If the current instance is the first instance.
+        /// </summary>
+        public bool IsFirstInstance { get; }
+
+        private string EventSignalName => _syncNamesBase + "_notifyFirstInstanceEvent";
+        private string MutexName => _syncNamesBase + "_isFirstInstanceMutex";
+
+        /// <summary>
         /// Restarts the current executable.
         /// </summary>
         public static void Restart()
@@ -95,46 +103,6 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
                 });
             };
             Application.Current.Shutdown();
-        }
-
-        /// <summary>
-        /// Gets called when this process is notified by another process.
-        /// </summary>
-        public event EventHandler? SecondInstanceStarted;
-        /// <summary>
-        /// If the current instance is the first instance.
-        /// </summary>
-        public bool IsFirstInstance { get; }
-
-        private void WaitForEvent(EventWaitHandle ewh, CancellationToken token)
-        {
-            try
-            {
-                while (!token.IsCancellationRequested)
-                {
-                    int index = WaitHandle.WaitAny(new[] { ewh, token.WaitHandle });
-                    switch (index)
-                    {
-                        case 0: //ewh
-                            token.ThrowIfCancellationRequested();
-                            OnSecondInstanceStarted();
-                            ewh.Reset();
-                            break;
-                        case 1: //token
-                            //just exit the while loop on the next iteration
-                            break;
-                        default:
-                            throw new Exception("Wait ... what?");
-                    }
-                }
-            }
-            catch (TaskCanceledException) { /* ignore */ }
-        }
-
-        private void OnSecondInstanceStarted()
-        {
-            _logger.LogInformation("Second instance started.");
-            SecondInstanceStarted?.Invoke(this, EventArgs.Empty);
         }
 
         /// <summary>
@@ -158,6 +126,39 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
             _cancellationTokenSource.Cancel();
             _cancellationTokenSource.Dispose();
             GC.SuppressFinalize(this);
+        }
+
+        private void OnSecondInstanceStarted()
+        {
+            _logger.LogInformation("Second instance started.");
+            SecondInstanceStarted?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void WaitForEvent(EventWaitHandle ewh, CancellationToken token)
+        {
+            try
+            {
+                while (!token.IsCancellationRequested)
+                {
+                    int index = WaitHandle.WaitAny(new[] { ewh, token.WaitHandle });
+                    switch (index)
+                    {
+                        case 0: //ewh
+                            token.ThrowIfCancellationRequested();
+                            OnSecondInstanceStarted();
+                            ewh.Reset();
+                            break;
+
+                        case 1: //token
+                            //just exit the while loop on the next iteration
+                            break;
+
+                        default:
+                            throw new Exception("Wait ... what?");
+                    }
+                }
+            }
+            catch (TaskCanceledException) { /* ignore */ }
         }
     }
 }

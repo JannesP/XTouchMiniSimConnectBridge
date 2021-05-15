@@ -1,40 +1,45 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
-using System.Threading.Tasks;
 using JannesP.DeviceSimConnectBridge.WpfApp.BindableActions;
 using JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindableActionSettingsViewModels;
 
 namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorViewModels.DataSourceViewModels
 {
+    public class DesignTimeSimBoolSourceActionViewModel : ISimBoolSourceActionViewModel
+    {
+        private static int _instanceCount = 0;
+
+        public DesignTimeSimBoolSourceActionViewModel() : base(new DesignTimeBindableAction())
+        {
+        }
+
+        public override string ConfigurationSummary => "SimVar: 'AUTOPILOT MASTER'";
+        public override string Description => "Super cool description!";
+        public override string Name { get; } = $"Design Time SimBoolSource {++_instanceCount}";
+        public override string UniqueIdentifier => nameof(DesignTimeSimBoolSourceActionViewModel);
+
+        public override ISimBoolSourceActionViewModel CreateNew() => throw new NotSupportedException();
+    }
+
     public abstract class ISimBoolSourceActionViewModel : BindableActionViewModel
     {
-        public ISimBoolSourceActionViewModel(IBindableAction action) : base(action) { }
+        public ISimBoolSourceActionViewModel(IBindableAction action) : base(action)
+        {
+        }
 
-        public abstract string UniqueIdentifier { get; }
-        public abstract ISimBoolSourceActionViewModel CreateNew();
         public abstract string ConfigurationSummary { get; }
+        public new ISimBoolSourceAction Model => (ISimBoolSourceAction)base.Model;
+        public abstract string UniqueIdentifier { get; }
+
+        public abstract ISimBoolSourceActionViewModel CreateNew();
+
         protected void OnConfigurationPropertyChanged([CallerMemberName] string? configPropertyName = null)
         {
             OnPropertyChanged(configPropertyName);
             OnPropertyChanged(nameof(ConfigurationSummary));
         }
-        public new ISimBoolSourceAction Model => (ISimBoolSourceAction)base.Model;
-    }
-
-    public class DesignTimeSimBoolSourceActionViewModel : ISimBoolSourceActionViewModel
-    {
-        public DesignTimeSimBoolSourceActionViewModel() : base(new DesignTimeBindableAction()) { }
-
-        private static int _instanceCount = 0;
-        public override string Name { get; } = $"Design Time SimBoolSource {++_instanceCount}";
-        public override string Description => "Super cool description!";
-        public override string ConfigurationSummary => "SimVar: 'AUTOPILOT MASTER'";
-        public override string UniqueIdentifier => nameof(DesignTimeSimBoolSourceActionViewModel);
-
-        public override ISimBoolSourceActionViewModel CreateNew() => throw new NotSupportedException();
     }
 
     public class SimBoolSourceActionViewModel : ISimBoolSourceActionViewModel
@@ -46,13 +51,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
             _simBoolSourceAction = simBoolSourceAction;
         }
 
-        public override string Name => _simBoolSourceAction.Name;
-
-        public override string Description => _simBoolSourceAction.Description;
-
-        public override string UniqueIdentifier => _simBoolSourceAction.UniqueIdentifier;
-
-        public override string ConfigurationSummary 
+        public override string ConfigurationSummary
         {
             get
             {
@@ -69,6 +68,10 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
                 return sb.ToString();
             }
         }
+
+        public override string Description => _simBoolSourceAction.Description;
+        public override string Name => _simBoolSourceAction.Name;
+        public override string UniqueIdentifier => _simBoolSourceAction.UniqueIdentifier;
 
         public override ISimBoolSourceActionViewModel CreateNew() => throw new NotImplementedException();
     }

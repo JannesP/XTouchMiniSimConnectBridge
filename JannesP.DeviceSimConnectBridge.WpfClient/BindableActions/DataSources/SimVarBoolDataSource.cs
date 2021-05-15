@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Runtime.Serialization;
-using System.Text;
-using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using JannesP.DeviceSimConnectBridge.WpfApp.Managers;
@@ -17,17 +13,33 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.BindableActions.DataSources
     public class SimVarBoolDataSource : ISimBoolSourceAction
     {
         private readonly SemaphoreSlim _sem = new(1);
-        private SimConnectManager? _simConnectManager;
-        private string? _simVarName;
+        private SimConnectDataDefinition? _dataDefinition;
         private int? _interval;
         private int? _intervalId;
-        private SimConnectDataDefinition? _dataDefinition;
-        
+        private SimConnectManager? _simConnectManager;
+        private string? _simVarName;
 
-        public string Name => "Retrieve Bool SimVar";
+        public event EventHandler<SimDataReceivedEventArgs<bool>>? SimBoolReceived;
+
         public string Description => "Retrieves a SimVar with SimConnect that is a Bool (eg. 'AUTOPILOT MASTER').";
-        public string UniqueIdentifier => nameof(SimVarBoolDataSource);
+
+        [DataMember]
+        [IntActionSetting("Interval", "The polling frequency in ms.", Min = 20, Max = 60000)]
+        public int? Interval
+        {
+            get => _interval;
+            set
+            {
+                if (_interval != value)
+                {
+                    _interval = value;
+                    _ = UpdateIntervalRequestAsync();
+                }
+            }
+        }
+
         public bool IsInitialized { get; private set; } = false;
+        public string Name => "Retrieve Bool SimVar";
 
         [DataMember]
         [StringActionSetting("SimVar Name", "The name of the SimVar (eg. \"AUTOPILOT MASTER\")", CanBeEmpty = false)]
@@ -52,59 +64,9 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.BindableActions.DataSources
             }
         }
 
-        [DataMember]
-        [IntActionSetting("Interval", "The polling frequency in ms.", Min = 20, Max = 60000)]
-        public int? Interval
-        {
-            get => _interval;
-            set
-            {
-                if (_interval != value)
-                {
-                    _interval = value;
-                    _ = UpdateIntervalRequestAsync();
-                }
-            }
-        }
+        public string UniqueIdentifier => nameof(SimVarBoolDataSource);
 
-        [MemberNotNullWhen(true, nameof(Interval), nameof(SimVarName), nameof(_dataDefinition))]
-        private bool AreSettingsValidInternal() => this.AreSettingsValid();
-
-        public event EventHandler<SimDataReceivedEventArgs<bool>>? SimBoolReceived;
-
-        private async Task UpdateIntervalRequestAsync()
-        {
-            await _sem.WaitAsync().ConfigureAwait(false);
-            try
-            {
-                if (_intervalId.HasValue)
-                {
-                    if (_simConnectManager?.SimConnectWrapper != null)
-                    {
-                        await _simConnectManager.SimConnectWrapper.CancelIntervalRequest(_intervalId.Value).ConfigureAwait(false);
-                    }
-                    _intervalId = null;
-                }
-                if (IsInitialized && AreSettingsValidInternal())
-                {
-                    if (_simConnectManager?.SimConnectWrapper != null)
-                    {
-                        _simConnectManager.SimConnectWrapper.IntervalRequestResult -= SimConnectWrapper_IntervalRequestResult;
-                        _simConnectManager.SimConnectWrapper.IntervalRequestResult += SimConnectWrapper_IntervalRequestResult;
-                        _intervalId = await _simConnectManager.SimConnectWrapper.IntervalRequestObjectByType<double>(Interval.Value, _dataDefinition).ConfigureAwait(false);
-                    }
-                }
-            }
-            finally { _sem.Release(); }
-        }
-
-        private void SimConnectWrapper_IntervalRequestResult(object? sender, SimConnectWrapper.EventArgs.IntervalRequestResultEventArgs e)
-        {
-            if (e.Result == null) return;
-            SimBoolReceived?.Invoke(this, new SimDataReceivedEventArgs<bool>((double)e.Result != 0));
-        }
-
-        public async Task DeactivateAsync() 
+        public async Task DeactivateAsync()
         {
             await _sem.WaitAsync().ConfigureAwait(false);
             try
@@ -134,6 +96,9 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.BindableActions.DataSources
             await UpdateIntervalRequestAsync().ConfigureAwait(false);
         }
 
+        [MemberNotNullWhen(true, nameof(Interval), nameof(SimVarName), nameof(_dataDefinition))]
+        private bool AreSettingsValidInternal() => this.AreSettingsValid();
+
         private async void SimConnectManager_StateChanged(object? sender, SimConnectManager.StateChangedEventArgs e)
         {
             if (e.NewState == SimConnectManager.State.Connected && IsInitialized)
@@ -146,5 +111,36 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.BindableActions.DataSources
             }
         }
 
+        private void SimConnectWrapper_IntervalRequestResult(object? sender, SimConnectWrapper.EventArgs.IntervalRequestResultEventArgs e)
+        {
+            if (e.Result == null) return;
+            SimBoolReceived?.Invoke(this, new SimDataReceivedEventArgs<bool>((double)e.Result != 0));
+        }
+
+        private async Task UpdateIntervalRequestAsync()
+        {
+            await _sem.WaitAsync().ConfigureAwait(false);
+            try
+            {
+                if (_intervalId.HasValue)
+                {
+                    if (_simConnectManager?.SimConnectWrapper != null)
+                    {
+                        await _simConnectManager.SimConnectWrapper.CancelIntervalRequest(_intervalId.Value).ConfigureAwait(false);
+                    }
+                    _intervalId = null;
+                }
+                if (IsInitialized && AreSettingsValidInternal())
+                {
+                    if (_simConnectManager?.SimConnectWrapper != null)
+                    {
+                        _simConnectManager.SimConnectWrapper.IntervalRequestResult -= SimConnectWrapper_IntervalRequestResult;
+                        _simConnectManager.SimConnectWrapper.IntervalRequestResult += SimConnectWrapper_IntervalRequestResult;
+                        _intervalId = await _simConnectManager.SimConnectWrapper.IntervalRequestObjectByType<double>(Interval.Value, _dataDefinition).ConfigureAwait(false);
+                    }
+                }
+            }
+            finally { _sem.Release(); }
+        }
     }
 }

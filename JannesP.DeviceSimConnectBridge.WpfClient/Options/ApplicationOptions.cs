@@ -1,17 +1,44 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 using JannesP.DeviceSimConnectBridge.WpfApp.Utility;
 
 namespace JannesP.DeviceSimConnectBridge.WpfApp.Options
 {
     public class ApplicationOptions : NotifyingObject
     {
+        private Guid? _currentProfileUniqueId = null;
+        private string _simConnectApplicationName = AssemblyUtil.AssemblyNameWithoutExtension;
         private int _simConnectConnectRetryDelay = 10000;
+
+        private string _singleInstanceMutexName = "JannesP_XTouchMiniSimConnectBridge";
+
+        private bool _singleInstanceNotifyFirstInstance = true;
+
+        public Guid? CurrentProfileUniqueId
+        {
+            get => _currentProfileUniqueId;
+            set
+            {
+                if (_currentProfileUniqueId != value)
+                {
+                    _currentProfileUniqueId = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        public string SimConnectApplicationName
+        {
+            get => _simConnectApplicationName;
+            set
+            {
+                if (_simConnectApplicationName != value)
+                {
+                    _simConnectApplicationName = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
         public int SimConnectConnectRetryDelay
         {
             get => _simConnectConnectRetryDelay;
@@ -25,10 +52,9 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Options
             }
         }
 
-        private string _singleInstanceMutexName = "JannesP_XTouchMiniSimConnectBridge";
         public string SingleInstanceMutexName
         {
-            get => _singleInstanceMutexName; 
+            get => _singleInstanceMutexName;
             set
             {
                 if (_singleInstanceMutexName != value)
@@ -39,21 +65,6 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Options
             }
         }
 
-        private string _simConnectApplicationName = AssemblyUtil.AssemblyNameWithoutExtension;
-        public string SimConnectApplicationName
-        {
-            get => _simConnectApplicationName; 
-            set
-            {
-                if (_simConnectApplicationName != value)
-                {
-                    _simConnectApplicationName = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
-
-        private bool _singleInstanceNotifyFirstInstance = true;
         public bool SingleInstanceNotifyFirstInstance
         {
             get => _singleInstanceNotifyFirstInstance;
@@ -62,20 +73,6 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Options
                 if (_singleInstanceNotifyFirstInstance != value)
                 {
                     _singleInstanceNotifyFirstInstance = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
-
-        private Guid? _currentProfileUniqueId = null;
-        public Guid? CurrentProfileUniqueId
-        {
-            get => _currentProfileUniqueId;
-            set
-            {
-                if (_currentProfileUniqueId != value)
-                {
-                    _currentProfileUniqueId = value;
                     OnPropertyChanged();
                 }
             }

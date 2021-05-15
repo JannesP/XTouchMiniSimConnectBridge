@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
@@ -18,6 +14,25 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
             _trayIcon = CreateIcon(iconResourceName);
         }
 
+        public event EventHandler? DoubleClick;
+
+        public event EventHandler? ItemExitClick;
+
+        public bool IconVisible
+        {
+            get => _trayIcon?.Visible ?? false;
+            set
+            {
+                if (_trayIcon == null)
+                {
+                    throw new InvalidOperationException("You can only change the visibility after the icon was created with CreateIcon!");
+                }
+                _trayIcon.Visible = value;
+            }
+        }
+
+        public void Dispose() => _trayIcon?.Dispose();
+
         private NotifyIcon CreateIcon(string iconResourceName)
         {
             var newIcon = new NotifyIcon();
@@ -29,29 +44,8 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
             return newIcon;
         }
 
-        public bool IconVisible
-        {
-            get
-            {
-                return _trayIcon?.Visible ?? false;
-            }
-            set
-            {
-                if (_trayIcon == null)
-                {
-                    throw new InvalidOperationException("You can only change the visibility after the icon was created with CreateIcon!");
-                }
-                _trayIcon.Visible = value;
-            }
-        }
-
-        public event EventHandler? ItemExitClick;
-        public event EventHandler? DoubleClick;
-
-        private void OnItemExitClick(object? icon, EventArgs e) => ItemExitClick?.Invoke(this, EventArgs.Empty);
-
         private void OnDoubleClick(object? icon, EventArgs e) => DoubleClick?.Invoke(this, EventArgs.Empty);
 
-        public void Dispose() => _trayIcon?.Dispose();
+        private void OnItemExitClick(object? icon, EventArgs e) => ItemExitClick?.Invoke(this, EventArgs.Empty);
     }
 }

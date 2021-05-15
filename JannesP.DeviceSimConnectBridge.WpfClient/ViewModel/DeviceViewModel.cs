@@ -1,11 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using JannesP.DeviceSimConnectBridge.Device;
-using JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.DesignTime;
 
 namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel
 {
@@ -32,6 +27,10 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel
             WeakEventManager<IDevice, EventArgs>.AddHandler(device, nameof(IDevice.Disconnected), Device_Disconnected);
         }
 
+        public string DisplayName => _device.FriendlyName;
+
+        public string StatusString => _device.IsConnected ? "Connected" : "Disconnected";
+
         private void Device_Connected(object? sender, EventArgs e)
         {
             Application.Current.Dispatcher.Invoke(() =>
@@ -47,8 +46,5 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel
                 OnPropertyChanged(nameof(StatusString));
             });
         }
-
-        public string DisplayName => _device.FriendlyName;
-        public string StatusString => _device.IsConnected ? "Connected" : "Disconnected";
     }
 }

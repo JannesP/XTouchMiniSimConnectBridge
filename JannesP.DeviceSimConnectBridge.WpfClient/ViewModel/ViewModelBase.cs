@@ -6,7 +6,6 @@ using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
 using System.Threading.Tasks;
 using JannesP.DeviceSimConnectBridge.WpfApp.Extensions;
 
@@ -15,6 +14,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel
     public class ViewModelBase : INotifyPropertyChanged, INotifyDataErrorInfo
     {
         #region INotifyPropertyChanged
+
         public event PropertyChangedEventHandler? PropertyChanged;
 
         protected void OnPropertyChanged([CallerMemberName] string? propertyName = null) => OnPropertyChanged(false, propertyName);
@@ -24,12 +24,14 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
             if (!skipValidation) ValidateAsync();
         }
-        #endregion INotifyPropertyChanged
 
+        #endregion INotifyPropertyChanged
 
         //implementation copied from https://stackoverflow.com/questions/19539492/implement-validation-for-wpf-textboxes
         //but rewritten in large parts
+
         #region INotifyDataErrorInfo
+
         private readonly object _lockValidate = new();
         private readonly ConcurrentDictionary<string, List<string>> _errors = new();
 
@@ -42,7 +44,6 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel
             OnPropertyChanged(true, nameof(HasNoErrors));
         }
 
-        //this is a default interface that doesn't play nice with Nullable Reference Types. We need to answer with 'null' to indicate no errors
 #pragma warning disable CS8766 // Nullability of reference types in return type doesn't match implicitly implemented member (possibly because of nullability attributes).
         public IEnumerable? GetErrors(string? propertyName)
 #pragma warning restore CS8766 // Nullability of reference types in return type doesn't match implicitly implemented member (possibly because of nullability attributes).
@@ -119,6 +120,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel
         }
 
         public virtual string? OnValidateProperty(string propertyName, object? value) => null;
+
         #endregion INotifyDataErrorInfo
     }
 }

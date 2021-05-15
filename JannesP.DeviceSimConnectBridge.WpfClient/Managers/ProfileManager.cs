@@ -2,9 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using JannesP.DeviceSimConnectBridge.WpfApp.Options;
 using JannesP.DeviceSimConnectBridge.WpfApp.Repositories;
 
@@ -12,17 +10,32 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
 {
     public class ProfileManager
     {
-        private readonly SemaphoreSlim _semProfile = new(1);
         private readonly ApplicationOptions _options;
         private readonly ProfileRepository _profileRepository;
-
-        public event EventHandler<ProfileChangedEventArgs>? CurrentProfileChanged;
+        private readonly SemaphoreSlim _semProfile = new(1);
 
         public ProfileManager(ApplicationOptions options, ProfileRepository profileRepository)
         {
             _options = options;
             _profileRepository = profileRepository;
             GetCurrentProfile();
+        }
+
+        public event EventHandler<ProfileChangedEventArgs>? CurrentProfileChanged;
+
+        public void CreateNewProfile(string name)
+        {
+            char[] fileNameInvalidChars = Path.GetInvalidFileNameChars();
+            string fileName = new(name.Trim().ToLowerInvariant().Select(c => fileNameInvalidChars.Contains(c) ? '_' : c).ToArray());
+
+            var profile = new BindingProfile()
+            {
+                UniqueId = Guid.NewGuid(),
+                Name = name,
+                FileName = fileName,
+            };
+
+            _profileRepository.AddProfile(profile);
         }
 
         public BindingProfile GetCurrentProfile()
@@ -65,9 +78,6 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
             return result;
         }
 
-        private void OnCurrentProfileChanged(BindingProfile profile) 
-            => CurrentProfileChanged?.Invoke(this, new ProfileChangedEventArgs(profile));
-
         public void SetCurrentProfile(Guid uniqueId)
         {
             BindingProfile? profile = null;
@@ -87,7 +97,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
             {
                 _semProfile.Release();
             }
-            if (profileChanged && profile != null) 
+            if (profileChanged && profile != null)
             {
                 OnCurrentProfileChanged(profile);
             }
@@ -105,20 +115,8 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
             return defaultProfile;
         }
 
-        public void CreateNewProfile(string name) 
-        {
-            char[] fileNameInvalidChars = Path.GetInvalidFileNameChars();
-            string fileName = new(name.Trim().ToLowerInvariant().Select(c => fileNameInvalidChars.Contains(c) ? '_' : c).ToArray());
-
-            var profile = new BindingProfile() 
-            { 
-                UniqueId = Guid.NewGuid(),
-                Name = name,
-                FileName = fileName,
-            };
-
-            _profileRepository.AddProfile(profile);
-        }
+        private void OnCurrentProfileChanged(BindingProfile profile)
+                            => CurrentProfileChanged?.Invoke(this, new ProfileChangedEventArgs(profile));
 
         public class ProfileChangedEventArgs : EventArgs
         {
@@ -126,6 +124,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
             {
                 NewProfile = newProfile;
             }
+
             public BindingProfile NewProfile { get; }
         }
     }

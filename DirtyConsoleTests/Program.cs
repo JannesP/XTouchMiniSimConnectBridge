@@ -1,16 +1,11 @@
-﻿using JannesP.Midi;
-using JannesP.Midi.MidiProtocol;
-using JannesP.Midi.Natives;
-using JannesP.XTouchMini;
-using JannesP.XTouchMini.Enums;
-using System;
+﻿using System;
 using System.Threading.Tasks;
 
 namespace DirtyConsoleTests
 {
-    class Program
+    internal class Program
     {
-        static async Task Main(string[] args)
+        private static async Task Main(string[] _)
         {
             //await MidiTests.Run();
             //await SimconnectTests.Run();
@@ -19,7 +14,5 @@ namespace DirtyConsoleTests
             Console.WriteLine("Program ended! Exit with enter ...");
             Console.ReadLine();
         }
-
-        
     }
 }

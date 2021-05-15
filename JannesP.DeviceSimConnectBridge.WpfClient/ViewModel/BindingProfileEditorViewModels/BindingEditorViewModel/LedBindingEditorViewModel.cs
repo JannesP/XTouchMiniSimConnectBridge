@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using JannesP.DeviceSimConnectBridge.Device;
 using JannesP.DeviceSimConnectBridge.WpfApp.ActionBindings;
 using JannesP.DeviceSimConnectBridge.WpfApp.BindableActions;
@@ -12,16 +10,6 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorViewModels.BindingEditorViewModel
 {
-    public abstract class ILedBindingEditorViewModel : IBindingEditorViewModel
-    {
-        protected ILedBindingEditorViewModel(LedActionBinding actionBinding, IDeviceLed? deviceControl) : base(actionBinding, deviceControl)
-        { }
-
-        public abstract IEnumerable<ISimBoolSourceActionViewModel> AvailableDataSources { get; }
-        public abstract ISimBoolSourceActionViewModel? DataSource { get; }
-        public abstract ISimBoolSourceActionViewModel? SelectedDataSource { get; set; }
-    }
-
     public class DesignTimeLedBindingEditorViewModel : ILedBindingEditorViewModel
     {
         private static int _instanceCount = 0;
@@ -30,8 +18,6 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
         {
             DataSource = AvailableDataSources.Skip(2).First();
         }
-
-        public override string Name { get; } = $"Design Time Led {++_instanceCount}";
 
         public override IEnumerable<ISimBoolSourceActionViewModel> AvailableDataSources { get; } = new List<ISimBoolSourceActionViewModel>
         {
@@ -42,18 +28,28 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
         };
 
         public override ISimBoolSourceActionViewModel? DataSource { get; }
-
+        public override string Name { get; } = $"Design Time Led {++_instanceCount}";
         public override ISimBoolSourceActionViewModel? SelectedDataSource { get => DataSource; set => throw new NotSupportedException(); }
 
         protected override void OnApplyChanges() => throw new NotSupportedException();
+
         protected override void OnRevertChanges() => throw new NotSupportedException();
+    }
+
+    public abstract class ILedBindingEditorViewModel : IBindingEditorViewModel
+    {
+        protected ILedBindingEditorViewModel(LedActionBinding actionBinding, IDeviceLed? deviceControl) : base(actionBinding, deviceControl)
+        { }
+
+        public abstract IEnumerable<ISimBoolSourceActionViewModel> AvailableDataSources { get; }
+        public abstract ISimBoolSourceActionViewModel? DataSource { get; }
+        public abstract ISimBoolSourceActionViewModel? SelectedDataSource { get; set; }
     }
 
     public class LedBindingEditorViewModel : ILedBindingEditorViewModel
     {
-        private readonly BindingActionRepository _bindingActionRepository;
         private readonly LedActionBinding _actionBinding;
-
+        private readonly BindingActionRepository _bindingActionRepository;
         private ISimBoolSourceActionViewModel? _dataSource;
 
         public LedBindingEditorViewModel(IServiceProvider serviceProvider, LedActionBinding actionBinding, IDeviceLed? deviceLed) : base(actionBinding, deviceLed)
@@ -64,15 +60,9 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
             LoadFromModel();
         }
 
-        private void LoadFromModel()
-        {
-            if (_actionBinding.DataSource != null)
-            {
-                _dataSource = new SimBoolSourceActionViewModel(_actionBinding.DataSource);
-            }
-        }
-
         public override IEnumerable<ISimBoolSourceActionViewModel> AvailableDataSources { get; }
+
+        public override ISimBoolSourceActionViewModel? DataSource => _dataSource;
 
         public override ISimBoolSourceActionViewModel? SelectedDataSource
         {
@@ -90,8 +80,6 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
             }
         }
 
-        public override ISimBoolSourceActionViewModel? DataSource => _dataSource;
-
         protected override void OnApplyChanges()
         {
             _actionBinding.DataSource = DataSource?.Model;
@@ -100,6 +88,14 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
         protected override void OnRevertChanges()
         {
             LoadFromModel();
+        }
+
+        private void LoadFromModel()
+        {
+            if (_actionBinding.DataSource != null)
+            {
+                _dataSource = new SimBoolSourceActionViewModel(_actionBinding.DataSource);
+            }
         }
     }
 }

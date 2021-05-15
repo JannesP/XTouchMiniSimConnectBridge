@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
 using JannesP.DeviceSimConnectBridge.Device;
 using JannesP.DeviceSimConnectBridge.WpfApp.BindableActions;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,11 +13,13 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ActionBindings
         private ILogger<EncoderActionBinding>? _logger;
 
         [DataMember]
-        public ISimpleBindableAction? TurnClockwise { get; set; }
+        public bool IgnoreSpeed { get; set; } = false;
+
         [DataMember]
         public ISimpleBindableAction? TurnAntiClockwise { get; set; }
+
         [DataMember]
-        public bool IgnoreSpeed { get; set; } = false;
+        public ISimpleBindableAction? TurnClockwise { get; set; }
 
         public override void Disable()
         {

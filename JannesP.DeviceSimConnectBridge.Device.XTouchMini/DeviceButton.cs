@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using JannesP.DeviceSimConnectBridge.Device;
-
-namespace JannesP.DeviceSimConnectBridge.Device.XTouchMini
+﻿namespace JannesP.DeviceSimConnectBridge.Device.XTouchMini
 {
     internal class DeviceButton : IDeviceButton, IDeviceLed
     {

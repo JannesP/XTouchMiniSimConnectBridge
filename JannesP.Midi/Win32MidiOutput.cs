@@ -1,9 +1,6 @@
-﻿using JannesP.Midi.MidiProtocol;
+﻿using System;
+using JannesP.Midi.MidiProtocol;
 using JannesP.Midi.Natives;
-using System;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using System.Text;
 
 namespace JannesP.Midi
 {
@@ -17,12 +14,10 @@ namespace JannesP.Midi
             NativeImports.ThrowOnError(NativeImports.midiOutOpen(out _midiHandle, deviceId, null, IntPtr.Zero));
         }
 
-        public void Send(MidiEventStatusType status, byte arg1, byte arg2)
-            => Send(new MidiEvent(status, arg1, arg2));
-
-        public void Send(MidiEvent evt)
+        ~Win32MidiOutput()
         {
-            NativeImports.ThrowOnError(NativeImports.midiOutShortMsg(_midiHandle, evt.Message));
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: false);
         }
 
         public static uint? FindOutputIdByName(string name)
@@ -40,6 +35,21 @@ namespace JannesP.Midi
             return null;
         }
 
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
+
+        public void Send(MidiEventStatusType status, byte arg1, byte arg2)
+                                    => Send(new MidiEvent(status, arg1, arg2));
+
+        public void Send(MidiEvent evt)
+        {
+            NativeImports.ThrowOnError(NativeImports.midiOutShortMsg(_midiHandle, evt.Message));
+        }
+
         protected virtual void Dispose(bool disposing)
         {
             if (!_disposedValue)
@@ -52,19 +62,6 @@ namespace JannesP.Midi
                 NativeImports.midiOutClose(_midiHandle);
                 _disposedValue = true;
             }
-        }
-
-        ~Win32MidiOutput()
-        {
-             // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-             Dispose(disposing: false);
-        }
-
-        public void Dispose()
-        {
-            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-            Dispose(disposing: true);
-            GC.SuppressFinalize(this);
         }
     }
 }

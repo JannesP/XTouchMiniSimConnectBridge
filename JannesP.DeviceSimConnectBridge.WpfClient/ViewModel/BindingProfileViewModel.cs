@@ -1,9 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using JannesP.DeviceSimConnectBridge.WpfApp.Managers;
 using JannesP.DeviceSimConnectBridge.WpfApp.Options;
@@ -13,23 +8,18 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel
 {
     public interface IBindingProfileViewModel
     {
+        bool IsCurrent { get; }
         string? Name { get; set; }
         Guid? UniqueId { get; }
-        bool IsCurrent { get; }
-    }
-
-    public class DesignTimeBindingProfileViewModel : IBindingProfileViewModel
-    {
-        private static int _mockNum = 0;
-
-        public string? Name { get; set; } = $"DesignTime Profile {++_mockNum}";
-        public Guid? UniqueId { get; } = Guid.NewGuid();
-        public bool IsCurrent { get; set; } = false;
     }
 
     public class BindingProfileViewModel : ViewModelBase, IBindingProfileViewModel
     {
         private readonly BindingProfile _model;
+
+        private bool _isCurrent = false;
+
+        private string? _name;
 
         public BindingProfileViewModel(BindingProfile model, ProfileManager profileManager, ProfileRepository profileRepository)
         {
@@ -39,21 +29,18 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel
             WeakEventManager<ProfileManager, ProfileManager.ProfileChangedEventArgs>.AddHandler(profileManager, nameof(profileManager.CurrentProfileChanged), ProfileManager_OnCurrentProfileChanged);
         }
 
-        private void ProfileManager_OnCurrentProfileChanged(object? sender, ProfileManager.ProfileChangedEventArgs e) 
-            => IsCurrent = e.NewProfile.UniqueId == UniqueId;
-
-        private void ProfileRepository_ProfileChanged(object? sender, ProfileRepository.ProfileEventArgs e)
+        public bool IsCurrent
         {
-            if (e.Profile.UniqueId == UniqueId)
+            get => _isCurrent;
+            set
             {
-                Name = e.Profile.Name;
+                if (_isCurrent != value)
+                {
+                    _isCurrent = value;
+                    OnPropertyChanged();
+                }
             }
         }
-
-        public Guid? UniqueId => _model.UniqueId;
-
-        private string? _name;
-        private bool _isCurrent = false;
 
         public string? Name
         {
@@ -65,22 +52,29 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel
                     _name = value;
                     OnPropertyChanged();
                 }
-
             }
         }
 
-        public bool IsCurrent
+        public Guid? UniqueId => _model.UniqueId;
+
+        private void ProfileManager_OnCurrentProfileChanged(object? sender, ProfileManager.ProfileChangedEventArgs e)
+                                    => IsCurrent = e.NewProfile.UniqueId == UniqueId;
+
+        private void ProfileRepository_ProfileChanged(object? sender, ProfileRepository.ProfileEventArgs e)
         {
-            get => _isCurrent; 
-            set
+            if (e.Profile.UniqueId == UniqueId)
             {
-                if (_isCurrent != value)
-                {
-                    _isCurrent = value;
-                    OnPropertyChanged();
-                }
-                
+                Name = e.Profile.Name;
             }
         }
+    }
+
+    public class DesignTimeBindingProfileViewModel : IBindingProfileViewModel
+    {
+        private static int _mockNum = 0;
+
+        public bool IsCurrent { get; set; } = false;
+        public string? Name { get; set; } = $"DesignTime Profile {++_mockNum}";
+        public Guid? UniqueId { get; } = Guid.NewGuid();
     }
 }

@@ -1,20 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace JannesP.DeviceSimConnectBridge.WpfApp.BindableActions
 {
     public interface IBindableAction
     {
-        string Name { get; }
         string Description { get; }
-        string UniqueIdentifier { get; }
         bool IsInitialized { get; }
-        Task InitializeAsync(IServiceProvider serviceProvider);
+        string Name { get; }
+        string UniqueIdentifier { get; }
+
         Task DeactivateAsync();
+
+        Task InitializeAsync(IServiceProvider serviceProvider);
     }
 
     public interface ISimpleBindableAction : IInputAction
@@ -29,6 +29,25 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.BindableActions
 
     public static class IBindableActionExtensions
     {
+        public static bool AreSettingsValid(this IBindableAction action)
+        {
+            IEnumerable<BindableActionSetting> settings = action.GetSettings();
+            foreach (BindableActionSetting s in settings)
+            {
+                if (s.Attribute.ValidateValue(s.Value) != null)
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        public static IBindableAction CreateNew(this IBindableAction action)
+        {
+            Type t = action.GetType();
+            return Activator.CreateInstance(t) as IBindableAction ?? throw new Exception($"Activator.CreateInstance returned null for {t.FullName}");
+        }
+
         public static IEnumerable<BindableActionSetting> GetSettings(this IBindableAction action)
         {
             Type t = action.GetType();
@@ -41,25 +60,6 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.BindableActions
                     yield return new BindableActionSetting(action, prop, attribute);
                 }
             }
-        }
-
-        public static IBindableAction CreateNew(this IBindableAction action)
-        {
-            Type t = action.GetType();
-            return Activator.CreateInstance(t) as IBindableAction ?? throw new Exception($"Activator.CreateInstance returned null for {t.FullName}");
-        }
-
-        public static bool AreSettingsValid(this IBindableAction action)
-        {
-            IEnumerable<BindableActionSetting> settings = action.GetSettings();
-            foreach (BindableActionSetting s in settings)
-            {
-                if (s.Attribute.ValidateValue(s.Value) != null)
-                {
-                    return false;
-                }
-            }
-            return true;
         }
     }
 }

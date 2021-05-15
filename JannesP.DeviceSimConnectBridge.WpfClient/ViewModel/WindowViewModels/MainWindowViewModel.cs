@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using JannesP.DeviceSimConnectBridge.WpfApp.Managers;
@@ -17,20 +13,20 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.WindowViewModels
 {
     public interface IMainWindowViewModel
     {
-        IProfileManagementViewModel ProfileManagement { get; }
-        ISimConnectManagerViewModel SimConnectManager { get; }
-        IBindingProfileEditorViewModel ProfileEditor { get; } 
         ICommand CommandExit { get; }
         ICommand CommandOpenGithub { get; }
+        IBindingProfileEditorViewModel ProfileEditor { get; }
+        IProfileManagementViewModel ProfileManagement { get; }
+        ISimConnectManagerViewModel SimConnectManager { get; }
     }
 
     public class DesignTimeMainWindowViewModel : DesignTimeViewModel, IMainWindowViewModel
     {
-        public IProfileManagementViewModel ProfileManagement { get; } = new DesignTimeProfileManagementViewModel();
-        public ISimConnectManagerViewModel SimConnectManager { get; } = new DesignTimeSimConnectManagerViewModel();
         public ICommand CommandExit => EmptyCommand;
         public ICommand CommandOpenGithub => EmptyCommand;
         public IBindingProfileEditorViewModel ProfileEditor { get; } = new DesignTimeBindingProfileEditorViewModel();
+        public IProfileManagementViewModel ProfileManagement { get; } = new DesignTimeProfileManagementViewModel();
+        public ISimConnectManagerViewModel SimConnectManager { get; } = new DesignTimeSimConnectManagerViewModel();
     }
 
     public class MainWindowViewModel : ViewModelBase, IMainWindowViewModel
@@ -39,7 +35,6 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.WindowViewModels
         private readonly IServiceProvider _serviceProvider;
 
         private IBindingProfileEditorViewModel _profileEditor;
-        
 
         public MainWindowViewModel(IServiceProvider serviceProvider, ProfileManagementViewModel profileManagementViewModel, SimConnectManagerViewModel simConnectManagerViewModel)
         {
@@ -52,12 +47,6 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.WindowViewModels
 
             _profileEditor = new BindingProfileEditorViewModel(_serviceProvider, _profileManager.GetCurrentProfile());
         }
-
-        private void ProfileManager_CurrentProfileChanged(object? sender, ProfileChangedEventArgs eventArgs) 
-            => ProfileEditor = new BindingProfileEditorViewModel(_serviceProvider, _profileManager.GetCurrentProfile());
-
-        public IProfileManagementViewModel ProfileManagement { get; }
-        public ISimConnectManagerViewModel SimConnectManager { get; }
 
         public ICommand CommandExit { get; } = new RelayCommand(async o => await App.GracefulShutdownAsync());
 
@@ -78,5 +67,12 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.WindowViewModels
                 }
             }
         }
+
+        public IProfileManagementViewModel ProfileManagement { get; }
+
+        public ISimConnectManagerViewModel SimConnectManager { get; }
+
+        private void ProfileManager_CurrentProfileChanged(object? sender, ProfileChangedEventArgs eventArgs)
+                                                    => ProfileEditor = new BindingProfileEditorViewModel(_serviceProvider, _profileManager.GetCurrentProfile());
     }
 }

@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using JannesP.DeviceSimConnectBridge.WpfApp.Options;
 using JannesP.DeviceSimConnectBridge.WpfApp.Utility;
 using Microsoft.Extensions.Logging;
@@ -14,8 +10,6 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
     internal class ApplicationOptionsManager
     {
         private readonly ILogger<ApplicationOptionsManager> _logger;
-
-        public ApplicationOptions Options { get; }
 
         public ApplicationOptionsManager(ILogger<ApplicationOptionsManager> logger)
         {
@@ -43,6 +37,8 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
                 Options = new ApplicationOptions();
             }
         }
+
+        public ApplicationOptions Options { get; }
 
         private void BackupBrokenOptions(FileInfo brokenFile)
         {

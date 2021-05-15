@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using JannesP.DeviceSimConnectBridge.Device;
 using JannesP.DeviceSimConnectBridge.Device.XTouchMini;
 
@@ -13,15 +11,16 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Repositories
     {
         private readonly List<IDevice> _availableDevices = new();
 
-        public event EventHandler? DeviceListChanged;
-
         public DeviceRepository()
         {
             var mini = new XTouchMiniDevice();
             AddDevice(mini);
         }
 
+        public event EventHandler? DeviceListChanged;
+
         public IReadOnlyList<IDevice> AvailableDevices => _availableDevices;
+
         public void AddDevice(IDevice device)
         {
             _availableDevices.Add(device);

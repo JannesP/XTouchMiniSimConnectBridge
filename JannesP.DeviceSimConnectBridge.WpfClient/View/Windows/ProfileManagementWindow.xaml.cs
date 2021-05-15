@@ -1,17 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 using JannesP.DeviceSimConnectBridge.WpfApp.Extensions;
 using JannesP.DeviceSimConnectBridge.WpfApp.ViewModel;
 using JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.WindowViewModels;
@@ -30,7 +20,15 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.View.Windows
             _viewModel = viewModel;
             base.DataContext = viewModel;
             InitializeComponent();
-            
+        }
+
+        private void AddProfileButton_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new TextInputDialog("Enter a name.", "Please enter a name for the new profile.", _viewModel.ProfileManagement.ValidateNewProfileName);
+            if (dialog.ShowDialogCentered(this) == true && !string.IsNullOrWhiteSpace(dialog.Result))
+            {
+                _viewModel.ProfileManagement.CommandAddProfile.Execute(dialog.Result);
+            }
         }
 
         private void DeleteProfileButton_Click(object sender, RoutedEventArgs e)
@@ -41,13 +39,13 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.View.Windows
             if (res == MessageBoxResult.No) e.Handled = true;
         }
 
-        private void AddProfileButton_Click(object sender, RoutedEventArgs e)
+        private void ProfileListViewItem_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            var dialog = new TextInputDialog("Enter a name.", "Please enter a name for the new profile.", _viewModel.ProfileManagement.ValidateNewProfileName);
-            if (dialog.ShowDialogCentered(this) == true && !string.IsNullOrWhiteSpace(dialog.Result))
+            if ((sender as FrameworkElement)?.DataContext is not IBindingProfileViewModel profile)
             {
-                _viewModel.ProfileManagement.CommandAddProfile.Execute(dialog.Result);
+                throw new Exception("Expected to find a DataContext of type IBindingProfileViewModel.");
             }
+            _viewModel.ProfileManagement.ChangeProfile(profile);
         }
 
         private void RenameProfileButton_Click(object sender, RoutedEventArgs e)
@@ -73,15 +71,6 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.View.Windows
                     base.Close();
                     break;
             }
-        }
-
-        private void ProfileListViewItem_MouseDoubleClick(object sender, MouseButtonEventArgs e)
-        {
-            if ((sender as FrameworkElement)?.DataContext is not IBindingProfileViewModel profile)
-            {
-                throw new Exception("Expected to find a DataContext of type IBindingProfileViewModel.");
-            }
-            _viewModel.ProfileManagement.ChangeProfile(profile);
         }
     }
 }

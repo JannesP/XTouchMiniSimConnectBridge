@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using JannesP.DeviceSimConnectBridge.Device;
 using JannesP.DeviceSimConnectBridge.WpfApp.ActionBindings;
@@ -26,6 +24,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
         }
 
         public override string CategoryName { get; }
+
         public override ReadOnlyObservableCollection<IBindingEditorViewModel> Editors
         {
             get => _editors;
@@ -84,14 +83,15 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
         public override string Name { get; protected set; } = Guid.NewGuid().ToString();
 
         protected override void OnApplyChanges() => throw new NotSupportedException();
+
         protected override void OnRevertChanges() => throw new NotSupportedException();
     }
 
     public class DeviceBindingConfigurationEditorViewModel : IDeviceBindingConfigurationEditorViewModel
     {
+        private readonly DeviceBindingConfiguration _bindingConfig;
         private readonly DeviceRepository _deviceRepository;
         private readonly IServiceProvider _serviceProvider;
-        private readonly DeviceBindingConfiguration _bindingConfig;
         private IDevice? _device;
         private bool _isDeviceMissing;
 
@@ -108,8 +108,45 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
 
             _deviceRepository = serviceProvider.GetRequiredService<DeviceRepository>();
             WeakEventManager<DeviceRepository, EventArgs>.AddHandler(_deviceRepository, nameof(DeviceRepository.DeviceListChanged), DeviceRepository_DeviceListChanged);
-            
+
             CreateBindings();
+        }
+
+        public override IEnumerable<IBindingListViewModel> BindingTypes { get; protected set; }
+
+        public override string? DeviceId { get; protected set; }
+
+        public override string DeviceType { get; protected set; }
+
+        public override bool IsDeviceMissing
+        {
+            get => _isDeviceMissing;
+            protected set
+            {
+                if (_isDeviceMissing != value)
+                {
+                    _isDeviceMissing = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        public override string Name { get; protected set; }
+
+        protected override void OnApplyChanges()
+        {
+            //remove models that are now "empty"
+            _bindingConfig.Bindings.RemoveAll(bc => bc.IsEmpty());
+            //add models that aren't empty and aren't already included
+            _bindingConfig.Bindings.AddRange(BindingTypes
+                .SelectMany(bt => bt.Editors)
+                .Select(b => b.Model)
+                .Where(b => !b.IsEmpty() && !_bindingConfig.Bindings.Contains(b)));
+        }
+
+        protected override void OnRevertChanges()
+        {
+            /* nothing to do here */
         }
 
         [MemberNotNull(nameof(BindingTypes))]
@@ -154,7 +191,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
                     .OfType<LedActionBinding>()
                     .Select(bab => new LedBindingEditorViewModel(_serviceProvider, bab, null)));
             }
-            
+
             IEnumerable<IBindingListViewModel>? bindingTypes = BindingTypes;
             if (bindingTypes == null)
             {
@@ -176,27 +213,6 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
             BindingTypes = bindingTypes;
         }
 
-        public override IEnumerable<IBindingListViewModel> BindingTypes { get; protected set; }
-
-        public override string? DeviceId { get; protected set; }
-
-        public override string DeviceType { get; protected set; }
-
-        public override bool IsDeviceMissing
-        {
-            get => _isDeviceMissing;
-            protected set
-            {
-                if (_isDeviceMissing != value)
-                {
-                    _isDeviceMissing = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
-
-        public override string Name { get; protected set; }
-
         private void DeviceRepository_DeviceListChanged(object? sender, EventArgs e)
         {
             if (_deviceRepository.TryFindDevice(DeviceType, DeviceId, out IDevice? foundDevice))
@@ -214,18 +230,6 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
                 IsDeviceMissing = true;
             }
         }
-
-        protected override void OnApplyChanges() 
-        {
-            //remove models that are now "empty"
-            _bindingConfig.Bindings.RemoveAll(bc => bc.IsEmpty());
-            //add models that aren't empty and aren't already included
-            _bindingConfig.Bindings.AddRange(BindingTypes
-                .SelectMany(bt => bt.Editors)
-                .Select(b => b.Model)
-                .Where(b => !b.IsEmpty() && !_bindingConfig.Bindings.Contains(b)));
-        }
-        protected override void OnRevertChanges() { /* nothing to do here */ }
     }
 
     public abstract class IBindingListViewModel : ViewModelBase
@@ -246,6 +250,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
         /// If the device for the configuration could be found in the DeviceRepo.
         /// </summary>
         public abstract bool IsDeviceMissing { get; protected set; }
+
         public abstract string Name { get; protected set; }
     }
 }

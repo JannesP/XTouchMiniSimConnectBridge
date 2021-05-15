@@ -1,16 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
+﻿using System.Windows;
 
 namespace JannesP.DeviceSimConnectBridge.WpfApp.Extensions
 {
     public static class WindowExtensions
     {
         public static bool? ShowDialogCentered(this Window window, Window owner)
-        { 
+        {
             window.Owner = owner;
             window.WindowStartupLocation = WindowStartupLocation.CenterOwner;
             return window.ShowDialog();

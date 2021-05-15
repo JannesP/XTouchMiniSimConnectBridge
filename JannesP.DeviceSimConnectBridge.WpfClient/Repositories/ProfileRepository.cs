@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using JannesP.DeviceSimConnectBridge.WpfApp.Exceptions;
@@ -15,52 +14,34 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Repositories
 {
     public class ProfileRepository
     {
-        private readonly SemaphoreSlim _semProfiles = new(1);
         private readonly DirectoryInfo _directoryInfo = new(Constants.ProfileDirectory);
+        private readonly ILogger<ProfileRepository> _logger;
+        private readonly SemaphoreSlim _semProfiles = new(1);
+
         private readonly JsonSerializerSettings _serializerSettings = new()
         {
             TypeNameHandling = TypeNameHandling.All,
             Formatting = Formatting.Indented,
         };
 
-        private readonly ILogger<ProfileRepository> _logger;
-
         private List<string>? _profileLoadErrors = null;
         private List<BindingProfile>? _profiles = null;
-
-        public event EventHandler? ProfilesLoaded;
-        public event EventHandler<ProfileEventArgs>? ProfileAdded;
-        public event EventHandler<ProfileEventArgs>? ProfileRemoved;
-        public event EventHandler<ProfileEventArgs>? ProfileChanged;
 
         public ProfileRepository(ILogger<ProfileRepository> logger)
         {
             _logger = logger;
         }
 
+        public event EventHandler<ProfileEventArgs>? ProfileAdded;
+
+        public event EventHandler<ProfileEventArgs>? ProfileChanged;
+
+        public event EventHandler<ProfileEventArgs>? ProfileRemoved;
+
+        public event EventHandler? ProfilesLoaded;
+
         public bool IsLoaded { get; private set; } = false;
         public IReadOnlyCollection<string>? ProfileLoadErrors => _profileLoadErrors;
-
-        /// <summary>
-        /// Loads all *.profile.json profiles from the subfolder.
-        /// </summary>
-        /// <exception cref="UserMessageException"></exception>
-        /// <returns>The list of profiles.</returns>
-        public List<BindingProfile> GetProfiles()
-        {
-            List<BindingProfile> result;
-            _semProfiles.Wait();
-            try
-            {
-                EnsureProfilesLoaded();
-                result = _profiles;
-            }
-            finally
-            {
-                _semProfiles.Release();
-            }
-            return result;
-        }
 
         public void AddProfile(BindingProfile profile)
         {
@@ -107,24 +88,25 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Repositories
             ProfileRemoved?.Invoke(this, new ProfileEventArgs(bp));
         }
 
-        public void RenameProfile(Guid profileId, string newName)
+        /// <summary>
+        /// Loads all *.profile.json profiles from the subfolder.
+        /// </summary>
+        /// <exception cref="UserMessageException"></exception>
+        /// <returns>The list of profiles.</returns>
+        public List<BindingProfile> GetProfiles()
         {
-            BindingProfile? bp = null;
+            List<BindingProfile> result;
             _semProfiles.Wait();
             try
             {
                 EnsureProfilesLoaded();
-                if (SafeIsNewProfileNameValid(newName, _profiles) == null)
-                {
-                    bp = _profiles.Single(p => p.UniqueId == profileId);
-                    bp.Name = newName;
-                }
+                result = _profiles;
             }
             finally
             {
                 _semProfiles.Release();
             }
-            if (bp != null) ProfileChanged?.Invoke(this, new ProfileEventArgs(bp));
+            return result;
         }
 
         /// <summary>
@@ -133,25 +115,6 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Repositories
         /// <param name="newName"></param>
         /// <returns>An error message or null</returns>
         public string? IsNewProfileNameValid(string newName) => SafeIsNewProfileNameValid(newName, GetProfiles());
-
-        private static string? SafeIsNewProfileNameValid(string newName, List<BindingProfile> profiles)
-        {
-            if (string.IsNullOrWhiteSpace(newName))
-            {
-                return "The profile name cannot be empty.";
-            }
-            if (profiles.Any(p => p.Name == newName))
-            {
-                return $"There already exists a profile with the name '{newName}'.";
-            }
-            return null;
-        }
-
-        [MemberNotNull(nameof(_profiles))]
-        private void EnsureProfilesLoaded()
-        {
-            if (_profiles == null) throw new InvalidOperationException("Profiles aren't loaded yet. Please call 'Task LoadProfilesAsync()' first.");
-        }
 
         /// <summary>
         /// Preloads all *.profile.json profiles from the subfolder.
@@ -167,9 +130,8 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Repositories
             {
                 _semProfiles.Release();
             }
-            
         }
-        
+
         public async Task PersistProfilesAsync()
         {
             await _semProfiles.WaitAsync().ConfigureAwait(false);
@@ -210,12 +172,51 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Repositories
             }
         }
 
+        public void RenameProfile(Guid profileId, string newName)
+        {
+            BindingProfile? bp = null;
+            _semProfiles.Wait();
+            try
+            {
+                EnsureProfilesLoaded();
+                if (SafeIsNewProfileNameValid(newName, _profiles) == null)
+                {
+                    bp = _profiles.Single(p => p.UniqueId == profileId);
+                    bp.Name = newName;
+                }
+            }
+            finally
+            {
+                _semProfiles.Release();
+            }
+            if (bp != null) ProfileChanged?.Invoke(this, new ProfileEventArgs(bp));
+        }
+
+        private static string? SafeIsNewProfileNameValid(string newName, List<BindingProfile> profiles)
+        {
+            if (string.IsNullOrWhiteSpace(newName))
+            {
+                return "The profile name cannot be empty.";
+            }
+            if (profiles.Any(p => p.Name == newName))
+            {
+                return $"There already exists a profile with the name '{newName}'.";
+            }
+            return null;
+        }
+
         private void EnsureDirectoryExists()
         {
             if (!_directoryInfo.Exists)
             {
                 _directoryInfo.Create();
             }
+        }
+
+        [MemberNotNull(nameof(_profiles))]
+        private void EnsureProfilesLoaded()
+        {
+            if (_profiles == null) throw new InvalidOperationException("Profiles aren't loaded yet. Please call 'Task LoadProfilesAsync()' first.");
         }
 
         private async Task<List<BindingProfile>> UnsafeLoadProfilesAsync()
@@ -282,12 +283,12 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Repositories
 
         public class ProfileEventArgs : EventArgs
         {
-            public BindingProfile Profile { get; }
-
             public ProfileEventArgs(BindingProfile profile)
             {
                 Profile = profile;
             }
+
+            public BindingProfile Profile { get; }
         }
     }
 }

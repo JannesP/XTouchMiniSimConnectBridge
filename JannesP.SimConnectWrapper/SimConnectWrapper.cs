@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using JannesP.SimConnectWrapper.EventArgs;
@@ -13,36 +12,260 @@ namespace JannesP.SimConnectWrapper
 {
     public class SimConnectWrapper : IDisposable, ISimConnectPreparator
     {
-        private enum PrivateDummy { }
+        private const uint _wmAppSimConnect = (uint)WindowMessage.WM_APP + 0x0239;
+
+        private readonly string _appName;
+
+        private readonly Dictionary<int, SimConnectDataDefinition> _registeredDataDefinitions = new Dictionary<int, SimConnectDataDefinition>();
+
+        private readonly Dictionary<string, int> _registeredEventDefinitions = new Dictionary<string, int>();
+
+        private readonly Dictionary<int, (Task, CancellationTokenSource)> _registeredIntervalRequests = new Dictionary<int, (Task, CancellationTokenSource)>();
+
+        private readonly Dictionary<uint, SimConnectRequest> _requests = new Dictionary<uint, SimConnectRequest>();
+
+        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1);
+
+        private int _intervalRequestCounter = 0;
+
+        private int _isDisposed = 0;
+
+        private int _lastRequestId = 0;
+
+        private MessagePumpWindow? _msgPump;
+
+        private SimConnect? _simConnect;
+
+        public SimConnectWrapper(string applicationName)
+        {
+            _appName = applicationName;
+        }
+
+        public event EventHandler<IntervalRequestResultEventArgs>? IntervalRequestResult;
+
+        public event EventHandler? SimConnectClose;
+
+        public event EventHandler? SimConnectOpen;
+
         private enum EventGroup
         {
             Dummy,
         }
 
-        private const uint _wmAppSimConnect = (uint)WindowMessage.WM_APP + 0x0239;
-
-        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1); 
-
-        private readonly Dictionary<int, SimConnectDataDefinition> _registeredDataDefinitions = new Dictionary<int, SimConnectDataDefinition>();
-        private readonly Dictionary<string, int> _registeredEventDefinitions = new Dictionary<string, int>();
-        private readonly Dictionary<int, (Task, CancellationTokenSource)> _registeredIntervalRequests = new Dictionary<int, (Task, CancellationTokenSource)>();
-        private readonly Dictionary<uint, SimConnectRequest> _requests = new Dictionary<uint, SimConnectRequest>();
-        private readonly string _appName;
-        private MessagePumpWindow? _msgPump;
-        private SimConnect? _simConnect;
-        private int _lastRequestId = 0;
-        private int _isDisposed = 0;
-        private int _intervalRequestCounter = 0;        
-
-        public event EventHandler? SimConnectOpen;
-        public event EventHandler? SimConnectClose;
-        public event EventHandler<IntervalRequestResultEventArgs>? IntervalRequestResult;
+        private enum PrivateDummy { }
 
         public bool IsOpen { get; private set; }
 
-        public SimConnectWrapper(string applicationName)
+        public async Task CancelIntervalRequest(int id)
         {
-            _appName = applicationName;
+            await _semaphore.WaitAsync().ConfigureAwait(false);
+            try
+            {
+                if (_registeredIntervalRequests.TryGetValue(id, out (Task, CancellationTokenSource) value))
+                {
+                    value.Item2.Cancel();
+                    value.Item2.Dispose();
+                    _registeredIntervalRequests.Remove(id);
+                }
+            }
+            finally
+            {
+                _semaphore.Release();
+            }
+        }
+
+        public async Task Disconnect()
+        {
+            await _semaphore.WaitAsync().ConfigureAwait(false);
+            try
+            {
+                IsOpen = false;
+                if (_simConnect != null)
+                {
+                    SimConnectClose?.Invoke(this, new System.EventArgs());
+                }
+                _simConnect?.Dispose();
+                _simConnect = null;
+                _registeredDataDefinitions.Clear();
+                _registeredEventDefinitions.Clear();
+                foreach (KeyValuePair<uint, SimConnectRequest> req in _requests)
+                {
+                    try
+                    {
+                        req.Value.SetException(new OperationCanceledException("The SimConnect client handling this request has been disposed."));
+                    }
+                    catch { /* ignore since we're disposing anyways */ }
+                }
+                _requests.Clear();
+            }
+            finally
+            {
+                _semaphore.Release();
+            }
+        }
+
+        public void Dispose()
+        {
+            if (Interlocked.Exchange(ref _isDisposed, 1) == 0)
+            {
+                Disconnect().Wait();
+                if (_msgPump != null)
+                {
+                    _msgPump.MessagePumpDestroyed -= OnMsgPump_MessagePumpDestroyed;
+                    _msgPump.Dispose();
+                }
+            }
+        }
+
+        public async Task<int> IntervalRequestObjectByType<TRes>(int requestToRequestMs, SimConnectDataDefinition dataDefinition)
+        {
+            await _semaphore.WaitAsync().ConfigureAwait(false);
+            int intervalId;
+            try
+            {
+                intervalId = ++_intervalRequestCounter;
+                var cts = new CancellationTokenSource();
+                var intervalTask = Task.Run(async () =>
+                {
+                    while (!cts.IsCancellationRequested)
+                    {
+                        if (IntervalRequestResult != null)
+                        {
+                            if (IsOpen)
+                            {
+                                try
+                                {
+                                    TRes result = await RequestObjectByType<TRes>(dataDefinition).ConfigureAwait(false);
+                                    IntervalRequestResult?.Invoke(this, new IntervalRequestResultEventArgs(result, intervalId, dataDefinition));
+                                }
+                                catch (Exception ex)
+                                {
+                                    Console.WriteLine($"Exception while requesting update for IntervalRequest: {ex}");
+                                }
+                            }
+                        }
+                        await Task.Delay(requestToRequestMs, cts.Token).ConfigureAwait(false);
+                    }
+                }, cts.Token);
+
+                _registeredIntervalRequests.Add(intervalId, (intervalTask, cts));
+            }
+            finally
+            {
+                _semaphore.Release();
+            }
+            return intervalId;
+        }
+
+        public void RegisterDataDefinition(SimConnectDataDefinition dataDefinition)
+        {
+            if (_registeredDataDefinitions.TryGetValue(dataDefinition.DefinitionId, out SimConnectDataDefinition def))
+            {
+                if (!def.Equals(dataDefinition))
+                {
+                    throw new InvalidOperationException($"{dataDefinition.DefinitionId} is already defined for '{def.DataName}'. Requesting DataDefinition: {dataDefinition.DataName}");
+                }
+            }
+            else
+            {
+                _registeredDataDefinitions.Add(dataDefinition.DefinitionId, dataDefinition);
+                _simConnect?.AddToDataDefinition((PrivateDummy)dataDefinition.DefinitionId, dataDefinition.DataName, dataDefinition.UnitName, dataDefinition.SimConnectDataType, 0, SimConnect.SIMCONNECT_UNUSED);
+                switch (dataDefinition.SimConnectDataType)
+                {
+                    case SIMCONNECT_DATATYPE.INT32:
+                        _simConnect?.RegisterDataDefineStruct<int>((PrivateDummy)dataDefinition.DefinitionId);
+                        break;
+
+                    case SIMCONNECT_DATATYPE.INT64:
+                        _simConnect?.RegisterDataDefineStruct<long>((PrivateDummy)dataDefinition.DefinitionId);
+                        break;
+
+                    case SIMCONNECT_DATATYPE.FLOAT32:
+                        _simConnect?.RegisterDataDefineStruct<float>((PrivateDummy)dataDefinition.DefinitionId);
+                        break;
+
+                    case SIMCONNECT_DATATYPE.FLOAT64:
+                        _simConnect?.RegisterDataDefineStruct<double>((PrivateDummy)dataDefinition.DefinitionId);
+                        break;
+
+                    case SIMCONNECT_DATATYPE.STRING8:
+                    case SIMCONNECT_DATATYPE.STRING32:
+                    case SIMCONNECT_DATATYPE.STRING64:
+                    case SIMCONNECT_DATATYPE.STRING128:
+                    case SIMCONNECT_DATATYPE.STRING256:
+                    case SIMCONNECT_DATATYPE.STRING260:
+                    case SIMCONNECT_DATATYPE.STRINGV:
+                        _simConnect?.RegisterDataDefineStruct<string>((PrivateDummy)dataDefinition.DefinitionId);
+                        break;
+
+                    case SIMCONNECT_DATATYPE.INITPOSITION:
+                    case SIMCONNECT_DATATYPE.MARKERSTATE:
+                    case SIMCONNECT_DATATYPE.WAYPOINT:
+                    case SIMCONNECT_DATATYPE.LATLONALT:
+                    case SIMCONNECT_DATATYPE.XYZ:
+                    case SIMCONNECT_DATATYPE.MAX:
+                    case SIMCONNECT_DATATYPE.INVALID:
+                    default:
+                        throw new Exception("Unsupported datatype.");
+                }
+            }
+        }
+
+        public async Task<TRes> Request<TRes>(SimConnectRequest<TRes> request)
+        {
+            await _semaphore.WaitAsync().ConfigureAwait(false);
+            try
+            {
+                if (IsOpen && _simConnect != null)
+                {
+                    int newRequestId = ++_lastRequestId;
+                    _requests.Add((uint)newRequestId, request);
+                    request.PrepareRequest(this, _simConnect);
+                    request.ExecuteRequest((uint)newRequestId, _simConnect);
+                    return await request.TaskCompletionSource.Task.ConfigureAwait(false);
+                }
+                else
+                {
+                    throw new InvalidOperationException("SimConnect is not connected!");
+                }
+            }
+            finally
+            {
+                _semaphore.Release();
+            }
+        }
+
+        public Task<TRes> RequestObjectByType<TRes>(SimConnectDataDefinition dataDefinition) => Request(new SimConnectRequestObjectByType<TRes>(dataDefinition));
+
+        /// <summary>
+        /// Sends a simple SimEvent to the connected sim. For a list of possible values see the <see href="https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Legacy_Event_IDs.htm">list in the MSFS docs</see>.
+        /// </summary>
+        /// <param name="simEventName">The name of the Sim</param>
+        /// <returns></returns>
+        public async Task SendEvent(string simEventName)
+        {
+            await _semaphore.WaitAsync().ConfigureAwait(false);
+            try
+            {
+                if (IsOpen && _simConnect != null)
+                {
+                    //get clientEventId by either registering a new one or getting it from the dictionary
+                    int clientEventId;
+                    if (!_registeredEventDefinitions.TryGetValue(simEventName, out clientEventId))
+                    {
+                        clientEventId = _registeredEventDefinitions.Count + 1;
+                        _registeredEventDefinitions.Add(simEventName, clientEventId);
+
+                        _simConnect.MapClientEventToSimEvent((PrivateDummy)clientEventId, simEventName);
+                        _simConnect.AddClientEventToNotificationGroup(EventGroup.Dummy, (PrivateDummy)clientEventId, false);
+                    }
+                    _simConnect.TransmitClientEvent(0, (PrivateDummy)clientEventId, 0, EventGroup.Dummy, SIMCONNECT_EVENT_FLAG.GROUPID_IS_PRIORITY);
+                }
+            }
+            finally
+            {
+                _semaphore.Release();
+            }
         }
 
         public async Task<bool> TryConnect()
@@ -88,180 +311,10 @@ namespace JannesP.SimConnectWrapper
             }
         }
 
-        public Task<TRes> RequestObjectByType<TRes>(SimConnectDataDefinition dataDefinition) => Request(new SimConnectRequestObjectByType<TRes>(dataDefinition));
-
-        public async Task<TRes> Request<TRes>(SimConnectRequest<TRes> request)
-        {
-            await _semaphore.WaitAsync().ConfigureAwait(false);
-            try
-            {
-                if (IsOpen && _simConnect != null)
-                {
-                    int newRequestId = ++_lastRequestId;
-                    _requests.Add((uint)newRequestId, request);
-                    request.PrepareRequest(this, _simConnect);
-                    request.ExecuteRequest((uint)newRequestId, _simConnect);
-                    return await request.TaskCompletionSource.Task.ConfigureAwait(false);
-                }
-                else
-                {
-                    throw new InvalidOperationException("SimConnect is not connected!");
-                }
-            }
-            finally
-            {
-                _semaphore.Release();
-            }
-        }
-
-        public async Task<int> IntervalRequestObjectByType<TRes>(int requestToRequestMs, SimConnectDataDefinition dataDefinition)
-        {
-            await _semaphore.WaitAsync().ConfigureAwait(false);
-            int intervalId;
-            try
-            {
-                intervalId = ++_intervalRequestCounter;
-                var cts = new CancellationTokenSource();
-                var intervalTask = Task.Run(async () =>
-                {
-                    while (!cts.IsCancellationRequested)
-                    {
-                        if (IntervalRequestResult != null)
-                        {
-                            if (IsOpen)
-                            {
-                                try
-                                {
-                                    TRes result = await RequestObjectByType<TRes>(dataDefinition).ConfigureAwait(false);
-                                    IntervalRequestResult?.Invoke(this, new IntervalRequestResultEventArgs(result, intervalId, dataDefinition));
-                                }
-                                catch(Exception ex)
-                                {
-                                    Console.WriteLine($"Exception while requesting update for IntervalRequest: {ex}");
-                                }
-                            }
-                        }
-                        await Task.Delay(requestToRequestMs, cts.Token).ConfigureAwait(false);
-                    }
-                }, cts.Token);
-            
-                _registeredIntervalRequests.Add(intervalId, (intervalTask, cts));
-            }
-            finally
-            {
-                _semaphore.Release();
-            }
-            return intervalId;
-        }
-
-        public async Task CancelIntervalRequest(int id)
-        {
-            await _semaphore.WaitAsync().ConfigureAwait(false);
-            try
-            {
-                if (_registeredIntervalRequests.TryGetValue(id, out (Task, CancellationTokenSource) value))
-                {
-                    value.Item2.Cancel();
-                    value.Item2.Dispose();
-                    _registeredIntervalRequests.Remove(id);
-                }
-            }
-            finally
-            {
-                _semaphore.Release();
-            }
-
-        }
-
-        /// <summary>
-        /// Sends a simple SimEvent to the connected sim. For a list of possible values see the <see href="https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Legacy_Event_IDs.htm">list in the MSFS docs</see>.
-        /// </summary>
-        /// <param name="simEventName">The name of the Sim</param>
-        /// <returns></returns>
-        public async Task SendEvent(string simEventName)
-        {
-            await _semaphore.WaitAsync().ConfigureAwait(false);
-            try
-            {
-                if (IsOpen && _simConnect != null)
-                {
-                    //get clientEventId by either registering a new one or getting it from the dictionary
-                    int clientEventId;
-                    if (!_registeredEventDefinitions.TryGetValue(simEventName, out clientEventId))
-                    {
-                        clientEventId = _registeredEventDefinitions.Count + 1;
-                        _registeredEventDefinitions.Add(simEventName, clientEventId);
-
-                        _simConnect.MapClientEventToSimEvent((PrivateDummy)clientEventId, simEventName);
-                        _simConnect.AddClientEventToNotificationGroup(EventGroup.Dummy, (PrivateDummy)clientEventId, false);
-                    }
-                    _simConnect.TransmitClientEvent(0, (PrivateDummy)clientEventId, 0, EventGroup.Dummy, SIMCONNECT_EVENT_FLAG.GROUPID_IS_PRIORITY);
-                }
-            }
-            finally
-            {
-                _semaphore.Release();
-            }
-        }
-
-        public async Task Disconnect()
-        {
-            await _semaphore.WaitAsync().ConfigureAwait(false);
-            try
-            {
-                IsOpen = false;
-                if (_simConnect != null)
-                {
-                    SimConnectClose?.Invoke(this, new System.EventArgs());
-                }
-                _simConnect?.Dispose();
-                _simConnect = null;
-                _registeredDataDefinitions.Clear();
-                _registeredEventDefinitions.Clear();
-                foreach (KeyValuePair<uint, SimConnectRequest> req in _requests)
-                {
-                    try
-                    {
-                        req.Value.SetException(new OperationCanceledException("The SimConnect client handling this request has been disposed."));
-                    }
-                    catch { /* ignore since we're disposing anyways */ }
-                }
-                _requests.Clear();
-            }
-            finally
-            {
-                _semaphore.Release();
-            }
-        }
-
         //since we can't rescue from this state we just close the object
         private void OnMsgPump_MessagePumpDestroyed(object sender, System.EventArgs e) => Dispose();
-        
 
-
-        private void OnSimConnect_OnRecvSimobjectDataBytype(SimConnect sender, SIMCONNECT_RECV_SIMOBJECT_DATA_BYTYPE data)
-        {
-            if (_requests.TryGetValue(data.dwRequestID, out SimConnectRequest request))
-            {
-                object? result = data.dwData?.FirstOrDefault();
-                if (result == null)
-                {
-                    request.SetException(new Exception("Request got no result."));
-                }
-                else
-                {
-                    try
-                    {
-                        request.SetResult(result);
-                    }
-                    catch(Exception ex)
-                    {
-                        request.SetException(ex);
-                    }
-                }
-                _requests.Remove(data.dwRequestID);
-            }
-        }
+        private void OnSimConnect_OnRecvClientData(SimConnect sender, SIMCONNECT_RECV_CLIENT_DATA data) => Console.WriteLine("OnSimConnect_OnRecvClientData");
 
         private async void OnSimConnect_OnRecvException(SimConnect sender, SIMCONNECT_RECV_EXCEPTION data)
         {
@@ -286,12 +339,6 @@ namespace JannesP.SimConnectWrapper
             }
         }
 
-        private async void OnSimConnect_OnRecvQuit(SimConnect sender, SIMCONNECT_RECV data)
-        {
-            Console.WriteLine("_simConnect_OnRecvQuit");
-            await Disconnect().ConfigureAwait(false);
-        }
-
         private void OnSimConnect_OnRecvOpen(SimConnect sender, SIMCONNECT_RECV_OPEN data)
         {
             Console.WriteLine("OnSimConnect_OnRecvOpen");
@@ -299,7 +346,35 @@ namespace JannesP.SimConnectWrapper
             SimConnectOpen?.Invoke(this, new System.EventArgs());
         }
 
-        private void OnSimConnect_OnRecvClientData(SimConnect sender, SIMCONNECT_RECV_CLIENT_DATA data) => Console.WriteLine("OnSimConnect_OnRecvClientData");
+        private async void OnSimConnect_OnRecvQuit(SimConnect sender, SIMCONNECT_RECV data)
+        {
+            Console.WriteLine("_simConnect_OnRecvQuit");
+            await Disconnect().ConfigureAwait(false);
+        }
+
+        private void OnSimConnect_OnRecvSimobjectDataBytype(SimConnect sender, SIMCONNECT_RECV_SIMOBJECT_DATA_BYTYPE data)
+        {
+            if (_requests.TryGetValue(data.dwRequestID, out SimConnectRequest request))
+            {
+                object? result = data.dwData?.FirstOrDefault();
+                if (result == null)
+                {
+                    request.SetException(new Exception("Request got no result."));
+                }
+                else
+                {
+                    try
+                    {
+                        request.SetResult(result);
+                    }
+                    catch (Exception ex)
+                    {
+                        request.SetException(ex);
+                    }
+                }
+                _requests.Remove(data.dwRequestID);
+            }
+        }
 
         private IntPtr WndProc(IntPtr hWnd, WindowMessage msg, IntPtr wParam, IntPtr lParam)
         {
@@ -318,68 +393,6 @@ namespace JannesP.SimConnectWrapper
                     break;
             }
             return IntPtr.Zero;
-        }        
-
-        public void RegisterDataDefinition(SimConnectDataDefinition dataDefinition)
-        {
-            if (_registeredDataDefinitions.TryGetValue(dataDefinition.DefinitionId, out SimConnectDataDefinition def))
-            {
-                if (!def.Equals(dataDefinition))
-                {
-                    throw new InvalidOperationException($"{dataDefinition.DefinitionId} is already defined for '{def.DataName}'. Requesting DataDefinition: {dataDefinition.DataName}");
-                }
-            }
-            else
-            {
-                _registeredDataDefinitions.Add(dataDefinition.DefinitionId, dataDefinition);
-                _simConnect?.AddToDataDefinition((PrivateDummy)dataDefinition.DefinitionId, dataDefinition.DataName, dataDefinition.UnitName, dataDefinition.SimConnectDataType, 0, SimConnect.SIMCONNECT_UNUSED);
-                switch (dataDefinition.SimConnectDataType)
-                {                    
-                    case SIMCONNECT_DATATYPE.INT32:
-                        _simConnect?.RegisterDataDefineStruct<int>((PrivateDummy)dataDefinition.DefinitionId);
-                        break;
-                    case SIMCONNECT_DATATYPE.INT64:
-                        _simConnect?.RegisterDataDefineStruct<long>((PrivateDummy)dataDefinition.DefinitionId);
-                        break;
-                    case SIMCONNECT_DATATYPE.FLOAT32:
-                        _simConnect?.RegisterDataDefineStruct<float>((PrivateDummy)dataDefinition.DefinitionId);
-                        break;
-                    case SIMCONNECT_DATATYPE.FLOAT64:
-                        _simConnect?.RegisterDataDefineStruct<double>((PrivateDummy)dataDefinition.DefinitionId);
-                        break;
-                    case SIMCONNECT_DATATYPE.STRING8:
-                    case SIMCONNECT_DATATYPE.STRING32:
-                    case SIMCONNECT_DATATYPE.STRING64:
-                    case SIMCONNECT_DATATYPE.STRING128:
-                    case SIMCONNECT_DATATYPE.STRING256:
-                    case SIMCONNECT_DATATYPE.STRING260:
-                    case SIMCONNECT_DATATYPE.STRINGV:
-                        _simConnect?.RegisterDataDefineStruct<string>((PrivateDummy)dataDefinition.DefinitionId);
-                        break;
-                    case SIMCONNECT_DATATYPE.INITPOSITION:
-                    case SIMCONNECT_DATATYPE.MARKERSTATE:
-                    case SIMCONNECT_DATATYPE.WAYPOINT:
-                    case SIMCONNECT_DATATYPE.LATLONALT:
-                    case SIMCONNECT_DATATYPE.XYZ:
-                    case SIMCONNECT_DATATYPE.MAX:
-                    case SIMCONNECT_DATATYPE.INVALID:
-                    default:
-                        throw new Exception("Unsupported datatype.");
-                }
-            }
-        }
-
-        public void Dispose()
-        {
-            if (Interlocked.Exchange(ref _isDisposed, 1) == 0)
-            {
-                Disconnect().Wait();
-                if (_msgPump != null)
-                {
-                    _msgPump.MessagePumpDestroyed -= OnMsgPump_MessagePumpDestroyed;
-                    _msgPump.Dispose();
-                }
-            }
         }
     }
 }

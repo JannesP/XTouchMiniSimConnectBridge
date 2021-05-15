@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Microsoft.FlightSimulator.SimConnect;
+﻿using Microsoft.FlightSimulator.SimConnect;
 
 namespace JannesP.SimConnectWrapper
 {
@@ -16,6 +13,4 @@ namespace JannesP.SimConnectWrapper
 
         internal abstract void ExecuteRequest(SimConnect simConnect);
     }
-
-    
 }

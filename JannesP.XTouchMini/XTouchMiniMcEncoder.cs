@@ -1,14 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace JannesP.XTouchMini
+﻿namespace JannesP.XTouchMini
 {
     public class XTouchMiniMcEncoder : ControlDefinition<XTouchMiniMcEncoder>
     {
-        private const int _baseControl = 0x10;
-        private const int _baseLed = 0x30;
-
         public static XTouchMiniMcEncoder Encoder1 = new XTouchMiniMcEncoder(_baseControl + 0x00, _baseLed + 0x00, "Encoder 1");
         public static XTouchMiniMcEncoder Encoder2 = new XTouchMiniMcEncoder(_baseControl + 0x01, _baseLed + 0x01, "Encoder 2");
         public static XTouchMiniMcEncoder Encoder3 = new XTouchMiniMcEncoder(_baseControl + 0x02, _baseLed + 0x02, "Encoder 3");
@@ -17,6 +10,8 @@ namespace JannesP.XTouchMini
         public static XTouchMiniMcEncoder Encoder6 = new XTouchMiniMcEncoder(_baseControl + 0x05, _baseLed + 0x05, "Encoder 6");
         public static XTouchMiniMcEncoder Encoder7 = new XTouchMiniMcEncoder(_baseControl + 0x06, _baseLed + 0x06, "Encoder 7");
         public static XTouchMiniMcEncoder Encoder8 = new XTouchMiniMcEncoder(_baseControl + 0x07, _baseLed + 0x07, "Encoder 8");
+        private const int _baseControl = 0x10;
+        private const int _baseLed = 0x30;
 
         private XTouchMiniMcEncoder(byte buttonMidiCode, byte ledMidiCode, string name) : base(buttonMidiCode, name)
         {

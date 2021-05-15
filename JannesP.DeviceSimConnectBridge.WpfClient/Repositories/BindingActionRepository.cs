@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using JannesP.DeviceSimConnectBridge.WpfApp.BindableActions;
 using JannesP.DeviceSimConnectBridge.WpfApp.BindableActions.DataSources;
 using JannesP.DeviceSimConnectBridge.WpfApp.BindableActions.SimConnectActions;
@@ -24,7 +21,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Repositories
             };
         }
 
-        public IEnumerable<TRes> GetAll<TRes>() where TRes : IBindableAction 
+        public IEnumerable<TRes> GetAll<TRes>() where TRes : IBindableAction
             => _actionList.Where(a => a is TRes).Cast<TRes>();
     }
 }

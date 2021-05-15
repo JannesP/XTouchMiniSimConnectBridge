@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
 namespace JannesP.XTouchMini
 {
@@ -12,8 +10,6 @@ namespace JannesP.XTouchMini
             System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(typeof(T).TypeHandle);
         }
 
-        public static Dictionary<byte, T> Controls { get; } = new Dictionary<byte, T>();
-
         protected ControlDefinition(byte midiCode, string name)
         {
             MidiCode = midiCode;
@@ -21,6 +17,7 @@ namespace JannesP.XTouchMini
             Controls.Add(midiCode, (T)this);
         }
 
+        public static Dictionary<byte, T> Controls { get; } = new Dictionary<byte, T>();
         public byte MidiCode { get; }
         public string Name { get; }
     }

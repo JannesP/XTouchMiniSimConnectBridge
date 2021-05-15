@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Data;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -28,9 +24,8 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp
     /// </summary>
     public partial class App : Application
     {
-        public IHost Host { get; }
-        private int _isTeardown = 0;
         private readonly Lazy<ILogger<App>> _logger;
+        private int _isTeardown = 0;
 
         public App()
         {
@@ -79,6 +74,26 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp
             _logger = new Lazy<ILogger<App>>(() => Host.Services.GetRequiredService<ILogger<App>>());
         }
 
+        public IHost Host { get; }
+
+        public static async Task GracefulShutdownAsync()
+        {
+            await Teardown((App)Current, false);
+            Current.Shutdown();
+        }
+
+        protected override void OnExit(ExitEventArgs e)
+        {
+            base.OnExit(e);
+            Teardown(this, true).Wait();
+        }
+
+        protected override void OnSessionEnding(SessionEndingCancelEventArgs e)
+        {
+            base.OnSessionEnding(e);
+            base.Shutdown();
+        }
+
         protected override async void OnStartup(StartupEventArgs e)
         {
             base.DispatcherUnhandledException += App_DispatcherUnhandledException;
@@ -111,6 +126,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp
                         createUi = false;
                         _logger.Value.LogInformation("Launch argument '{0}' found, don't create a UI.", arg);
                         break;
+
                     default:
                         _logger.Value.LogWarning("Got invalid launch argument '{0}', ignoring.", arg);
                         break;
@@ -138,45 +154,6 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp
             dbm.Enable();
         }
 
-        private void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
-        {
-            _logger.Value.LogError(e.Exception, "Unobserved exception in task.");
-            e.SetObserved();
-        }
-
-        private void OnSecondInstanceStarted(object? sender, EventArgs e)
-        {
-            _logger.Value.LogInformation("Second instance started, showing MainWindow.");
-            base.Dispatcher.Invoke(this.ShowCreateMainWindow);
-        }
-
-        private void App_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e) 
-            => _logger.Value.LogCritical(e.Exception, "Error caught in App_DispatcherUnhandledException, crashing ...");
-
-        private void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
-        {
-            var ex = (Exception)e.ExceptionObject;
-            _logger.Value.LogCritical(ex, "Error caught in CurrentDomain_UnhandledException, crashing ...");
-        }
-
-        public static async Task GracefulShutdownAsync()
-        {
-            await Teardown((App)Current, false);
-            Current.Shutdown();
-        }
-
-        protected override void OnSessionEnding(SessionEndingCancelEventArgs e)
-        {
-            base.OnSessionEnding(e);
-            base.Shutdown();
-        }
-
-        protected override void OnExit(ExitEventArgs e)
-        {
-            base.OnExit(e);
-            Teardown(this, true).Wait();
-        }
-
         private static async Task Teardown(App app, bool fastTeardown)
         {
             if (Interlocked.Exchange(ref app._isTeardown, 1) == 0)
@@ -192,6 +169,27 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp
                     await app.Host.StopAsync();
                 }
             }
+        }
+
+        private void App_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
+            => _logger.Value.LogCritical(e.Exception, "Error caught in App_DispatcherUnhandledException, crashing ...");
+
+        private void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            var ex = (Exception)e.ExceptionObject;
+            _logger.Value.LogCritical(ex, "Error caught in CurrentDomain_UnhandledException, crashing ...");
+        }
+
+        private void OnSecondInstanceStarted(object? sender, EventArgs e)
+        {
+            _logger.Value.LogInformation("Second instance started, showing MainWindow.");
+            base.Dispatcher.Invoke(this.ShowCreateMainWindow);
+        }
+
+        private void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
+        {
+            _logger.Value.LogError(e.Exception, "Unobserved exception in task.");
+            e.SetObserved();
         }
     }
 }

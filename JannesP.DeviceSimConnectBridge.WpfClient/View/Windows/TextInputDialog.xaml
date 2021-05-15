@@ -11,14 +11,14 @@
     <Window.Resources>
     </Window.Resources>
     <StackPanel Margin="{StaticResource SpacingNormal}">
-        <TextBlock TextAlignment="Center" Text="{Binding DialogMessage}"/>
-        <TextBox x:Name="TbInput" Margin="{StaticResource SpacingNormalTop}" Text="{Binding Path=InputText, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, NotifyOnValidationError=True}" KeyDown="TextBox_KeyDown"/>
+        <TextBlock TextAlignment="Center" Text="{Binding DialogMessage}" />
+        <TextBox x:Name="TbInput" Margin="{StaticResource SpacingNormalTop}" Text="{Binding Path=InputText, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, NotifyOnValidationError=True}" KeyDown="TextBox_KeyDown" />
 
         <Grid Margin="{StaticResource SpacingNormalTop}" Grid.Row="4">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="auto"/>
-                <ColumnDefinition MinWidth="50" Width="*"/>
-                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="auto" />
+                <ColumnDefinition MinWidth="50" Width="*" />
+                <ColumnDefinition Width="auto" />
             </Grid.ColumnDefinitions>
             <Button Grid.Column="0" Width="100" Content="Ok" IsEnabled="{Binding Path=HasNoErrors}" Click="OkButton_Click" />
             <Button Grid.Column="2" Width="100" Content="Cancel" Click="CancelButton_Click" />

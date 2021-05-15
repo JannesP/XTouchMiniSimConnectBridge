@@ -1,36 +1,38 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace JannesP.DeviceSimConnectBridge.Device
 {
     public interface IDevice : IDisposable
     {
-        string FriendlyName { get; }
-        string DeviceType { get; }
-        string? DeviceId { get; }
-        bool IsConnected { get; }
+        event EventHandler<DeviceButtonEventArgs>? ButtonDown;
+
+        event EventHandler<DeviceButtonEventArgs>? ButtonUp;
 
         event EventHandler? Connected;
+
         event EventHandler? Disconnected;
 
+        event EventHandler<DeviceEncoderEventArgs>? EncoderTurned;
+
+        event EventHandler<DeviceFaderEventArgs>? FaderMoved;
+
+        IEnumerable<IDeviceButton> Buttons { get; }
+        string? DeviceId { get; }
+        string DeviceType { get; }
+        IEnumerable<IDeviceEncoder> Encoders { get; }
+        IEnumerable<IDeviceFader> Faders { get; }
+        string FriendlyName { get; }
+        bool IsConnected { get; }
+        IEnumerable<IDeviceLed> Leds { get; }
+
         Task<bool> ConnectAsync();
+
         Task DisconnectAsync();
 
         Task ResetDeviceState();
 
-        IEnumerable<IDeviceButton> Buttons { get; }
-        event EventHandler<DeviceButtonEventArgs>? ButtonDown;
-        event EventHandler<DeviceButtonEventArgs>? ButtonUp;
-
-        IEnumerable<IDeviceEncoder> Encoders { get; }
-        event EventHandler<DeviceEncoderEventArgs>? EncoderTurned;
-
-        IEnumerable<IDeviceFader> Faders { get; }
-        event EventHandler<DeviceFaderEventArgs>? FaderMoved;
-
-        IEnumerable<IDeviceLed> Leds { get; }
         Task SetLedState(IDeviceLed deviceLed, DeviceLedState ledState);
     }
 

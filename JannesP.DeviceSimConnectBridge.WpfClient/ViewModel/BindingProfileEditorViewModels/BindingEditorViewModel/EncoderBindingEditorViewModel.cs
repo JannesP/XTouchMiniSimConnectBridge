@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using JannesP.DeviceSimConnectBridge.Device;
 using JannesP.DeviceSimConnectBridge.WpfApp.ActionBindings;
 using JannesP.DeviceSimConnectBridge.WpfApp.BindableActions;
@@ -12,27 +10,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorViewModels.BindingEditorViewModel
 {
-    public abstract class IEncoderBindingEditorViewModel : IBindingEditorViewModel
-    {
-        protected IEncoderBindingEditorViewModel(EncoderActionBinding actionBinding, IDeviceEncoder? deviceButton) : base(actionBinding, deviceButton)
-        { }
-
-        public abstract bool IgnoreSpeed { get; set; }
-
-        public abstract IEnumerable<ISimpleBindableActionEditorViewModel> AvailableActions { get; }
-
-        public abstract ISimpleBindableActionEditorViewModel? EncoderClockwiseAction { get; }
-        public abstract ISimpleBindableActionEditorViewModel? SelectedClockwiseAction { get; set; }
-
-        public abstract ISimpleBindableActionEditorViewModel? EncoderAntiClockwiseAction { get; }
-        public abstract ISimpleBindableActionEditorViewModel? SelectedAntiClockwiseAction { get; set; }
-
-    }
-
     public class DesignTimeEncoderBindingEditorViewModel : IEncoderBindingEditorViewModel
     {
         private static int _instanceCount = 0;
-        public override string Name { get; } = $"Design Time Encoder {++_instanceCount}";
 
         public DesignTimeEncoderBindingEditorViewModel() : base(null!, null)
         {
@@ -40,7 +20,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
             EncoderAntiClockwiseAction = AvailableActions.Skip(2).First();
         }
 
-        public override IEnumerable<ISimpleBindableActionEditorViewModel> AvailableActions { get; } = new List<ISimpleBindableActionEditorViewModel> 
+        public override IEnumerable<ISimpleBindableActionEditorViewModel> AvailableActions { get; } = new List<ISimpleBindableActionEditorViewModel>
         {
             new DesignTimeSimpleBindableActionEditorViewModel(),
             new DesignTimeSimpleBindableActionEditorViewModel(),
@@ -48,17 +28,15 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
             new DesignTimeSimpleBindableActionEditorViewModel(),
         };
 
-        public override bool IgnoreSpeed { get; set; } = false;
-
+        public override ISimpleBindableActionEditorViewModel? EncoderAntiClockwiseAction { get; }
         public override ISimpleBindableActionEditorViewModel? EncoderClockwiseAction { get; }
-
+        public override bool IgnoreSpeed { get; set; } = false;
+        public override string Name { get; } = $"Design Time Encoder {++_instanceCount}";
+        public override ISimpleBindableActionEditorViewModel? SelectedAntiClockwiseAction { get => EncoderAntiClockwiseAction; set => throw new NotSupportedException(); }
         public override ISimpleBindableActionEditorViewModel? SelectedClockwiseAction { get => EncoderClockwiseAction; set => throw new NotSupportedException(); }
 
-        public override ISimpleBindableActionEditorViewModel? EncoderAntiClockwiseAction { get; }
-
-        public override ISimpleBindableActionEditorViewModel? SelectedAntiClockwiseAction { get => EncoderAntiClockwiseAction; set => throw new NotSupportedException(); }
-
         protected override void OnApplyChanges() => throw new NotSupportedException();
+
         protected override void OnRevertChanges() => throw new NotSupportedException();
     }
 
@@ -68,8 +46,8 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
         private readonly EncoderActionBinding _encoderBinding;
 
         private bool _ignoreSpeed;
-        private ISimpleBindableActionEditorViewModel? _selectedClockwiseAction;
         private ISimpleBindableActionEditorViewModel? _selectedAntiClockwiseAction;
+        private ISimpleBindableActionEditorViewModel? _selectedClockwiseAction;
 
         public EncoderBindingEditorViewModel(IServiceProvider serviceProvider, EncoderActionBinding encoderBinding, IDeviceEncoder? deviceEncoder) : base(encoderBinding, deviceEncoder)
         {
@@ -80,8 +58,14 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
             LoadFromModel();
         }
 
-        public override bool IgnoreSpeed 
-        { 
+        public override IEnumerable<ISimpleBindableActionEditorViewModel> AvailableActions { get; }
+
+        public override ISimpleBindableActionEditorViewModel? EncoderAntiClockwiseAction => _selectedAntiClockwiseAction;
+
+        public override ISimpleBindableActionEditorViewModel? EncoderClockwiseAction => _selectedClockwiseAction;
+
+        public override bool IgnoreSpeed
+        {
             get => _ignoreSpeed;
             set
             {
@@ -93,34 +77,21 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
             }
         }
 
-        private void LoadFromModel()
+        public override ISimpleBindableActionEditorViewModel? SelectedAntiClockwiseAction
         {
-            IgnoreSpeed = _encoderBinding.IgnoreSpeed;
-            if (_encoderBinding.TurnClockwise != null)
+            get => AvailableActions.FirstOrDefault(a => a.UniqueIdentifier == _selectedAntiClockwiseAction?.UniqueIdentifier);
+            set
             {
-                SelectedClockwiseAction = new SimpleBindableActionEditorViewModel(_encoderBinding.TurnClockwise);
+                if (value?.GetType() != _selectedAntiClockwiseAction?.GetType())
+                {
+                    if (_selectedAntiClockwiseAction != null) RemoveChildren(_selectedAntiClockwiseAction);
+                    _selectedAntiClockwiseAction = value?.CreateNew();
+                    if (_selectedAntiClockwiseAction != null) AddChildren(_selectedAntiClockwiseAction);
+                    OnPropertyChanged(true);
+                    OnPropertyChanged(nameof(EncoderClockwiseAction));
+                }
             }
-            if (_encoderBinding.TurnAntiClockwise != null)
-            {
-                SelectedAntiClockwiseAction = new SimpleBindableActionEditorViewModel(_encoderBinding.TurnAntiClockwise);
-            }
         }
-
-        protected override void OnApplyChanges()
-        {
-            _encoderBinding.IgnoreSpeed = IgnoreSpeed;
-            _encoderBinding.TurnClockwise = EncoderClockwiseAction?.Model;
-            _encoderBinding.TurnAntiClockwise = EncoderAntiClockwiseAction?.Model;
-        }
-
-        protected override void OnRevertChanges()
-        {
-            LoadFromModel();
-        }
-
-        public override IEnumerable<ISimpleBindableActionEditorViewModel> AvailableActions { get; }
-
-        public override ISimpleBindableActionEditorViewModel? EncoderClockwiseAction => _selectedClockwiseAction;
 
         public override ISimpleBindableActionEditorViewModel? SelectedClockwiseAction
         {
@@ -138,22 +109,42 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
             }
         }
 
-        public override ISimpleBindableActionEditorViewModel? EncoderAntiClockwiseAction => _selectedAntiClockwiseAction;
-
-        public override ISimpleBindableActionEditorViewModel? SelectedAntiClockwiseAction
+        protected override void OnApplyChanges()
         {
-            get => AvailableActions.FirstOrDefault(a => a.UniqueIdentifier == _selectedAntiClockwiseAction?.UniqueIdentifier);
-            set
+            _encoderBinding.IgnoreSpeed = IgnoreSpeed;
+            _encoderBinding.TurnClockwise = EncoderClockwiseAction?.Model;
+            _encoderBinding.TurnAntiClockwise = EncoderAntiClockwiseAction?.Model;
+        }
+
+        protected override void OnRevertChanges()
+        {
+            LoadFromModel();
+        }
+
+        private void LoadFromModel()
+        {
+            IgnoreSpeed = _encoderBinding.IgnoreSpeed;
+            if (_encoderBinding.TurnClockwise != null)
             {
-                if (value?.GetType() != _selectedAntiClockwiseAction?.GetType())
-                {
-                    if (_selectedAntiClockwiseAction != null) RemoveChildren(_selectedAntiClockwiseAction);
-                    _selectedAntiClockwiseAction = value?.CreateNew();
-                    if (_selectedAntiClockwiseAction != null) AddChildren(_selectedAntiClockwiseAction);
-                    OnPropertyChanged(true);
-                    OnPropertyChanged(nameof(EncoderClockwiseAction));
-                }
+                SelectedClockwiseAction = new SimpleBindableActionEditorViewModel(_encoderBinding.TurnClockwise);
+            }
+            if (_encoderBinding.TurnAntiClockwise != null)
+            {
+                SelectedAntiClockwiseAction = new SimpleBindableActionEditorViewModel(_encoderBinding.TurnAntiClockwise);
             }
         }
+    }
+
+    public abstract class IEncoderBindingEditorViewModel : IBindingEditorViewModel
+    {
+        protected IEncoderBindingEditorViewModel(EncoderActionBinding actionBinding, IDeviceEncoder? deviceButton) : base(actionBinding, deviceButton)
+        { }
+
+        public abstract IEnumerable<ISimpleBindableActionEditorViewModel> AvailableActions { get; }
+        public abstract ISimpleBindableActionEditorViewModel? EncoderAntiClockwiseAction { get; }
+        public abstract ISimpleBindableActionEditorViewModel? EncoderClockwiseAction { get; }
+        public abstract bool IgnoreSpeed { get; set; }
+        public abstract ISimpleBindableActionEditorViewModel? SelectedAntiClockwiseAction { get; set; }
+        public abstract ISimpleBindableActionEditorViewModel? SelectedClockwiseAction { get; set; }
     }
 }

@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using JannesP.SimConnectWrapper;
 using JannesP.DeviceSimConnectBridge.WpfApp.Options;
 using Microsoft.Extensions.Logging;
 
@@ -12,6 +8,19 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
 {
     public class SimConnectManager : IDisposable
     {
+        private readonly ILogger<SimConnectManager> _logger;
+
+        private readonly ApplicationOptions _options;
+
+        private readonly SemaphoreSlim _semState = new(1);
+
+        private CancellationTokenSource? _ctsConnect;
+
+        private SimConnectWrapper.SimConnectWrapper? _simConnect;
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("CodeQuality", "IDE0052:Remove unread private members", Justification = "We need to keep a reference to the task, otherwise it'll just get collected.")]
+        private Task? _taskConnect;
+
         public SimConnectManager(ILogger<SimConnectManager> logger, ApplicationOptions options)
         {
             _logger = logger;
@@ -19,68 +28,9 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
             _options.PropertyChanged += OnOptions_PropertyChanged;
         }
 
-        public event EventHandler<StateChangedEventArgs>? StateChanged;
         public event EventHandler? ConnectLoopError;
 
-        public State ConnectionState { get; private set; } = State.Disconnected;
-        public SimConnectWrapper.SimConnectWrapper? SimConnectWrapper => ConnectionState == State.Connected ? _simConnect : null;
-
-        private readonly SemaphoreSlim _semState = new(1);
-        private readonly ILogger<SimConnectManager> _logger;
-        private readonly ApplicationOptions _options;
-        private CancellationTokenSource? _ctsConnect;
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("CodeQuality", "IDE0052:Remove unread private members", Justification = "We need to keep a reference to the task, otherwise it'll just get collected.")]
-        private Task? _taskConnect;
-        private SimConnectWrapper.SimConnectWrapper? _simConnect;
-
-        private async Task<bool> TransitionStateAsync(State currentState, State newState)
-        {
-            await _semState.WaitAsync().ConfigureAwait(false);
-            try
-            {
-                if (currentState != ConnectionState)
-                {
-                    return false;
-                }
-                ConnectionState = newState;
-                return true;
-            }
-            finally
-            {
-                _semState.Release();
-            }
-        }
-
-        private async Task<State> TransitionStateAsync(State newState)
-        {
-            await _semState.WaitAsync().ConfigureAwait(false);
-            State oldState;
-            try
-            {
-                oldState = ConnectionState;
-                ConnectionState = newState;
-                return oldState;
-            }
-            finally
-            {
-                _semState.Release();
-            }
-            throw new Exception("Error transitioning state.");
-        }
-
-        private void OnStateTransition(State oldState, State newState) 
-            => StateChanged?.Invoke(this, new StateChangedEventArgs(oldState, newState));
-
-
-
-        private void OnOptions_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
-        {
-            switch (e.PropertyName)
-            {
-                case nameof(ApplicationOptions.SimConnectApplicationName):
-                    throw new NotSupportedException($"Cannot change {e.PropertyName} during runtime.");
-            }
-        }
+        public event EventHandler<StateChangedEventArgs>? StateChanged;
 
         public enum State
         {
@@ -89,6 +39,22 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
             ConnectingWaitingForResponse,
             Connected,
             Disconnecting,
+        }
+
+        public State ConnectionState { get; private set; } = State.Disconnected;
+        public SimConnectWrapper.SimConnectWrapper? SimConnectWrapper => ConnectionState == State.Connected ? _simConnect : null;
+
+        public void Dispose()
+        {
+            TransitionStateAsync(State.Disconnecting).Wait();
+            _ctsConnect?.Cancel();
+            _ctsConnect?.Dispose();
+            _ctsConnect = null;
+            _taskConnect = null;
+            _simConnect?.Dispose();
+            _simConnect = null;
+            TransitionStateAsync(State.Disconnected).Wait();
+            GC.SuppressFinalize(this);
         }
 
         public async Task StartAsync()
@@ -130,27 +96,15 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
             _logger.LogTrace("Stopped SimConnectManager!");
         }
 
-        public void Dispose()
+        private async Task<bool> ConnectAsync()
         {
-            TransitionStateAsync(State.Disconnecting).Wait();
-            _ctsConnect?.Cancel();
-            _ctsConnect?.Dispose();
-            _ctsConnect = null;
-            _taskConnect = null;
-            _simConnect?.Dispose();
-            _simConnect = null;
-            TransitionStateAsync(State.Disconnected).Wait();
-            GC.SuppressFinalize(this);
-        }
-
-        private async Task StartConnectLoopAsync()
-        {
-            if (await TransitionStateAsync(State.Disconnected, State.Connecting).ConfigureAwait(false))
+            if (_simConnect == null)
             {
-                OnStateTransition(State.Disconnected, State.Connecting);
-                _ctsConnect = new CancellationTokenSource();
-                _taskConnect = ConnectLoopAsync(_ctsConnect.Token);
+                _simConnect = new SimConnectWrapper.SimConnectWrapper(_options.SimConnectApplicationName);
+                _simConnect.SimConnectOpen += OnSimConnect_SimConnectOpen;
+                _simConnect.SimConnectClose += OnSimConnect_SimConnectClose;
             }
+            return await _simConnect.TryConnect().ConfigureAwait(false);
         }
 
         private async Task ConnectLoopAsync(CancellationToken ct)
@@ -164,7 +118,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
                     {
                         if (await ConnectAsync().ConfigureAwait(false))
                         {
-                            _logger.LogTrace("SimConnect Connect() == true");                            
+                            _logger.LogTrace("SimConnect Connect() == true");
                             await TransitionStateAsync(State.Connecting, State.ConnectingWaitingForResponse).ConfigureAwait(false);
                             break;
                         }
@@ -175,7 +129,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
                             await Task.Delay(delay, ct).ConfigureAwait(false);
                         }
                     }
-                    catch (TaskCanceledException) 
+                    catch (TaskCanceledException)
                     {
                         break;
                     }
@@ -195,15 +149,13 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
             _logger.LogInformation("ConnectLoop ended!");
         }
 
-        private async Task<bool> ConnectAsync()
+        private void OnOptions_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            if (_simConnect == null)
+            switch (e.PropertyName)
             {
-                _simConnect = new SimConnectWrapper.SimConnectWrapper(_options.SimConnectApplicationName);
-                _simConnect.SimConnectOpen += OnSimConnect_SimConnectOpen;
-                _simConnect.SimConnectClose += OnSimConnect_SimConnectClose;
+                case nameof(ApplicationOptions.SimConnectApplicationName):
+                    throw new NotSupportedException($"Cannot change {e.PropertyName} during runtime.");
             }
-            return await _simConnect.TryConnect().ConfigureAwait(false);
         }
 
         private async void OnSimConnect_SimConnectClose(object? sender, EventArgs e)
@@ -227,16 +179,64 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
             }
         }
 
+        private void OnStateTransition(State oldState, State newState)
+            => StateChanged?.Invoke(this, new StateChangedEventArgs(oldState, newState));
+
+        private async Task StartConnectLoopAsync()
+        {
+            if (await TransitionStateAsync(State.Disconnected, State.Connecting).ConfigureAwait(false))
+            {
+                OnStateTransition(State.Disconnected, State.Connecting);
+                _ctsConnect = new CancellationTokenSource();
+                _taskConnect = ConnectLoopAsync(_ctsConnect.Token);
+            }
+        }
+
+        private async Task<bool> TransitionStateAsync(State currentState, State newState)
+        {
+            await _semState.WaitAsync().ConfigureAwait(false);
+            try
+            {
+                if (currentState != ConnectionState)
+                {
+                    return false;
+                }
+                ConnectionState = newState;
+                return true;
+            }
+            finally
+            {
+                _semState.Release();
+            }
+        }
+
+        private async Task<State> TransitionStateAsync(State newState)
+        {
+            await _semState.WaitAsync().ConfigureAwait(false);
+            State oldState;
+            try
+            {
+                oldState = ConnectionState;
+                ConnectionState = newState;
+                return oldState;
+            }
+            finally
+            {
+                _semState.Release();
+            }
+            throw new Exception("Error transitioning state.");
+        }
+
         public class StateChangedEventArgs : EventArgs
         {
-            public State NewState { get; }
-            public State OldState { get; }
-
             public StateChangedEventArgs(State oldState, State newState)
             {
                 OldState = oldState;
                 NewState = newState;
             }
+
+            public State NewState { get; }
+            public State OldState { get; }
         }
     }
 }

@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using JannesP.DeviceSimConnectBridge.Device;
 using JannesP.DeviceSimConnectBridge.WpfApp.Options;
 using JannesP.DeviceSimConnectBridge.WpfApp.Repositories;
@@ -15,12 +13,14 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
     {
         ObservableCollection<IDeviceBindingConfigurationEditorViewModel> Devices { get; }
         bool IsTouched { get; }
+
         void ApplyChanges();
     }
 
     public class BindingProfileEditorViewModel : RevertibleViewModelBase, IBindingProfileEditorViewModel
     {
         private readonly DeviceRepository _deviceRepository;
+
         [System.Diagnostics.CodeAnalysis.SuppressMessage("CodeQuality", "IDE0052:Remove unread private members", Justification = "I want this here, because it's the model.")]
         private readonly BindingProfile _profile;
 
@@ -60,9 +60,15 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
 
         public ObservableCollection<IDeviceBindingConfigurationEditorViewModel> Devices { get; }
 
-        protected override void OnApplyChanges() { /* nothing to do here :) */ }
+        protected override void OnApplyChanges()
+        {
+            /* nothing to do here :) */
+        }
 
-        protected override void OnRevertChanges() { /* nothing to do here :) */ }
+        protected override void OnRevertChanges()
+        {
+            /* nothing to do here :) */
+        }
 
         private void Devices_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
@@ -81,7 +87,9 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
         };
 
         public bool IsTouched => false;
+
         public void ApplyChanges() => throw new NotSupportedException();
+
         public void DiscardChanges() => throw new NotSupportedException();
     }
 }
