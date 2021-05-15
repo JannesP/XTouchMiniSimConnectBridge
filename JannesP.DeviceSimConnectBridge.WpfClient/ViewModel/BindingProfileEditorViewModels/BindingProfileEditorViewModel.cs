@@ -12,10 +12,63 @@ using Microsoft.Extensions.DependencyInjection;
 namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorViewModels
 {
     public interface IBindingProfileEditorViewModel
-    { 
-        bool IsTouched { get; }
+    {
         ObservableCollection<IDeviceBindingConfigurationEditorViewModel> Devices { get; }
+        bool IsTouched { get; }
         void ApplyChanges();
+    }
+
+    public class BindingProfileEditorViewModel : RevertibleViewModelBase, IBindingProfileEditorViewModel
+    {
+        private readonly DeviceRepository _deviceRepository;
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("CodeQuality", "IDE0052:Remove unread private members", Justification = "I want this here, because it's the model.")]
+        private readonly BindingProfile _profile;
+
+        public BindingProfileEditorViewModel(IServiceProvider service, BindingProfile profile)
+        {
+            _deviceRepository = service.GetRequiredService<DeviceRepository>();
+            _profile = profile;
+
+            var deviceList = new List<IDeviceBindingConfigurationEditorViewModel>();
+            //add all available devices
+            IReadOnlyList<IDevice>? availableDeviceList = _deviceRepository.AvailableDevices;
+            foreach (IDevice dev in availableDeviceList)
+            {
+                DeviceBindingConfiguration? config = profile.BindingConfigurations.FirstOrDefault(c => c.DeviceId == dev.DeviceId && c.DeviceType == dev.DeviceType);
+                if (config == null)
+                {
+                    config = new DeviceBindingConfiguration
+                    {
+                        DeviceId = dev.DeviceId,
+                        DeviceType = dev.DeviceType,
+                        FriendlyName = dev.FriendlyName,
+                    };
+                }
+                deviceList.Add(new DeviceBindingConfigurationEditorViewModel(service, config, dev));
+            }
+            //add devices that are configured but aren't available
+            IEnumerable<DeviceBindingConfiguration> deviceMissing = profile.BindingConfigurations.Where(bc => !deviceList.Any(d => d.DeviceId == bc.DeviceId && d.DeviceType == bc.DeviceType));
+            foreach (DeviceBindingConfiguration config in deviceMissing)
+            {
+                deviceList.Add(new DeviceBindingConfigurationEditorViewModel(service, config, null));
+            }
+
+            Devices = new ObservableCollection<IDeviceBindingConfigurationEditorViewModel>(deviceList);
+            Devices.CollectionChanged += Devices_CollectionChanged;
+            AddChildren(Devices);
+        }
+
+        public ObservableCollection<IDeviceBindingConfigurationEditorViewModel> Devices { get; }
+
+        protected override void OnApplyChanges() { /* nothing to do here :) */ }
+
+        protected override void OnRevertChanges() { /* nothing to do here :) */ }
+
+        private void Devices_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            if (e.NewItems != null) AddChildren(e.NewItems.Cast<RevertibleViewModelBase>());
+            if (e.OldItems != null) RemoveChildren(e.OldItems.Cast<RevertibleViewModelBase>());
+        }
     }
 
     public class DesignTimeBindingProfileEditorViewModel : IBindingProfileEditorViewModel
@@ -29,61 +82,6 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
 
         public bool IsTouched => false;
         public void ApplyChanges() => throw new NotSupportedException();
+        public void DiscardChanges() => throw new NotSupportedException();
     }
-
-    public class BindingProfileEditorViewModel : ViewModelBase, IBindingProfileEditorViewModel
-    {
-        private readonly DeviceRepository _deviceRepository;
-        private readonly BindingProfile _profile;
-        private ObservableCollection<IDeviceBindingConfigurationEditorViewModel> _devices;
-
-        public BindingProfileEditorViewModel(IServiceProvider service, BindingProfile profile)
-        {
-            _deviceRepository = service.GetRequiredService<DeviceRepository>();
-            _profile = profile;
-
-            IEnumerable<IDeviceBindingConfigurationEditorViewModel> deviceList = Enumerable.Empty<IDeviceBindingConfigurationEditorViewModel>();
-
-            //add devices with configured bindings
-            List<DeviceBindingConfigurationEditorViewModel>? inConfig = null;
-            if (profile.BindingConfigurations != null)
-            {
-                inConfig = profile.BindingConfigurations.Select(bc => new DeviceBindingConfigurationEditorViewModel(service, bc)).ToList();
-                deviceList = deviceList.Concat(inConfig);
-            }
-            //add devices that don't have any configured bindings
-            IReadOnlyList<IDevice>? availableDeviceList = _deviceRepository.AvailableDevices;
-            IEnumerable<IDevice> toAdd;
-            if (inConfig == null)
-            {
-                toAdd = availableDeviceList;
-            }
-            else
-            {
-                toAdd = availableDeviceList.Where(ad => !inConfig.Any(ic => ic.DeviceType == ad.DeviceType && ic.DeviceId == ad.DeviceId));
-            }
-            deviceList = deviceList.Concat(toAdd.Select(device => new DeviceBindingConfigurationEditorViewModel(service, device)));
-
-
-            _devices = new ObservableCollection<IDeviceBindingConfigurationEditorViewModel>(deviceList);
-        }
-
-        public ObservableCollection<IDeviceBindingConfigurationEditorViewModel> Devices
-        {
-            get => _devices; 
-            private set
-            {
-                if (_devices != value)
-                {
-                    _devices = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
-
-        public bool IsTouched => false;
-
-        public void ApplyChanges() => throw new NotImplementedException();
-    }
-
 }

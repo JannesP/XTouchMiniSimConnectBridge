@@ -14,7 +14,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
 {
     public abstract class ILedBindingEditorViewModel : IBindingEditorViewModel
     {
-        protected ILedBindingEditorViewModel(IDeviceLed? deviceControl) : base(deviceControl)
+        protected ILedBindingEditorViewModel(LedActionBinding actionBinding, IDeviceLed? deviceControl) : base(actionBinding, deviceControl)
         { }
 
         public abstract IEnumerable<ISimBoolSourceActionViewModel> AvailableDataSources { get; }
@@ -26,7 +26,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
     {
         private static int _instanceCount = 0;
 
-        public DesignTimeLedBindingEditorViewModel() : base(null)
+        public DesignTimeLedBindingEditorViewModel() : base(null!, null)
         {
             DataSource = AvailableDataSources.Skip(2).First();
         }
@@ -45,34 +45,34 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
 
         public override ISimBoolSourceActionViewModel? SelectedDataSource { get => DataSource; set => throw new NotSupportedException(); }
 
-        public override ActionBinding CreateModel() => throw new NotSupportedException();
+        protected override void OnApplyChanges() => throw new NotSupportedException();
+        protected override void OnRevertChanges() => throw new NotSupportedException();
     }
 
     public class LedBindingEditorViewModel : ILedBindingEditorViewModel
     {
         private readonly BindingActionRepository _bindingActionRepository;
-        private readonly IDeviceLed? _deviceLed;
-        private readonly ActionBinding? _actionBinding;
+        private readonly LedActionBinding _actionBinding;
 
         private ISimBoolSourceActionViewModel? _dataSource;
 
-        public LedBindingEditorViewModel(IServiceProvider serviceProvider, IDeviceLed? deviceLed, ActionBinding? actionBinding) : base(deviceLed)
+        public LedBindingEditorViewModel(IServiceProvider serviceProvider, LedActionBinding actionBinding, IDeviceLed? deviceLed) : base(actionBinding, deviceLed)
         {
             _bindingActionRepository = serviceProvider.GetRequiredService<BindingActionRepository>();
-            _deviceLed = deviceLed;
             _actionBinding = actionBinding;
             AvailableDataSources = _bindingActionRepository.GetAll<ISimBoolSourceAction>().Select(a => new SimBoolSourceActionViewModel(a)).ToList();
-            if (actionBinding is LedActionBinding binding)
+            LoadFromModel();
+        }
+
+        private void LoadFromModel()
+        {
+            if (_actionBinding.DataSource != null)
             {
-                if (binding.DataSource != null)
-                {
-                    _dataSource = new SimBoolSourceActionViewModel(binding.DataSource);
-                }
+                _dataSource = new SimBoolSourceActionViewModel(_actionBinding.DataSource);
             }
         }
 
         public override IEnumerable<ISimBoolSourceActionViewModel> AvailableDataSources { get; }
-
 
         public override ISimBoolSourceActionViewModel? SelectedDataSource
         {
@@ -81,8 +81,10 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
             {
                 if (value?.GetType() != _dataSource?.GetType())
                 {
+                    if (_dataSource != null) RemoveChildren(_dataSource);
                     _dataSource = value?.CreateNew();
-                    OnPropertyChanged();
+                    if (_dataSource != null) AddChildren(_dataSource);
+                    OnPropertyChanged(true);
                     OnPropertyChanged(nameof(DataSource));
                 }
             }
@@ -90,10 +92,14 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
 
         public override ISimBoolSourceActionViewModel? DataSource => _dataSource;
 
-        public override string Name => _deviceLed?.Name ?? "<Device Not Available>";
+        protected override void OnApplyChanges()
+        {
+            _actionBinding.DataSource = DataSource?.Model;
+        }
 
-        public override ActionBinding CreateModel() => throw new NotImplementedException();
+        protected override void OnRevertChanges()
+        {
+            LoadFromModel();
+        }
     }
-
-    
 }

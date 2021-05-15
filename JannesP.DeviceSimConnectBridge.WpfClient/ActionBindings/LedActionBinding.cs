@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 using JannesP.DeviceSimConnectBridge.Device;
@@ -11,6 +12,7 @@ using Microsoft.Extensions.Logging;
 
 namespace JannesP.DeviceSimConnectBridge.WpfApp.ActionBindings
 {
+    [DataContract]
     public class LedActionBinding : ActionBinding
     {
         private ILogger<LedActionBinding>? _logger;
@@ -18,6 +20,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ActionBindings
         private IDeviceLed? _deviceLed;
         private bool _isEnabled = false;
 
+        [DataMember]
         public ISimBoolSourceAction? DataSource
         {
             get => _dataSource; set
@@ -50,7 +53,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ActionBindings
             }
         }        
 
-        public override void Enable(IServiceProvider serviceProvider, IDevice device)
+        public override async void Enable(IServiceProvider serviceProvider, IDevice device)
         {
             if (_isEnabled) throw new InvalidOperationException("LedActionBinding is already enabled!"); 
             base.Enable(serviceProvider, device);
@@ -59,20 +62,22 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ActionBindings
             if (_logger == null) _logger = serviceProvider.GetService<ILogger<LedActionBinding>>();
             if (DataSource != null)
             {
-                DataSource.Initialize(serviceProvider);
+                await DataSource.InitializeAsync(serviceProvider).ConfigureAwait(false);
                 DataSource.SimBoolReceived += DataSource_SimBoolReceived;
             }
         }
 
-        public override void Disable()
+        public override async void Disable()
         {
             _isEnabled = false;
             base.Disable();
             if (DataSource != null)
             {
                 DataSource.SimBoolReceived -= DataSource_SimBoolReceived;
-                DataSource.Deactivate();
+                await DataSource.DeactivateAsync().ConfigureAwait(false);
             }
         }
+
+        public override bool IsEmpty() => DataSource == null;
     }
 }

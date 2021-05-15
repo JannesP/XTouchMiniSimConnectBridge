@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 using JannesP.DeviceSimConnectBridge.Device.XTouchMini;
@@ -13,11 +14,11 @@ using Newtonsoft.Json;
 
 namespace JannesP.DeviceSimConnectBridge.WpfApp.Options
 {
+    [DataContract]
     public class BindingProfile
     {
         private string? _fileName;
 
-        [JsonIgnore]
         public string? FileName 
         { 
             get => _fileName;
@@ -32,10 +33,18 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Options
             } 
         }
 
+        [DataMember]
         public Guid? UniqueId { get; set; }
+        [DataMember]
         public string? Name { get; set; }
+        [DataMember]
+        public List<DeviceBindingConfiguration> BindingConfigurations { get; set; } = new List<DeviceBindingConfiguration>();
 
-        public List<DeviceBindingConfiguration>? BindingConfigurations { get; set; }
+        [OnDeserialized]
+        public void OnDeserialized(StreamingContext context)
+        {
+            if (BindingConfigurations == null) BindingConfigurations = new List<DeviceBindingConfiguration>();
+        }
 
         public static BindingProfile CreateDefaultProfile() => new()
         {
@@ -146,7 +155,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Options
                         {
                             DataSource = new SimVarBoolDataSource()
                             {
-                                Interval = 1000,
+                                Interval = 250,
                                 SimVarName = "AUTOPILOT MASTER",
                             },
                             DeviceControlId = 0x54,
@@ -157,20 +166,29 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Options
         };
     }
 
+    [DataContract]
     public class DeviceBindingConfiguration
     {
-#pragma warning disable CS8774 // Member must have a non-null value when exiting.
         [MemberNotNull(nameof(DeviceType), nameof(FriendlyName))]
         public void ThrowIfNotComplete()
         {
             if (DeviceType == null) throw new Exception($"{nameof(DeviceType)} is null.");
             if (FriendlyName == null) throw new Exception($"{nameof(FriendlyName)} is null.");
         }
-#pragma warning restore CS8774 // Member must have a non-null value when exiting.
 
+        [OnDeserialized]
+        public void OnDeserialized(StreamingContext context)
+        {
+            if (Bindings == null) Bindings = new List<ActionBinding>();
+        }
+
+        [DataMember]
         public string? DeviceType { get; set; }
+        [DataMember]
         public string? DeviceId { get; set; }
+        [DataMember]
         public string? FriendlyName { get; set; }
+        [DataMember]
         public List<ActionBinding> Bindings { get; set; } = new List<ActionBinding>();
     }
 }

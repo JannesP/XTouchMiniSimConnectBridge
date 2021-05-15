@@ -17,10 +17,12 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel
         #region INotifyPropertyChanged
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+        protected void OnPropertyChanged([CallerMemberName] string? propertyName = null) => OnPropertyChanged(false, propertyName);
+
+        protected virtual void OnPropertyChanged(bool skipValidation, [CallerMemberName] string? propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-            ValidateAsync();
+            if (!skipValidation) ValidateAsync();
         }
         #endregion INotifyPropertyChanged
 
@@ -36,8 +38,8 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel
         public void OnErrorsChanged(string propertyName)
         {
             ErrorsChanged?.Invoke(this, new DataErrorsChangedEventArgs(propertyName));
-            OnPropertyChanged(nameof(HasErrors));
-            OnPropertyChanged(nameof(HasNoErrors));
+            OnPropertyChanged(true, nameof(HasErrors));
+            OnPropertyChanged(true, nameof(HasNoErrors));
         }
 
         //this is a default interface that doesn't play nice with Nullable Reference Types. We need to answer with 'null' to indicate no errors
@@ -100,6 +102,23 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel
                 }
             }
         }
+
+        public static ValidationResult? ValidateProperty(object? value, ValidationContext context)
+        {
+            if (context.ObjectInstance is not ViewModelBase viewModel)
+            {
+                throw new InvalidOperationException("This validation methos is only supposed to be used with ViewModels.");
+            }
+            if (context.MemberName == null) throw new InvalidOperationException("This validation method can only run on Property targets.");
+            string? error = viewModel.OnValidateProperty(context.MemberName, value);
+            if (error != null)
+            {
+                return new ValidationResult(error, new[] { nameof(context.MemberName) });
+            }
+            return null;
+        }
+
+        public virtual string? OnValidateProperty(string propertyName, object? value) => null;
         #endregion INotifyDataErrorInfo
     }
 }

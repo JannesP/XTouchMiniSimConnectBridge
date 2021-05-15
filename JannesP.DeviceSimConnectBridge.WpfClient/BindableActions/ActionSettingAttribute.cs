@@ -15,7 +15,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.BindableActions
         public string Name { get; }
         public string Description { get; }
 
-        public abstract string? ValidateValue(object value);
+        public abstract string? ValidateValue(object? value);
     }
 
     [AttributeUsage(AttributeTargets.Property, Inherited = true, AllowMultiple = false)]
@@ -23,17 +23,21 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.BindableActions
     {
         public StringActionSettingAttribute(string name, string description) : base(name, description) { }
 
-        public virtual bool CanBeEmpty { get; set; } = true;
+        public virtual bool CanBeEmpty { get; set; } = false;
         public virtual int? MaxLength { get; set; } = null;
         public virtual int? MinLength { get; set; } = null;
 
-        public override string? ValidateValue(object value)
+        public override string? ValidateValue(object? value)
         {
             string? sValue = value as string;
+            if (value != null && sValue == null)
+            {
+                throw new ArgumentException("This validation only works with string.");
+            }            
 
             if (!CanBeEmpty)
             {
-                if (string.IsNullOrEmpty(sValue))
+                if (string.IsNullOrWhiteSpace(sValue))
                 {
                     return "The value cannot be empty.";
                 }
@@ -55,6 +59,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.BindableActions
                     }
                 }
             }
+            
             return null;
         }
     }
@@ -66,23 +71,31 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.BindableActions
 
         public virtual int Min { get; set; }
         public virtual int Max { get; set; }
+        public virtual bool CanBeNull { get; set; } = false;
 
-        public override string? ValidateValue(object value)
+        public override string? ValidateValue(object? value)
         {
-            if (value is int iValue)
+            if (value != null)
             {
-                if (Min != 0 && iValue < Min)
+                if (value is int iValue)
                 {
-                    return $"The value needs to be larger than or equal to {Min}";
+                    if (Min != 0 && iValue < Min)
+                    {
+                        return $"The value needs to be larger than or equal to {Min}";
+                    }
+                    if (Max != 0 && iValue > Max)
+                    {
+                        return $"The value needs to be smaller than or equal to {Max}";
+                    }
                 }
-                if (Max != 0 && iValue > Max)
+                else
                 {
-                    return $"The value needs to be smaller than or equal to {Max}";
+                    throw new ArgumentException("This method can only validate int.", nameof(value));
                 }
             }
             else
             {
-                throw new ArgumentException("This method can only validate int.", nameof(value));
+                if (!CanBeNull) return "This value needs to be set.";
             }
             return null;
         }

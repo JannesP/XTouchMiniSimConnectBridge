@@ -11,6 +11,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 using JannesP.DeviceSimConnectBridge.WpfApp.ViewModel;
 using JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindableActionSettingsViewModels;
 using JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.WindowViewModels;
@@ -24,7 +25,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.View.Windows
     {
         public ConfigureBindableActionDialog(BindableActionViewModel action)
         {
-            this.DataContext = new ConfigureBindableActionDialogViewModel(action);
+            base.DataContext = new ConfigureBindableActionDialogViewModel(action);
             InitializeComponent();
         }
     }

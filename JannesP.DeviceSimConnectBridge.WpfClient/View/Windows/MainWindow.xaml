@@ -45,15 +45,25 @@
             </MenuItem>
         </Menu>
 
-        <Grid Margin="{StaticResource SpacingNormalTop}">
+        <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="auto"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
-            <StackPanel Grid.Row="0" HorizontalAlignment="Center" Orientation="Horizontal">
-                <ComboBox Width="200" ItemsSource="{Binding Path=ProfileManagement.ProfileList}" SelectedItem="{Binding Path=ProfileManagement.CurrentProfile, Mode=OneWay}" SelectionChanged="ComboBoxProfile_SelectionChanged" DisplayMemberPath="Name"/>
-                <Button Margin="{StaticResource SpacingNormalLeft}" Content="Manage Profiles" Grid.ColumnSpan="2" Click="ButtonOpenProfileManager_Click"/>
-            </StackPanel>
+            <Grid Grid.Row="0" Margin="{StaticResource SpacingNormal}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition Width="auto"/>
+                </Grid.ColumnDefinitions>
+                <Button Grid.Column="0" Content="Save" IsEnabled="{Binding Path=ProfileEditor.IsTouched}"/>
+                <Button Grid.Column="1" Margin="{StaticResource SpacingNormalLeft}" Content="Revert"/>
+                
+                <ComboBox Grid.Column="3" Width="200" ItemsSource="{Binding Path=ProfileManagement.ProfileList}" SelectedItem="{Binding Path=ProfileManagement.CurrentProfile, Mode=OneWay}" SelectionChanged="ComboBoxProfile_SelectionChanged" DisplayMemberPath="Name"/>
+                <Button Grid.Column="4" Margin="{StaticResource SpacingNormalLeft}" Content="Manage Profiles" Grid.ColumnSpan="2" Click="ButtonOpenProfileManager_Click"/>
+            </Grid>
             <cc:BindingProfileEditor Grid.Row="1" Margin="{StaticResource SpacingNormalLeftTop}" VerticalAlignment="Stretch" DataContext="{Binding Path=ProfileEditor}"/>
         </Grid>
     </DockPanel>

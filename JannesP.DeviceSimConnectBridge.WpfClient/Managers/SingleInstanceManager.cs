@@ -20,7 +20,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
         private readonly string _syncNamesBase;
         private string MutexName => _syncNamesBase + "_isFirstInstanceMutex";
         private string EventSignalName => _syncNamesBase + "_notifyFirstInstanceEvent";
-        private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+        private readonly CancellationTokenSource _cancellationTokenSource = new();
         private readonly EventWaitHandle? _evtNotifiedFromOtherProcess;
         private readonly Mutex _mutexCheckIfFirstInstance;
         private readonly ILogger<SingleInstanceManager> _logger;

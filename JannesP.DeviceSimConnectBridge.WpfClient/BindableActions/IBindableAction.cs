@@ -13,8 +13,8 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.BindableActions
         string Description { get; }
         string UniqueIdentifier { get; }
         bool IsInitialized { get; }
-        void Initialize(IServiceProvider serviceProvider);
-        void Deactivate();
+        Task InitializeAsync(IServiceProvider serviceProvider);
+        Task DeactivateAsync();
     }
 
     public interface ISimpleBindableAction : IInputAction
@@ -47,6 +47,19 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.BindableActions
         {
             Type t = action.GetType();
             return Activator.CreateInstance(t) as IBindableAction ?? throw new Exception($"Activator.CreateInstance returned null for {t.FullName}");
+        }
+
+        public static bool AreSettingsValid(this IBindableAction action)
+        {
+            IEnumerable<BindableActionSetting> settings = action.GetSettings();
+            foreach (BindableActionSetting s in settings)
+            {
+                if (s.Attribute.ValidateValue(s.Value) != null)
+                {
+                    return false;
+                }
+            }
+            return true;
         }
     }
 }

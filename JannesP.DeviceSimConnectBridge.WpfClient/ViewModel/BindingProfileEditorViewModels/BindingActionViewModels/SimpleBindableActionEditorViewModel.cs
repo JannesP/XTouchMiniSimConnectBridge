@@ -11,17 +11,17 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
 {
     public abstract class ISimpleBindableActionEditorViewModel : BindableActionViewModel
     {
-        public ISimpleBindableActionEditorViewModel(IBindableAction action) : base(action) { }
+        public ISimpleBindableActionEditorViewModel(ISimpleBindableAction action) : base(action) { }
         
         public abstract string UniqueIdentifier { get; }
         public abstract string ConfigurationSummary { get; }
         protected void OnConfigurationPropertyChanged([CallerMemberName] string? configPropertyName = null)
         {
-            OnPropertyChanged(configPropertyName);
+            OnPropertyChanged(true, configPropertyName);
             OnPropertyChanged(nameof(ConfigurationSummary));
         }
         public abstract ISimpleBindableActionEditorViewModel CreateNew();
-        
+        public new ISimpleBindableAction Model => (ISimpleBindableAction)base.Model;
     }
 
     public class SimpleBindableActionEditorViewModel : ISimpleBindableActionEditorViewModel

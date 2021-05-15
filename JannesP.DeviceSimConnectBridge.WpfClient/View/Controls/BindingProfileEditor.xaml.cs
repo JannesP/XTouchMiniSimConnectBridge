@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using JannesP.DeviceSimConnectBridge.WpfApp.Extensions;
 using JannesP.DeviceSimConnectBridge.WpfApp.View.Windows;
 using JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindableActionSettingsViewModels;
 
@@ -31,11 +32,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.View.Controls
         {
             if (sender is FrameworkElement s && s.DataContext is BindableActionViewModel action)
             {
-                var dialog = new ConfigureBindableActionDialog(action)
-                {
-                    WindowStartupLocation = WindowStartupLocation.CenterOwner,
-                };
-                dialog.ShowDialog();
+                new ConfigureBindableActionDialog(action).ShowDialogCentered(Window.GetWindow(this));
             }
         }
     }

@@ -8,13 +8,39 @@
         xmlns:windowVm="clr-namespace:JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.WindowViewModels"
         xmlns:actionVms="clr-namespace:JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindableActionSettingsViewModels"
         mc:Ignorable="d"
-        Title="{Binding WindowTitle}" Height="250" Width="300" WindowStyle="ToolWindow"
+        Title="{Binding WindowTitle}" SizeToContent="Height" Width="350" WindowStyle="ToolWindow"
         d:DataContext="{d:DesignInstance IsDesignTimeCreatable=True, Type=windowVm:DesignTimeConfigureBindableActionDialogViewModel}">
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="../Styles/ControlStyles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
+
+            <Style TargetType="{x:Type DataGridCell}">
+                <Setter Property="Foreground" Value="Black"/>
+                <Setter Property="Background" Value="{x:Null}" />
+                <Setter Property="BorderBrush" Value="{x:Null}" />
+                <Style.Triggers>
+                    <Trigger Property="IsSelected" Value="True">
+                        <Setter Property="Foreground" Value="Black"/>
+                        <Setter Property="Background" Value="{x:Null}" />
+                        <Setter Property="BorderBrush" Value="{x:Null}" />
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+            <Style TargetType="{x:Type DataGridRow}">
+                <Setter Property="Foreground" Value="Black"/>
+                <Setter Property="Background" Value="{x:Null}" />
+                <Setter Property="BorderBrush" Value="{x:Null}" />
+                <Style.Triggers>
+                    <Trigger Property="IsSelected" Value="True">
+                        <Setter Property="Foreground" Value="Black"/>
+                        <Setter Property="Background" Value="{x:Null}" />
+                        <Setter Property="BorderBrush" Value="{x:Null}" />
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+
 
             <DataTemplate x:Key="StringTemplate" DataType="{x:Type actionVms:StringActionSettingViewModel}">
                 <TextBox Margin="{StaticResource SpacingSmallTopRight}" Text="{Binding Value}"/>
@@ -34,7 +60,8 @@
             <RowDefinition Height="*"/>
             <RowDefinition Height="auto"/>
         </Grid.RowDefinitions>
-        <DataGrid Grid.Row="0" ItemsSource="{Binding Path=BindableAction.Settings}" AutoGenerateColumns="False" Width="auto" HeadersVisibility="None" GridLinesVisibility="None">
+        <DataGrid Grid.Row="0" Padding="{StaticResource SpacingSmallBottom}" ItemsSource="{Binding Path=BindableAction.Settings}" 
+                  AutoGenerateColumns="False" Width="auto" HeadersVisibility="None" GridLinesVisibility="None">
             <DataGrid.Columns>
                 <DataGridTemplateColumn Width="auto">
                     <DataGridTemplateColumn.CellTemplate>
@@ -46,6 +73,16 @@
                 <DataGridTemplateColumn Width="*" CellTemplateSelector="{StaticResource SettingTemplateSelector}"/>
             </DataGrid.Columns>
         </DataGrid>
-        <Button Margin="{StaticResource SpacingNormalTop}" Grid.Row="1" Content="Ok"/>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="auto"/>
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="0" Width="100" Margin="{StaticResource SpacingNormalTop}" Content="Ok" IsEnabled="{Binding HasNoErrors}"/>
+            <Button Grid.Column="2" Width="100" Margin="{StaticResource SpacingNormalTop}" Content="Cancel"/>
+        </Grid>
+        
     </Grid>
 </Window>

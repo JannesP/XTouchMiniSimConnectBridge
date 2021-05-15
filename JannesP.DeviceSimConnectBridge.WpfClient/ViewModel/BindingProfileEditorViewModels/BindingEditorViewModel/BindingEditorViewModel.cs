@@ -8,15 +8,16 @@ using JannesP.DeviceSimConnectBridge.WpfApp.ActionBindings;
 
 namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorViewModels.BindingEditorViewModel
 {
-    public abstract class IBindingEditorViewModel : ViewModelBase
+    public abstract class IBindingEditorViewModel : RevertibleViewModelBase
     {
         private readonly IDeviceControl? _control;
 
-        protected IBindingEditorViewModel(IDeviceControl? control)
+        protected IBindingEditorViewModel(ActionBinding model, IDeviceControl? control)
         {
+            Model = model;
             _control = control;
         }
         public virtual string Name => _control?.Name ?? "<Device not available>";
-        public abstract ActionBinding CreateModel();
+        public ActionBinding Model { get; }
     }
 }

@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Text.Json.Serialization;
+using System.Threading;
 using System.Threading.Tasks;
 using JannesP.DeviceSimConnectBridge.WpfApp.Managers;
 using JannesP.SimConnectWrapper;
@@ -14,11 +16,13 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.BindableActions.DataSources
     [DataContract]
     public class SimVarBoolDataSource : ISimBoolSourceAction
     {
+        private readonly SemaphoreSlim _sem = new(1);
         private SimConnectManager? _simConnectManager;
         private string? _simVarName;
         private int? _interval;
         private int? _intervalId;
         private SimConnectDataDefinition? _dataDefinition;
+        
 
         public string Name => "Retrieve Bool SimVar";
         public string Description => "Retrieves a SimVar with SimConnect that is a Bool (eg. 'AUTOPILOT MASTER').";
@@ -35,7 +39,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.BindableActions.DataSources
                 if (_simVarName != value)
                 {
                     _simVarName = value;
-                    if (_simVarName != null)
+                    if (!string.IsNullOrWhiteSpace(_simVarName))
                     {
                         _dataDefinition = new SimConnectDataDefinition(_simVarName, SimConnectDataDefinition.SimConnectUnitName.Bool, SimConnectDataType.FLOAT64);
                         _ = UpdateIntervalRequestAsync();
@@ -58,27 +62,40 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.BindableActions.DataSources
                 if (_interval != value)
                 {
                     _interval = value;
+                    _ = UpdateIntervalRequestAsync();
                 }
             }
         }
+
+        [MemberNotNullWhen(true, nameof(Interval), nameof(SimVarName), nameof(_dataDefinition))]
+        private bool AreSettingsValidInternal() => this.AreSettingsValid();
 
         public event EventHandler<SimDataReceivedEventArgs<bool>>? SimBoolReceived;
 
         private async Task UpdateIntervalRequestAsync()
         {
-            if (_intervalId.HasValue)
+            await _sem.WaitAsync().ConfigureAwait(false);
+            try
             {
-                _simConnectManager?.SimConnectWrapper?.CancelIntervalRequest(_intervalId.Value).Wait();
-            }
-            if (_interval.HasValue && _dataDefinition != null)
-            {
-                if (_simConnectManager?.SimConnectWrapper != null)
+                if (_intervalId.HasValue)
                 {
-                    _simConnectManager.SimConnectWrapper.IntervalRequestResult -= SimConnectWrapper_IntervalRequestResult;
-                    _simConnectManager.SimConnectWrapper.IntervalRequestResult += SimConnectWrapper_IntervalRequestResult;
-                    _intervalId = await _simConnectManager.SimConnectWrapper.IntervalRequestObjectByType<double>(_interval.Value, _dataDefinition);
+                    if (_simConnectManager?.SimConnectWrapper != null)
+                    {
+                        await _simConnectManager.SimConnectWrapper.CancelIntervalRequest(_intervalId.Value).ConfigureAwait(false);
+                    }
+                    _intervalId = null;
+                }
+                if (IsInitialized && AreSettingsValidInternal())
+                {
+                    if (_simConnectManager?.SimConnectWrapper != null)
+                    {
+                        _simConnectManager.SimConnectWrapper.IntervalRequestResult -= SimConnectWrapper_IntervalRequestResult;
+                        _simConnectManager.SimConnectWrapper.IntervalRequestResult += SimConnectWrapper_IntervalRequestResult;
+                        _intervalId = await _simConnectManager.SimConnectWrapper.IntervalRequestObjectByType<double>(Interval.Value, _dataDefinition).ConfigureAwait(false);
+                    }
                 }
             }
+            finally { _sem.Release(); }
         }
 
         private void SimConnectWrapper_IntervalRequestResult(object? sender, SimConnectWrapper.EventArgs.IntervalRequestResultEventArgs e)
@@ -87,45 +104,47 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.BindableActions.DataSources
             SimBoolReceived?.Invoke(this, new SimDataReceivedEventArgs<bool>((double)e.Result != 0));
         }
 
-        public void Deactivate() 
+        public async Task DeactivateAsync() 
         {
-            IsInitialized = false;
-            if (_intervalId.HasValue)
+            await _sem.WaitAsync().ConfigureAwait(false);
+            try
             {
-                _simConnectManager?.SimConnectWrapper?.CancelIntervalRequest(_intervalId.Value).Wait();
+                IsInitialized = false;
             }
-            if (_simConnectManager != null)
-            {
-                _simConnectManager.StateChanged -= SimConnectManager_StateChanged;
-            }
+            finally { _sem.Release(); }
+            await UpdateIntervalRequestAsync().ConfigureAwait(false);
         }
 
-        public async void Initialize(IServiceProvider serviceProvider)
+        public async Task InitializeAsync(IServiceProvider serviceProvider)
         {
-            IsInitialized = true;
-            if (_simConnectManager == null)
+            await _sem.WaitAsync().ConfigureAwait(false);
+            try
             {
-                _simConnectManager = serviceProvider.GetService<SimConnectManager>();
-                if (_simConnectManager != null)
+                IsInitialized = true;
+                if (_simConnectManager == null)
                 {
-                    await UpdateIntervalRequestAsync();
-                    _simConnectManager.StateChanged += SimConnectManager_StateChanged;
+                    _simConnectManager = serviceProvider.GetService<SimConnectManager>();
+                    if (_simConnectManager != null)
+                    {
+                        _simConnectManager.StateChanged += SimConnectManager_StateChanged;
+                    }
                 }
             }
+            finally { _sem.Release(); }
+            await UpdateIntervalRequestAsync().ConfigureAwait(false);
         }
 
         private async void SimConnectManager_StateChanged(object? sender, SimConnectManager.StateChangedEventArgs e)
         {
             if (e.NewState == SimConnectManager.State.Connected && IsInitialized)
             {
-                await UpdateIntervalRequestAsync();
+                await UpdateIntervalRequestAsync().ConfigureAwait(false);
             }
             else
             {
                 _intervalId = null;
             }
         }
-
 
     }
 }

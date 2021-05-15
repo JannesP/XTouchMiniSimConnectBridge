@@ -21,6 +21,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
             OnPropertyChanged(configPropertyName);
             OnPropertyChanged(nameof(ConfigurationSummary));
         }
+        public new ISimBoolSourceAction Model => (ISimBoolSourceAction)base.Model;
     }
 
     public class DesignTimeSimBoolSourceActionViewModel : ISimBoolSourceActionViewModel

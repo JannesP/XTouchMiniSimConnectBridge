@@ -14,7 +14,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
 {
     public abstract class IButtonBindingEditorViewModel : IBindingEditorViewModel
     {
-        protected IButtonBindingEditorViewModel(IDeviceButton? deviceButton) : base(deviceButton)
+        protected IButtonBindingEditorViewModel(ActionBinding model, IDeviceButton? deviceButton) : base(model, deviceButton)
         { }
 
         public abstract IEnumerable<ISimpleBindableActionEditorViewModel> AvailableActions { get; }
@@ -28,7 +28,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
         private static int _instanceCount = 0;
         public override string Name { get; } = $"Design Time Button {++_instanceCount}";
 
-        public DesignTimeButtonBindingEditorViewModel() : base(null)
+        public DesignTimeButtonBindingEditorViewModel() : base(null!, null)
         {
             ButtonPressAction = AvailableActions.Skip(1).First();
         }
@@ -45,31 +45,33 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
         public override ISimpleBindableActionEditorViewModel? ButtonPressAction { get; }
         public override ISimpleBindableActionEditorViewModel? SelectedAction { get => ButtonPressAction; set => throw new NotSupportedException(); }
 
-        public override ActionBinding CreateModel() => throw new NotSupportedException();
+        protected override void OnApplyChanges() => throw new NotSupportedException();
+        protected override void OnRevertChanges() => throw new NotSupportedException();
     }
 
     public class ButtonBindingEditorViewModel : IButtonBindingEditorViewModel
     {
         private readonly BindingActionRepository _bindingActionRepository;
-        private readonly IDeviceButton? _deviceButton;
-        private readonly ActionBinding? _actionBinding;
+        private readonly ButtonActionBinding _buttonBinding;
 
         private ISimpleBindableActionEditorViewModel? _buttonPressAction;
         private bool _triggerOnRelease = false;
 
-        public ButtonBindingEditorViewModel(IServiceProvider serviceProvider, IDeviceButton? deviceButton, ActionBinding? actionBinding) : base(deviceButton)
+        public ButtonBindingEditorViewModel(IServiceProvider serviceProvider, ButtonActionBinding buttonBinding, IDeviceButton? deviceButton) : base(buttonBinding, deviceButton)
         {
             _bindingActionRepository = serviceProvider.GetRequiredService<BindingActionRepository>();
-            _deviceButton = deviceButton;
-            _actionBinding = actionBinding;
+            _buttonBinding = buttonBinding;
             AvailableActions = _bindingActionRepository.GetAll<ISimpleBindableAction>().Select(b => new SimpleBindableActionEditorViewModel(b)).ToList();
-            if (actionBinding is ButtonActionBinding buttonBinding)
+
+            LoadFromModel();
+        }
+
+        private void LoadFromModel()
+        {
+            _triggerOnRelease = _buttonBinding.TriggerOnRelease;
+            if (_buttonBinding.ButtonPressed != null)
             {
-                _triggerOnRelease = buttonBinding.TriggerOnRelease;
-                if (buttonBinding.ButtonPressed != null)
-                {
-                    _buttonPressAction = new SimpleBindableActionEditorViewModel(buttonBinding.ButtonPressed);
-                }
+                SelectedAction = new SimpleBindableActionEditorViewModel(_buttonBinding.ButtonPressed);
             }
         }
 
@@ -82,8 +84,10 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
             {
                 if (value?.GetType() != _buttonPressAction?.GetType())
                 {
+                    if (_buttonPressAction != null) RemoveChildren(_buttonPressAction);
                     _buttonPressAction = value?.CreateNew();
-                    OnPropertyChanged();
+                    if (_buttonPressAction != null) AddChildren(_buttonPressAction);
+                    OnPropertyChanged(true);
                     OnPropertyChanged(nameof(ButtonPressAction));
                 }
             }
@@ -104,6 +108,15 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
             }
         }
 
-        public override ActionBinding CreateModel() => throw new NotImplementedException();
+        protected override void OnApplyChanges()
+        {
+            _buttonBinding.TriggerOnRelease = TriggerOnRelease;
+            _buttonBinding.ButtonPressed = ButtonPressAction?.Model;
+        }
+
+        protected override void OnRevertChanges()
+        {
+            LoadFromModel();
+        }
     }
 }

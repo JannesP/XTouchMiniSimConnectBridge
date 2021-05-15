@@ -7,27 +7,30 @@ using Microsoft.Extensions.DependencyInjection;
 using JannesP.DeviceSimConnectBridge.WpfApp.Managers;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using System.Runtime.Serialization;
 
 namespace JannesP.DeviceSimConnectBridge.WpfApp.BindableActions.SimConnectActions
 {
+    [DataContract]
     internal class SimConnectActionSimEvent : ISimpleBindableAction
     {
         protected ILogger<SimConnectActionSimEvent>? _logger;
         protected SimConnectManager? _simConnectManager;
 
-        [JsonIgnore]
         public bool IsInitialized { get; private set; }
-        [JsonIgnore]
         public string Name => "Send SimConnect Event";
-        [JsonIgnore]
         public string Description => "Sends a simple Sim Event though SimConnect.";
-        [JsonIgnore]
         public string UniqueIdentifier => nameof(SimConnectActionSimEvent);
 
+        [DataMember]
         [StringActionSetting("Event Name", "You can find them in the MSFS docs. (for example 'HEADING_BUG_INC' and 'COM_RADIO_FRACT_DEC')", CanBeEmpty = false)]
         public string? SimConnectEventName { get; set; }
 
-        public void Deactivate() => IsInitialized = false;
+        public Task DeactivateAsync()
+        {
+            IsInitialized = false;
+            return Task.CompletedTask;
+        }
 
         public async Task ExecuteAsync()
         {
@@ -36,7 +39,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.BindableActions.SimConnectAction
             {
                 if (_simConnectManager == null)
                 {
-                    _logger?.LogWarning("Couldn't get SimConnectManager, this binding ({0}) won't work.", SimConnectEventName);
+                    _logger?.LogWarning("Couldn't get SimConnectManager, this action ({0}) won't work.", SimConnectEventName);
                 }
                 else
                 {
@@ -49,11 +52,12 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.BindableActions.SimConnectAction
             }
         }
 
-        public void Initialize(IServiceProvider serviceProvider) 
+        public Task InitializeAsync(IServiceProvider serviceProvider) 
         {
             if (_logger == null) _logger = serviceProvider.GetRequiredService<ILogger<SimConnectActionSimEvent>>();
             if (_simConnectManager == null ) _simConnectManager = serviceProvider.GetService<SimConnectManager>();
             IsInitialized = true;
+            return Task.CompletedTask;
         }
     }
 }

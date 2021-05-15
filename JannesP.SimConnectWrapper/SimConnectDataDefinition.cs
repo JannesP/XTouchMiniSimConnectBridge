@@ -15,6 +15,9 @@ namespace JannesP.SimConnectWrapper
         /// </summary>
         public static class SimConnectUnitName
         {
+            /// <summary>
+            /// The SimConnectDataType for this is FLOAT64.
+            /// </summary>
             public static string Bool = "Bool";
         } 
 

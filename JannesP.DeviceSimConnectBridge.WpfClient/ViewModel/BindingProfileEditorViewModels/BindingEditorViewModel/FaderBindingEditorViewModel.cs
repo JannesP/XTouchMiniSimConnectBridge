@@ -10,7 +10,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
 {
     public abstract class IFaderBindingEditorViewModel : IBindingEditorViewModel
     {
-        protected IFaderBindingEditorViewModel(IDeviceFader? deviceControl) : base(deviceControl)
+        protected IFaderBindingEditorViewModel(IDeviceFader? deviceControl) : base(null!, deviceControl)
         { }
     }
 
@@ -22,6 +22,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
         private static int _instanceCount = 0;
         public override string Name { get; } = $"Design Time Fader {++_instanceCount}";
 
-        public override ActionBinding CreateModel() => throw new NotImplementedException();
+        protected override void OnApplyChanges() => throw new NotImplementedException();
+        protected override void OnRevertChanges() => throw new NotImplementedException();
     }
 }

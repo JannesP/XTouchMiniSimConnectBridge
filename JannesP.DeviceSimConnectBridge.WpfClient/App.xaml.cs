@@ -83,6 +83,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp
         {
             base.DispatcherUnhandledException += App_DispatcherUnhandledException;
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+            TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 
             await Host.StartAsync();
 
@@ -135,6 +136,12 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp
             await scm.StartAsync();
             DeviceBindingManager dbm = Host.Services.GetRequiredService<DeviceBindingManager>();
             dbm.Enable();
+        }
+
+        private void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
+        {
+            _logger.Value.LogError(e.Exception, "Unobserved exception in task.");
+            e.SetObserved();
         }
 
         private void OnSecondInstanceStarted(object? sender, EventArgs e)

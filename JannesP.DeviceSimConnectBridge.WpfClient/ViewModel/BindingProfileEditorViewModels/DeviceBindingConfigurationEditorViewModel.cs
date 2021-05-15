@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
@@ -14,160 +15,172 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorViewModels
 {
-    public abstract class IDeviceBindingConfigurationEditorViewModel : ViewModelBase
+    public class BindingListViewModel : IBindingListViewModel
     {
-        /// <summary>
-        /// If the device for the configuration could be found in the DeviceRepo.
-        /// </summary>
-        public abstract bool IsDeviceMissing { get; protected set; }
-        public abstract string Name { get; protected set; }
-        public abstract string DeviceType { get; protected set; }
-        public abstract string? DeviceId { get; protected set; }
-        public abstract IEnumerable<IBindingListViewModel> BindingTypes { get; protected set; }
+        private ReadOnlyObservableCollection<IBindingEditorViewModel> _editors;
+
+        public BindingListViewModel(string categoryName, ObservableCollection<IBindingEditorViewModel> editors)
+        {
+            CategoryName = categoryName;
+            _editors = new ReadOnlyObservableCollection<IBindingEditorViewModel>(editors);
+        }
+
+        public override string CategoryName { get; }
+        public override ReadOnlyObservableCollection<IBindingEditorViewModel> Editors
+        {
+            get => _editors;
+            set
+            {
+                if (_editors != value)
+                {
+                    _editors = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+    }
+
+    public class DesignTimeBindingListViewModel : IBindingListViewModel
+    {
+        public DesignTimeBindingListViewModel(string categoryName, ObservableCollection<IBindingEditorViewModel> editors)
+        {
+            CategoryName = categoryName;
+            Editors = new ReadOnlyObservableCollection<IBindingEditorViewModel>(editors);
+        }
+
+        public override string CategoryName { get; }
+        public override ReadOnlyObservableCollection<IBindingEditorViewModel> Editors { get; set; }
     }
 
     public class DesignTimeDeviceBindingConfigurationEditorViewModel : IDeviceBindingConfigurationEditorViewModel
     {
-        public override bool IsDeviceMissing { get; protected set; } = false;
-        public override string Name { get; protected set; } = Guid.NewGuid().ToString();
-        public override IEnumerable<IBindingListViewModel> BindingTypes { get; protected set; } = new List<IBindingListViewModel>() 
+        public override IEnumerable<IBindingListViewModel> BindingTypes { get; protected set; } = new List<IBindingListViewModel>()
         {
-            new DesignTimeBindingListViewModel("Buttons")
+            new DesignTimeBindingListViewModel("Buttons", new ObservableCollection<IBindingEditorViewModel>()
             {
-                Editors = new List<DesignTimeButtonBindingEditorViewModel>()
-                {
-                    new DesignTimeButtonBindingEditorViewModel(),
-                    new DesignTimeButtonBindingEditorViewModel(),
-                }
-            },
-            new DesignTimeBindingListViewModel("Encoders")
+                new DesignTimeButtonBindingEditorViewModel(),
+                new DesignTimeButtonBindingEditorViewModel(),
+            }),
+            new DesignTimeBindingListViewModel("Encoders", new ObservableCollection<IBindingEditorViewModel>()
             {
-                Editors = new List<DesignTimeEncoderBindingEditorViewModel>()
-                {
-                    new DesignTimeEncoderBindingEditorViewModel(),
-                    new DesignTimeEncoderBindingEditorViewModel(),
-                }
-            },
-            new DesignTimeBindingListViewModel("Faders")
+                new DesignTimeEncoderBindingEditorViewModel(),
+                new DesignTimeEncoderBindingEditorViewModel(),
+            }),
+            new DesignTimeBindingListViewModel("Faders", new ObservableCollection<IBindingEditorViewModel>()
             {
-                Editors = new List<DesignTimeFaderBindingEditorViewModel>()
-                {
-                    new DesignTimeFaderBindingEditorViewModel(),
-                    new DesignTimeFaderBindingEditorViewModel(),
-                }
-            },
-            new DesignTimeBindingListViewModel("Leds")
+                new DesignTimeFaderBindingEditorViewModel(),
+                new DesignTimeFaderBindingEditorViewModel(),
+            }),
+            new DesignTimeBindingListViewModel("Leds", new ObservableCollection<IBindingEditorViewModel>()
             {
-                Editors = new List<DesignTimeLedBindingEditorViewModel>()
-                {
-                    new DesignTimeLedBindingEditorViewModel(),
-                    new DesignTimeLedBindingEditorViewModel(),
-                }
-            }
+                new DesignTimeLedBindingEditorViewModel(),
+                new DesignTimeLedBindingEditorViewModel(),
+            }),
         };
 
-        public override string DeviceType { get; protected set; } = "design_time_device_type";
         public override string? DeviceId { get; protected set; } = null;
+        public override string DeviceType { get; protected set; } = "design_time_device_type";
+        public override bool IsDeviceMissing { get; protected set; } = false;
+        public override string Name { get; protected set; } = Guid.NewGuid().ToString();
+
+        protected override void OnApplyChanges() => throw new NotSupportedException();
+        protected override void OnRevertChanges() => throw new NotSupportedException();
     }
 
     public class DeviceBindingConfigurationEditorViewModel : IDeviceBindingConfigurationEditorViewModel
     {
-        private DeviceRepository _deviceRepository;
+        private readonly DeviceRepository _deviceRepository;
+        private readonly IServiceProvider _serviceProvider;
+        private readonly DeviceBindingConfiguration _bindingConfig;
+        private IDevice? _device;
         private bool _isDeviceMissing;
 
-        public DeviceBindingConfigurationEditorViewModel(IServiceProvider serviceProvider, DeviceBindingConfiguration bindingConfig)
+        public DeviceBindingConfigurationEditorViewModel(IServiceProvider serviceProvider, DeviceBindingConfiguration bindingConfig, IDevice? device)
         {
             bindingConfig.ThrowIfNotComplete();
+            _serviceProvider = serviceProvider;
+            _bindingConfig = bindingConfig;
+            _device = device;
+            Name = bindingConfig.FriendlyName;
+            DeviceType = bindingConfig.DeviceType;
+            DeviceId = bindingConfig.DeviceId;
+            IsDeviceMissing = device == null;
+
             _deviceRepository = serviceProvider.GetRequiredService<DeviceRepository>();
             WeakEventManager<DeviceRepository, EventArgs>.AddHandler(_deviceRepository, nameof(DeviceRepository.DeviceListChanged), DeviceRepository_DeviceListChanged);
-            if (_deviceRepository.TryFindDevice(bindingConfig.DeviceType, bindingConfig.DeviceId, out IDevice? device))
+            
+            CreateBindings();
+        }
+
+        [MemberNotNull(nameof(BindingTypes))]
+        private void CreateBindings()
+        {
+            ObservableCollection<IBindingEditorViewModel> _buttonBindingViewModels;
+            ObservableCollection<IBindingEditorViewModel> _encoderBindingViewModels;
+            ObservableCollection<IBindingEditorViewModel> _ledBindingViewModels;
+            if (_device != null)
             {
-                ConstructFromDevice(serviceProvider, device, bindingConfig);
+                IEnumerable<ButtonActionBinding> buttonBindings = _bindingConfig.Bindings.OfType<ButtonActionBinding>();
+                _buttonBindingViewModels = new ObservableCollection<IBindingEditorViewModel>(_device.Buttons
+                    .Select(b => new ButtonBindingEditorViewModel(_serviceProvider, buttonBindings.SingleOrDefault(ab => ab.DeviceControlId == b.Id) ?? new ButtonActionBinding { DeviceControlId = b.Id }, b)));
+
+                IEnumerable<EncoderActionBinding> encoderBindings = _bindingConfig.Bindings.OfType<EncoderActionBinding>();
+                _encoderBindingViewModels = new ObservableCollection<IBindingEditorViewModel>(_device.Encoders
+                    .Select(e => new EncoderBindingEditorViewModel(_serviceProvider, encoderBindings.SingleOrDefault(ab => ab.DeviceControlId == e.Id) ?? new EncoderActionBinding { DeviceControlId = e.Id }, e)));
+
+                /*
+                var faders = new BindingListViewModel("Faders", device.Faders.Select(b => new FaderBindingEditorViewModel().ToList()));
+                bindingTypes.Add(faders);*/
+
+                IEnumerable<LedActionBinding> ledBindings = _bindingConfig.Bindings.OfType<LedActionBinding>();
+                _ledBindingViewModels = new ObservableCollection<IBindingEditorViewModel>(_device.Leds
+                    .Select(led => new LedBindingEditorViewModel(_serviceProvider, ledBindings.SingleOrDefault(ab => ab.DeviceControlId == led.Id) ?? new LedActionBinding { DeviceControlId = led.Id }, led)));
             }
             else
             {
-                Name = bindingConfig.FriendlyName;
-                DeviceType = bindingConfig.DeviceType;
-                DeviceId = bindingConfig.DeviceId;
-                IsDeviceMissing = true;
-
-                var bindingTypes = new List<IBindingListViewModel>();
-                var buttons = new BindingListViewModel("Buttons", bindingConfig.Bindings
+                _buttonBindingViewModels = new ObservableCollection<IBindingEditorViewModel>(_bindingConfig.Bindings
                     .OfType<ButtonActionBinding>()
-                    .Select(bab => new ButtonBindingEditorViewModel(serviceProvider, null, bab))
-                    .ToList());
-                bindingTypes.Add(buttons);
+                    .Select(bab => new ButtonBindingEditorViewModel(_serviceProvider, bab, null)));
 
-               var encoders = new BindingListViewModel("Encoders", bindingConfig.Bindings
-                    .OfType<EncoderActionBinding>()
-                    .Select(bab => new EncoderBindingEditorViewModel(serviceProvider, null, bab))
-                    .ToList());
-                bindingTypes.Add(encoders);
+                _encoderBindingViewModels = new ObservableCollection<IBindingEditorViewModel>(_bindingConfig.Bindings
+                     .OfType<EncoderActionBinding>()
+                     .Select(bab => new EncoderBindingEditorViewModel(_serviceProvider, bab, null)));
 
                 /*
                var faders = new BindingListViewModel("Faders", device.Faders.Select(b => new FaderBindingEditorViewModel().ToList()));
                bindingTypes.Add(faders);*/
 
-                var leds = new BindingListViewModel("Leds", bindingConfig.Bindings
+                _ledBindingViewModels = new ObservableCollection<IBindingEditorViewModel>(_bindingConfig.Bindings
                     .OfType<LedActionBinding>()
-                    .Select(bab => new LedBindingEditorViewModel(serviceProvider, null, bab))
-                    .ToList());
-                bindingTypes.Add(leds);
-
-                BindingTypes = bindingTypes;
+                    .Select(bab => new LedBindingEditorViewModel(_serviceProvider, bab, null)));
             }
-        }
-
-        public DeviceBindingConfigurationEditorViewModel(IServiceProvider serviceProvider, IDevice device)
-        {
-            ConstructFromDevice(serviceProvider, device);
-            _deviceRepository = serviceProvider.GetRequiredService<DeviceRepository>();
-
-        }
-
-        private void DeviceRepository_DeviceListChanged(object? sender, EventArgs e)
-        {
-            if (!_deviceRepository.TryFindDevice(DeviceType, DeviceId, out IDevice? _))
+            
+            IEnumerable<IBindingListViewModel>? bindingTypes = BindingTypes;
+            if (bindingTypes == null)
             {
-                IsDeviceMissing = true;
+                bindingTypes = new List<IBindingListViewModel>()
+                {
+                    new BindingListViewModel("Buttons", _buttonBindingViewModels),
+                    new BindingListViewModel("Encoders", _encoderBindingViewModels),
+                    new BindingListViewModel("Leds", _ledBindingViewModels),
+                };
             }
-        }
-
-        [MemberNotNull(nameof(Name), nameof(DeviceType), nameof(BindingTypes), nameof(IsDeviceMissing))]
-        private void ConstructFromDevice(IServiceProvider serviceProvider, IDevice device, DeviceBindingConfiguration? bindingConfig = null)
-        {
-            Name = device.FriendlyName;
-            DeviceType = device.DeviceType;
-            DeviceId = device.DeviceId;
-            IsDeviceMissing = false;
-
-            var bindingTypes = new List<IBindingListViewModel>();
-            var buttons = new BindingListViewModel("Buttons", device.Buttons
-                .Select(b => new ButtonBindingEditorViewModel(serviceProvider, b, bindingConfig?.Bindings.OfType<ButtonActionBinding>().FirstOrDefault(ab => ab.DeviceControlId == b.Id)))
-                    .ToList());
-            bindingTypes.Add(buttons);
-
-            var encoders = new BindingListViewModel("Encoders", device.Encoders
-                .Select(e => new EncoderBindingEditorViewModel(serviceProvider, e, bindingConfig?.Bindings.OfType<EncoderActionBinding>().FirstOrDefault(ab => ab.DeviceControlId == e.Id)))
-                .ToList());
-            bindingTypes.Add(encoders);
-
-            /*
-            var faders = new BindingListViewModel("Faders", device.Faders.Select(b => new FaderBindingEditorViewModel().ToList()));
-            bindingTypes.Add(faders);*/
-
-            var leds = new BindingListViewModel("Leds", device.Leds
-                .Select(e => new LedBindingEditorViewModel(serviceProvider, e, bindingConfig?.Bindings.OfType<LedActionBinding>().FirstOrDefault(ab => ab.DeviceControlId == e.Id)))
-                .ToList());
-            bindingTypes.Add(leds);
-
+            else
+            {
+                RemoveChildren(bindingTypes.SelectMany(bl => bl.Editors));
+                bindingTypes.Single(bt => bt.CategoryName == "Buttons").Editors = new ReadOnlyObservableCollection<IBindingEditorViewModel>(_buttonBindingViewModels);
+                bindingTypes.Single(bt => bt.CategoryName == "Encoders").Editors = new ReadOnlyObservableCollection<IBindingEditorViewModel>(_encoderBindingViewModels);
+                bindingTypes.Single(bt => bt.CategoryName == "Leds").Editors = new ReadOnlyObservableCollection<IBindingEditorViewModel>(_ledBindingViewModels);
+            }
+            AddChildren(bindingTypes.SelectMany(bl => bl.Editors));
             BindingTypes = bindingTypes;
         }
 
-        public override string Name { get; protected set; }
-        public override string DeviceType { get; protected set; }
-        public override string? DeviceId { get; protected set; }
         public override IEnumerable<IBindingListViewModel> BindingTypes { get; protected set; }
+
+        public override string? DeviceId { get; protected set; }
+
+        public override string DeviceType { get; protected set; }
 
         public override bool IsDeviceMissing
         {
@@ -181,38 +194,58 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
                 }
             }
         }
+
+        public override string Name { get; protected set; }
+
+        private void DeviceRepository_DeviceListChanged(object? sender, EventArgs e)
+        {
+            if (_deviceRepository.TryFindDevice(DeviceType, DeviceId, out IDevice? foundDevice))
+            {
+                if (_device == null)
+                {
+                    _device = foundDevice;
+                    CreateBindings();
+                    IsDeviceMissing = false;
+                }
+            }
+            else
+            {
+                if (_device != null) _device = null;
+                IsDeviceMissing = true;
+            }
+        }
+
+        protected override void OnApplyChanges() 
+        {
+            //remove models that are now "empty"
+            _bindingConfig.Bindings.RemoveAll(bc => bc.IsEmpty());
+            //add models that aren't empty and aren't already included
+            _bindingConfig.Bindings.AddRange(BindingTypes
+                .SelectMany(bt => bt.Editors)
+                .Select(b => b.Model)
+                .Where(b => !b.IsEmpty() && !_bindingConfig.Bindings.Contains(b)));
+        }
+        protected override void OnRevertChanges() { /* nothing to do here */ }
     }
 
     public abstract class IBindingListViewModel : ViewModelBase
     {
         public abstract string CategoryName { get; }
-        public abstract IEnumerable<IBindingEditorViewModel> Editors { get; set; }
+        public abstract ReadOnlyObservableCollection<IBindingEditorViewModel> Editors { get; set; }
     }
 
-    public class BindingListViewModel : IBindingListViewModel
+    public abstract class IDeviceBindingConfigurationEditorViewModel : RevertibleViewModelBase
     {
-        public BindingListViewModel(string categoryName, IEnumerable<IBindingEditorViewModel> editors)
-        {
-            CategoryName = categoryName;
-            Editors = editors;
-        }
+        public abstract IEnumerable<IBindingListViewModel> BindingTypes { get; protected set; }
 
-        public override string CategoryName { get; }
-        public override IEnumerable<IBindingEditorViewModel> Editors { get; set; }
-    }
+        public abstract string? DeviceId { get; protected set; }
 
+        public abstract string DeviceType { get; protected set; }
 
-
-    public class DesignTimeBindingListViewModel : IBindingListViewModel
-    {
-        public override string CategoryName { get; }
-
-        public DesignTimeBindingListViewModel(string categoryName)
-        {
-            CategoryName = categoryName;
-            Editors = new List<IBindingEditorViewModel>();
-        }
-
-        public override IEnumerable<IBindingEditorViewModel> Editors { get; set; }
+        /// <summary>
+        /// If the device for the configuration could be found in the DeviceRepo.
+        /// </summary>
+        public abstract bool IsDeviceMissing { get; protected set; }
+        public abstract string Name { get; protected set; }
     }
 }
