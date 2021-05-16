@@ -242,7 +242,7 @@ namespace JannesP.SimConnectWrapper
         /// </summary>
         /// <param name="simEventName">The name of the Sim</param>
         /// <returns></returns>
-        public async Task SendEvent(string simEventName)
+        public async Task SendEvent(string simEventName, uint dwData = 0u)
         {
             await _semaphore.WaitAsync().ConfigureAwait(false);
             try
@@ -259,7 +259,7 @@ namespace JannesP.SimConnectWrapper
                         _simConnect.MapClientEventToSimEvent((PrivateDummy)clientEventId, simEventName);
                         _simConnect.AddClientEventToNotificationGroup(EventGroup.Dummy, (PrivateDummy)clientEventId, false);
                     }
-                    _simConnect.TransmitClientEvent(0, (PrivateDummy)clientEventId, 0, EventGroup.Dummy, SIMCONNECT_EVENT_FLAG.GROUPID_IS_PRIORITY);
+                    await Task.Run(() => _simConnect.TransmitClientEvent(0, (PrivateDummy)clientEventId, dwData, EventGroup.Dummy, SIMCONNECT_EVENT_FLAG.GROUPID_IS_PRIORITY));
                 }
             }
             finally
@@ -334,8 +334,11 @@ namespace JannesP.SimConnectWrapper
             }
             catch
             {
-                _semaphore.Release();
                 throw;
+            }
+            finally
+            {
+                _semaphore.Release();
             }
         }
 

@@ -10,16 +10,26 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.BindableActions.SimConnectAction
     [DataContract]
     internal class SimConnectActionSimEvent : ISimpleBindableAction
     {
-        protected ILogger<SimConnectActionSimEvent>? _logger;
-        protected SimConnectManager? _simConnectManager;
-
-        public string Description => "Sends a simple Sim Event though SimConnect.";
-        public bool IsInitialized { get; private set; }
-        public string Name => "Send SimConnect Event";
+        #region Persistable Settings
 
         [DataMember]
         [StringActionSetting("Event Name", "You can find them in the MSFS docs. (for example 'HEADING_BUG_INC' and 'COM_RADIO_FRACT_DEC')", CanBeEmpty = false)]
         public string? SimConnectEventName { get; set; }
+
+        [DataMember]
+        [IntActionSetting("Event Data", "This varies by event. Numbers with decimal places NYI.", CanBeNull = true, Min = 0)]
+        public int? EventData { get; set; }
+
+        #endregion Persistable Settings
+
+        protected ILogger<SimConnectActionSimEvent>? _logger;
+        protected SimConnectManager? _simConnectManager;
+
+        public string Description => "Sends a simple Sim Event though SimConnect.";
+
+        public bool IsInitialized { get; private set; }
+
+        public string Name => "Send SimConnect Event";
 
         public string UniqueIdentifier => nameof(SimConnectActionSimEvent);
 
@@ -43,7 +53,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.BindableActions.SimConnectAction
                     SimConnectWrapper.SimConnectWrapper? simConnect = _simConnectManager.SimConnectWrapper;
                     if (simConnect != null)
                     {
-                        await simConnect.SendEvent(SimConnectEventName).ConfigureAwait(false);
+                        await simConnect.SendEvent(SimConnectEventName, (uint?)EventData ?? 0u).ConfigureAwait(false);
                     }
                 }
             }
