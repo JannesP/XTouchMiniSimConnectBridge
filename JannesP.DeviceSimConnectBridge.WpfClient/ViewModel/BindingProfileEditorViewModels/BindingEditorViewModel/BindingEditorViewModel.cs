@@ -13,6 +13,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
             _control = control;
         }
 
+        public abstract string ConfigurationSummary { get; protected set; }
         public ActionBinding Model { get; }
         public virtual string Name => _control?.Name ?? "<Device not available>";
     }

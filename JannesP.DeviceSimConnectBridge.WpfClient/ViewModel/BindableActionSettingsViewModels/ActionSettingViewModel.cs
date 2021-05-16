@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Text;
 using System.Threading.Tasks;
 using JannesP.DeviceSimConnectBridge.WpfApp.BindableActions;
 
@@ -15,6 +17,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindableActionSettings
         {
             Setting = setting;
             LoadFromModel();
+            EnableTouchedTracking();
         }
 
         public string Description => Setting.Attribute.Description;
@@ -74,22 +77,67 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindableActionSettings
         {
             Model = bindableAction;
             Settings = Model.GetSettings().Select(s => ActionSettingViewModel.Create(s)).ToArray();
+            foreach (ActionSettingViewModel setting in Settings)
+            {
+                setting.PropertyChanged += Setting_PropertyChanged;
+            }
             AddChildren(Settings);
+            EnableTouchedTracking();
+        }
+
+        public virtual string ConfigurationSummary
+        {
+            get
+            {
+                StringBuilder sb = new();
+                foreach (ActionSettingViewModel setting in Settings)
+                {
+                    if (sb.Length > 0) sb.Append(", ");
+                    sb.Append(setting.Name)
+                        .Append(": ");
+                    if (setting.Value != null)
+                    {
+                        sb.Append('"')
+                            .Append(setting.Value.ToString())
+                            .Append('"');
+                    }
+                    else
+                    {
+                        sb.Append("<not set>");
+                    }
+                }
+                return sb.ToString();
+            }
         }
 
         public virtual string Description => Model.Description;
+
         public IBindableAction Model { get; }
+
         public virtual string Name => Model.Name;
+
         public IEnumerable<ActionSettingViewModel> Settings { get; }
+
+        public abstract string UniqueIdentifier { get; }
 
         protected override void OnApplyChanges()
         {
             /* nothing to do here */
         }
 
+        protected virtual void OnConfigurationPropertyChanged(string? configPropertyName)
+        {
+            OnPropertyChanged(nameof(ConfigurationSummary));
+        }
+
         protected override void OnRevertChanges()
         {
             /* nothing to do here */
+        }
+
+        private void Setting_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            OnConfigurationPropertyChanged(e.PropertyName);
         }
     }
 
@@ -121,6 +169,10 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindableActionSettings
         public DesignTimeBindableActionViewModel() : base(new DesignTimeBindableAction())
         {
         }
+
+        public override string ConfigurationSummary => "DesignTime Config";
+
+        public override string UniqueIdentifier => nameof(DesignTimeBindableActionViewModel);
 
         protected override void OnApplyChanges() => throw new NotSupportedException();
 

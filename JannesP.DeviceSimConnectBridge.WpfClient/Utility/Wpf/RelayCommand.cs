@@ -8,13 +8,13 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Utility.Wpf
         private readonly Action<object?> _action;
         private readonly Predicate<object?>? _canExecute;
 
-        public RelayCommand(Action<object?> action) : this(action, null)
-        {
-        }
-
-        public RelayCommand(Action<object?> action, Predicate<object?>? canExecute)
+        public RelayCommand(Action<object?> action)
         {
             _action = action;
+        }
+
+        public RelayCommand(Action<object?> action, Predicate<object?> canExecute) : this(action)
+        {
             _canExecute = canExecute;
         }
 

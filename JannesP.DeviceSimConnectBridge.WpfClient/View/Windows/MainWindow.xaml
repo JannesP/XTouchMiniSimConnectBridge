@@ -56,8 +56,8 @@
                     <ColumnDefinition Width="auto" />
                     <ColumnDefinition Width="auto" />
                 </Grid.ColumnDefinitions>
-                <Button Grid.Column="0" Content="Save" IsEnabled="{Binding Path=ProfileEditor.IsTouched}" />
-                <Button Grid.Column="1" Margin="{StaticResource SpacingNormalLeft}" Content="Revert" />
+                <Button Grid.Column="0" Content="Save" Command="{Binding Path=ProfileEditor.CommandApplyChanges}" />
+                <Button Grid.Column="1" Margin="{StaticResource SpacingNormalLeft}" Content="Revert" Command="{Binding Path=ProfileEditor.CommandRevertChanges}" Click="ButtonRevertProfile_Click" />
 
                 <ComboBox Grid.Column="3" Width="200" ItemsSource="{Binding Path=ProfileManagement.ProfileList}" SelectedItem="{Binding Path=ProfileManagement.CurrentProfile, Mode=OneWay}" SelectionChanged="ComboBoxProfile_SelectionChanged" DisplayMemberPath="Name" />
                 <Button Grid.Column="4" Margin="{StaticResource SpacingNormalLeft}" Content="Manage Profiles" Grid.ColumnSpan="2" Click="ButtonOpenProfileManager_Click" />

@@ -1,6 +1,7 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:controls="clr-namespace:JannesP.DeviceSimConnectBridge.WpfApp.View.Controls"
+                    xmlns:converters="clr-namespace:JannesP.DeviceSimConnectBridge.WpfApp.Utility.Wpf.Converters"
                     xmlns:sys="clr-namespace:System;assembly=mscorlib">
     <sys:Double x:Key="SpacingBigValue">5</sys:Double>
     <Thickness x:Key="SpacingBig" Left="{StaticResource SpacingBigValue}" Top="{StaticResource SpacingBigValue}" Right="{StaticResource SpacingBigValue}" Bottom="{StaticResource SpacingBigValue}" />
@@ -25,6 +26,10 @@
     <Thickness x:Key="SpacingSmallBottom" Bottom="{StaticResource SpacingSmallValue}" />
     <Thickness x:Key="SpacingSmallLeftTop" Left="{StaticResource SpacingSmallValue}" Top="{StaticResource SpacingSmallValue}" />
     <Thickness x:Key="SpacingSmallTopRight" Top="{StaticResource SpacingSmallValue}" Right="{StaticResource SpacingSmallValue}" />
+
+    <converters:IsNotNullConverter x:Key="IsNotNullConverter" />
+    <converters:IsNotNullOrEmptyConverter x:Key="IsNotNullOrEmptyConverter" />
+    <converters:IsNotNullOrEmptyToVisibilityConverter x:Key="IsNotNullOrEmptyToVisibilityConverter" />
 
     <!-- TextBox -->
     <Style x:Key="TextBoxStyle" TargetType="{x:Type TextBox}">

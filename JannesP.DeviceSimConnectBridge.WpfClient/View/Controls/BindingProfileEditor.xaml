@@ -55,117 +55,103 @@
                                         </Expander.Header>
 
                                         <ItemsControl ItemsSource="{Binding Path=Editors}">
-                                            <ItemsControl.Resources>
-                                                <DataTemplate DataType="{x:Type bevm:IButtonBindingEditorViewModel}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate DataType="{x:Type bevm:IBindingEditorViewModel}">
                                                     <Expander Background="GhostWhite" BorderBrush="Gainsboro" BorderThickness="1" Padding="2">
                                                         <Expander.Header>
                                                             <StackPanel Orientation="Horizontal">
                                                                 <TextBlock Text="{Binding Path=Name}" />
                                                                 <!-- TODO: Hide when no action is set. -->
-                                                                <StackPanel Orientation="Horizontal" Margin="{StaticResource SpacingSmallLeft}">
-                                                                    <TextBlock Foreground="SlateGray" Text="{Binding Path=ButtonPressAction.Name}" />
+                                                                <StackPanel Orientation="Horizontal" Visibility="{Binding Path=ConfigurationSummary, Converter={StaticResource IsNotNullOrEmptyToVisibilityConverter}, FallbackValue=Collapsed}" Margin="{StaticResource SpacingSmallLeft}">
                                                                     <TextBlock Foreground="SlateGray" Text=" (" />
-                                                                    <TextBlock Foreground="SlateGray" Text="{Binding Path=ButtonPressAction.ConfigurationSummary}" />
+                                                                    <TextBlock Foreground="SlateGray" Text="{Binding Path=ConfigurationSummary}" />
                                                                     <TextBlock Foreground="SlateGray" Text=")" />
                                                                 </StackPanel>
                                                             </StackPanel>
                                                         </Expander.Header>
-                                                        <StackPanel Orientation="Horizontal">
-                                                            <TextBlock VerticalAlignment="Center" Text="On Button Press:" />
-                                                            <ComboBox VerticalAlignment="Center"  Margin="{StaticResource SpacingSmallLeft}" Width="200"
-                                                                    ItemsSource="{Binding Path=AvailableActions}"
-                                                                    SelectedItem="{Binding Path=SelectedAction}"
-                                                                    ItemTemplate="{StaticResource DataTemplateItemComboBoxAction}" />
-                                                            <Button VerticalAlignment="Stretch" Margin="{StaticResource SpacingSmallLeft}" Content="Configure" DataContext="{Binding Path=ButtonPressAction}" Click="ButtonConfigureBindableAction_Click" />
-                                                            <CheckBox VerticalAlignment="Center" Margin="{StaticResource SpacingSmallLeft}" Content="Trigger on Button Release" IsChecked="{Binding Path=TriggerOnRelease}" />
-                                                        </StackPanel>
+                                                        <ContentControl Content="{Binding}">
+                                                            <ContentControl.Resources>
+                                                                <DataTemplate DataType="{x:Type bevm:IButtonBindingEditorViewModel}">
+                                                                    <StackPanel Orientation="Horizontal">
+                                                                        <TextBlock VerticalAlignment="Center" Text="On Button Press:" />
+                                                                        <ComboBox VerticalAlignment="Center" Margin="{StaticResource SpacingSmallLeft}" Width="200"
+                                                                                ItemsSource="{Binding Path=AvailableActions}"
+                                                                                SelectedItem="{Binding Path=SelectedAction}"
+                                                                                ItemTemplate="{StaticResource DataTemplateItemComboBoxAction}"
+                                                                                ToolTip="{Binding Path=ButtonPressAction.ConfigurationSummary}" />
+                                                                        <Button Margin="{StaticResource SpacingSmallLeft}" Content="Configure"
+                                                                                IsEnabled="{Binding Path=ButtonPressAction, Converter={StaticResource IsNotNullConverter}}"
+                                                                                CommandParameter="{Binding Path=ButtonPressAction}"
+                                                                                Click="ButtonConfigureBindableAction_Click" />
+                                                                        <Button Margin="{StaticResource SpacingSmallLeft}" Content="Clear" Command="{Binding Path=CommandClearButtonPressAction}" />
+                                                                        <CheckBox VerticalAlignment="Center" Margin="{StaticResource SpacingSmallLeft}" Content="Trigger on Button Release" IsChecked="{Binding Path=TriggerOnRelease}" />
+                                                                    </StackPanel>
+                                                                </DataTemplate>
+                                                                <DataTemplate DataType="{x:Type bevm:IEncoderBindingEditorViewModel}">
+                                                                    <Grid>
+                                                                        <Grid.RowDefinitions>
+                                                                            <RowDefinition />
+                                                                            <RowDefinition Height="{Binding Source={StaticResource SpacingSmallValue}}" />
+                                                                            <RowDefinition />
+                                                                        </Grid.RowDefinitions>
+                                                                        <Grid.ColumnDefinitions>
+                                                                            <ColumnDefinition Width="auto" />
+                                                                            <ColumnDefinition Width="auto" />
+                                                                            <ColumnDefinition Width="auto" />
+                                                                            <ColumnDefinition Width="auto" />
+                                                                            <ColumnDefinition Width="*" />
+                                                                        </Grid.ColumnDefinitions>
+
+                                                                        <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Text="Clockwise Rotation:" />
+                                                                        <ComboBox Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" Margin="{StaticResource SpacingSmallLeft}" Width="200"
+                                                                                ItemsSource="{Binding Path=AvailableActions}"
+                                                                                SelectedItem="{Binding Path=SelectedClockwiseAction}"
+                                                                                ItemTemplate="{StaticResource DataTemplateItemComboBoxAction}"
+                                                                                ToolTip="{Binding Path=EncoderClockwiseAction.ConfigurationSummary}" />
+                                                                        <Button Grid.Row="0" Grid.Column="2" Margin="{StaticResource SpacingSmallLeft}" Content="Configure"
+                                                                                IsEnabled="{Binding Path=EncoderClockwiseAction, Converter={StaticResource IsNotNullConverter}}"
+                                                                                CommandParameter="{Binding Path=EncoderClockwiseAction}"
+                                                                                Click="ButtonConfigureBindableAction_Click" />
+
+                                                                        <TextBlock Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" Margin="{StaticResource SpacingSmallLeft}"
+                                                                                Text="Anti-Clockwise Rotation:" />
+                                                                        <ComboBox Grid.Row="2" Grid.Column="1" VerticalAlignment="Center" Margin="{StaticResource SpacingSmallLeft}" Width="200"
+                                                                                ItemsSource="{Binding Path=AvailableActions}"
+                                                                                SelectedItem="{Binding Path=SelectedAntiClockwiseAction}"
+                                                                                ItemTemplate="{StaticResource DataTemplateItemComboBoxAction}"
+                                                                                ToolTip="{Binding Path=EncoderAntiClockwiseAction.ConfigurationSummary}" />
+                                                                        <Button Grid.Row="2" Grid.Column="2" Margin="{StaticResource SpacingSmallLeft}" Content="Configure"
+                                                                                IsEnabled="{Binding Path=EncoderAntiClockwiseAction, Converter={StaticResource IsNotNullConverter}}"
+                                                                                CommandParameter="{Binding Path=EncoderAntiClockwiseAction}"
+                                                                                Click="ButtonConfigureBindableAction_Click" />
+
+                                                                        <Button Grid.Row="0" Grid.Column="3" Margin="{StaticResource SpacingSmallLeft}" Content="Clear" Command="{Binding Path=CommandClearClockwiseAction}" />
+                                                                        <Button Grid.Row="2" Grid.Column="3" Margin="{StaticResource SpacingSmallLeft}" Content="Clear" Command="{Binding Path=CommandClearAntiClockwiseAction}" />
+
+                                                                        <CheckBox Grid.Row="0" Grid.Column="4" VerticalAlignment="Center" Margin="{StaticResource SpacingSmallLeft}"
+                                                                                Content="Ignore Speed" IsChecked="{Binding Path=IgnoreSpeed}" />
+                                                                    </Grid>
+                                                                </DataTemplate>
+                                                                <DataTemplate DataType="{x:Type bevm:ILedBindingEditorViewModel}">
+                                                                    <StackPanel Orientation="Horizontal">
+                                                                        <TextBlock VerticalAlignment="Center" Text="Data Source:" />
+                                                                        <ComboBox VerticalAlignment="Center" Margin="{StaticResource SpacingSmallLeft}" Width="200"
+                                                                                ItemsSource="{Binding Path=AvailableDataSources}"
+                                                                                SelectedItem="{Binding Path=SelectedDataSource}"
+                                                                                ItemTemplate="{StaticResource DataTemplateItemComboBoxAction}"
+                                                                                ToolTip="{Binding Path=DataSource.ConfigurationSummary}" />
+                                                                        <Button Margin="{StaticResource SpacingSmallLeft}" Content="Configure"
+                                                                                IsEnabled="{Binding Path=DataSource, Converter={StaticResource IsNotNullConverter}}"
+                                                                                CommandParameter="{Binding Path=DataSource}"
+                                                                                Click="ButtonConfigureBindableAction_Click" />
+                                                                        <Button Margin="{StaticResource SpacingSmallLeft}" Content="Clear" Command="{Binding Path=CommandClearDataSource}" />
+                                                                    </StackPanel>
+                                                                </DataTemplate>
+                                                            </ContentControl.Resources>
+                                                        </ContentControl>
                                                     </Expander>
                                                 </DataTemplate>
-                                                <DataTemplate DataType="{x:Type bevm:IEncoderBindingEditorViewModel}">
-                                                    <Expander Background="GhostWhite" BorderBrush="Gainsboro" BorderThickness="1" Padding="2">
-                                                        <Expander.Header>
-                                                            <StackPanel Orientation="Horizontal">
-                                                                <TextBlock Margin="{StaticResource SpacingSmallRight}" Text="{Binding Path=Name}" />
-                                                                <!-- TODO: Hide when no action is set. -->
-                                                                <StackPanel Orientation="Horizontal">
-                                                                    <TextBlock Foreground="SlateGray" Text="{Binding Path=EncoderClockwiseAction.Name}" />
-                                                                    <TextBlock Foreground="SlateGray" Text=" (" />
-                                                                    <TextBlock Foreground="SlateGray" Text="{Binding Path=EncoderClockwiseAction.ConfigurationSummary}" />
-                                                                    <TextBlock Foreground="SlateGray" Text=", " />
-                                                                    <TextBlock Foreground="SlateGray" Text="{Binding Path=EncoderAntiClockwiseAction.ConfigurationSummary}" />
-                                                                    <TextBlock Foreground="SlateGray" Text=")" />
-                                                                </StackPanel>
-                                                            </StackPanel>
-                                                        </Expander.Header>
-                                                        <Grid>
-                                                            <Grid.RowDefinitions>
-                                                                <RowDefinition />
-                                                                <RowDefinition Height="2" />
-                                                                <RowDefinition />
-                                                            </Grid.RowDefinitions>
-                                                            <Grid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="auto" />
-                                                                <ColumnDefinition Width="auto" />
-                                                                <ColumnDefinition Width="auto" />
-                                                                <ColumnDefinition Width="*" />
-                                                            </Grid.ColumnDefinitions>
-
-                                                            <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Text="Clockwise Rotation:" />
-                                                            <ComboBox Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" Margin="{StaticResource SpacingSmallLeft}" Width="200"
-                                                                    ItemsSource="{Binding Path=AvailableActions}"
-                                                                    SelectedItem="{Binding Path=SelectedClockwiseAction}"
-                                                                    ItemTemplate="{StaticResource DataTemplateItemComboBoxAction}" />
-                                                            <Button Grid.Row="0" Grid.Column="2" VerticalAlignment="Stretch" Margin="{StaticResource SpacingSmallLeft}"
-                                                                    Content="Configure" DataContext="{Binding Path=EncoderClockwiseAction}" Click="ButtonConfigureBindableAction_Click" />
-
-                                                            <TextBlock Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" Margin="{StaticResource SpacingSmallLeft}"
-                                                                    Text="Anti-Clockwise Rotation:" />
-                                                            <ComboBox Grid.Row="2" Grid.Column="1" VerticalAlignment="Center" Margin="{StaticResource SpacingSmallLeft}" Width="200"
-                                                                    ItemsSource="{Binding Path=AvailableActions}"
-                                                                    SelectedItem="{Binding Path=SelectedAntiClockwiseAction}"
-                                                                    ItemTemplate="{StaticResource DataTemplateItemComboBoxAction}" />
-                                                            <Button Grid.Row="2" Grid.Column="2" VerticalAlignment="Stretch" Margin="{StaticResource SpacingSmallLeft}"
-                                                                    Content="Configure" DataContext="{Binding Path=EncoderAntiClockwiseAction}" Click="ButtonConfigureBindableAction_Click" />
-
-                                                            <CheckBox Grid.Row="0" Grid.Column="3" VerticalAlignment="Center" Margin="{StaticResource SpacingSmallLeft}"
-                                                                    Content="Ignore Speed" IsChecked="{Binding Path=IgnoreSpeed}" />
-                                                        </Grid>
-                                                    </Expander>
-                                                </DataTemplate>
-                                                <DataTemplate DataType="{x:Type bevm:IFaderBindingEditorViewModel}">
-                                                    <TextBlock Text="{Binding Path=Name}" />
-                                                </DataTemplate>
-                                                <DataTemplate DataType="{x:Type bevm:ILedBindingEditorViewModel}">
-                                                    <Expander Background="GhostWhite" BorderBrush="Gainsboro" BorderThickness="1" Padding="2">
-                                                        <d:Expander.Style>
-                                                            <Style TargetType="{x:Type Expander}">
-                                                                <Setter Property="IsExpanded" Value="True" />
-                                                            </Style>
-                                                        </d:Expander.Style>
-                                                        <Expander.Header>
-                                                            <StackPanel Orientation="Horizontal">
-                                                                <TextBlock Text="{Binding Path=Name}" />
-                                                                <!-- TODO: Hide when no action is set. -->
-                                                                <StackPanel Orientation="Horizontal" Margin="{StaticResource SpacingSmallLeft}">
-                                                                    <TextBlock Foreground="SlateGray" Text="{Binding Path=DataSource.Name}" />
-                                                                    <TextBlock Foreground="SlateGray" Text=" (" />
-                                                                    <TextBlock Foreground="SlateGray" Text="{Binding Path=DataSource.ConfigurationSummary}" />
-                                                                    <TextBlock Foreground="SlateGray" Text=")" />
-                                                                </StackPanel>
-                                                            </StackPanel>
-                                                        </Expander.Header>
-                                                        <StackPanel Orientation="Horizontal">
-                                                            <TextBlock VerticalAlignment="Center" Text="Data Source:" />
-                                                            <ComboBox VerticalAlignment="Center" Margin="{StaticResource SpacingSmallLeft}" Width="200"
-                                                                ItemsSource="{Binding Path=AvailableDataSources}"
-                                                                SelectedItem="{Binding Path=SelectedDataSource}"
-                                                                ItemTemplate="{StaticResource DataTemplateItemComboBoxAction}" />
-                                                            <Button VerticalAlignment="Stretch" Margin="{StaticResource SpacingSmallLeft}"
-                                                                    Content="Configure" DataContext="{Binding Path=DataSource}" Click="ButtonConfigureBindableAction_Click" />
-                                                        </StackPanel>
-                                                    </Expander>
-                                                </DataTemplate>
-                                            </ItemsControl.Resources>
+                                            </ItemsControl.ItemTemplate>
                                         </ItemsControl>
                                     </Expander>
                                 </DataTemplate>

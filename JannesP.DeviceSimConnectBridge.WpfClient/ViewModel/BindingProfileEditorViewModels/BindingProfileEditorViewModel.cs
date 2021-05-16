@@ -1,20 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Windows.Input;
 using JannesP.DeviceSimConnectBridge.Device;
 using JannesP.DeviceSimConnectBridge.WpfApp.Options;
 using JannesP.DeviceSimConnectBridge.WpfApp.Repositories;
+using JannesP.DeviceSimConnectBridge.WpfApp.Utility.Wpf;
+using JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.DesignTime;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorViewModels
 {
     public interface IBindingProfileEditorViewModel
     {
+        ICommand CommandApplyChanges { get; }
+        ICommand CommandRevertChanges { get; }
         ObservableCollection<IDeviceBindingConfigurationEditorViewModel> Devices { get; }
         bool IsTouched { get; }
-
-        void ApplyChanges();
     }
 
     public class BindingProfileEditorViewModel : RevertibleViewModelBase, IBindingProfileEditorViewModel
@@ -53,11 +57,16 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
                 deviceList.Add(new DeviceBindingConfigurationEditorViewModel(service, config, null));
             }
 
+            SetupCommands();
+
             Devices = new ObservableCollection<IDeviceBindingConfigurationEditorViewModel>(deviceList);
             Devices.CollectionChanged += Devices_CollectionChanged;
             AddChildren(Devices);
+            EnableTouchedTracking();
         }
 
+        public ICommand CommandApplyChanges { get; private set; }
+        public ICommand CommandRevertChanges { get; private set; }
         public ObservableCollection<IDeviceBindingConfigurationEditorViewModel> Devices { get; }
 
         protected override void OnApplyChanges()
@@ -75,10 +84,21 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
             if (e.NewItems != null) AddChildren(e.NewItems.Cast<RevertibleViewModelBase>());
             if (e.OldItems != null) RemoveChildren(e.OldItems.Cast<RevertibleViewModelBase>());
         }
+
+        [MemberNotNull(nameof(CommandApplyChanges), nameof(CommandRevertChanges))]
+        private void SetupCommands()
+        {
+            CommandApplyChanges = new NotifiedRelayCommand(o => ApplyChanges(), o => IsTouched, this, nameof(IsTouched));
+            CommandRevertChanges = new NotifiedRelayCommand(o => RevertChanges(), o => IsTouched, this, nameof(IsTouched));
+        }
     }
 
     public class DesignTimeBindingProfileEditorViewModel : IBindingProfileEditorViewModel
     {
+        public ICommand CommandApplyChanges => new DesignTimeCommand();
+
+        public ICommand CommandRevertChanges => new DesignTimeCommand();
+
         public ObservableCollection<IDeviceBindingConfigurationEditorViewModel> Devices { get; } = new ObservableCollection<IDeviceBindingConfigurationEditorViewModel>()
         {
             new DesignTimeDeviceBindingConfigurationEditorViewModel(),

@@ -29,17 +29,9 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
         {
         }
 
-        public abstract string ConfigurationSummary { get; }
         public new ISimBoolSourceAction Model => (ISimBoolSourceAction)base.Model;
-        public abstract string UniqueIdentifier { get; }
 
         public abstract ISimBoolSourceActionViewModel CreateNew();
-
-        protected void OnConfigurationPropertyChanged([CallerMemberName] string? configPropertyName = null)
-        {
-            OnPropertyChanged(configPropertyName);
-            OnPropertyChanged(nameof(ConfigurationSummary));
-        }
     }
 
     public class SimBoolSourceActionViewModel : ISimBoolSourceActionViewModel
@@ -51,28 +43,8 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
             _simBoolSourceAction = simBoolSourceAction;
         }
 
-        public override string ConfigurationSummary
-        {
-            get
-            {
-                StringBuilder sb = new();
-                IEnumerable<BindableActionSetting> settings = _simBoolSourceAction.GetSettings();
-                foreach (BindableActionSetting setting in settings)
-                {
-                    if (sb.Length > 0) sb.Append(", ");
-                    sb.Append(setting.Attribute.Name)
-                        .Append(": '")
-                        .Append(setting.Value?.ToString() ?? "")
-                        .Append('\'');
-                }
-                return sb.ToString();
-            }
-        }
-
-        public override string Description => _simBoolSourceAction.Description;
-        public override string Name => _simBoolSourceAction.Name;
         public override string UniqueIdentifier => _simBoolSourceAction.UniqueIdentifier;
 
-        public override ISimBoolSourceActionViewModel CreateNew() => throw new NotImplementedException();
+        public override ISimBoolSourceActionViewModel CreateNew() => new SimBoolSourceActionViewModel(_simBoolSourceAction);
     }
 }

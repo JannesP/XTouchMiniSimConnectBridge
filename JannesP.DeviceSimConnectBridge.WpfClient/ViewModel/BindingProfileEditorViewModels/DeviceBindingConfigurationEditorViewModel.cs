@@ -110,6 +110,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
             WeakEventManager<DeviceRepository, EventArgs>.AddHandler(_deviceRepository, nameof(DeviceRepository.DeviceListChanged), DeviceRepository_DeviceListChanged);
 
             CreateBindings();
+            EnableTouchedTracking();
         }
 
         public override IEnumerable<IBindingListViewModel> BindingTypes { get; protected set; }

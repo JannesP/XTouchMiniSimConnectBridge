@@ -29,17 +29,9 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
         {
         }
 
-        public abstract string ConfigurationSummary { get; }
         public new ISimpleBindableAction Model => (ISimpleBindableAction)base.Model;
-        public abstract string UniqueIdentifier { get; }
 
         public abstract ISimpleBindableActionEditorViewModel CreateNew();
-
-        protected void OnConfigurationPropertyChanged([CallerMemberName] string? configPropertyName = null)
-        {
-            OnPropertyChanged(true, configPropertyName);
-            OnPropertyChanged(nameof(ConfigurationSummary));
-        }
     }
 
     public class SimpleBindableActionEditorViewModel : ISimpleBindableActionEditorViewModel
@@ -49,24 +41,6 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
         public SimpleBindableActionEditorViewModel(ISimpleBindableAction action) : base(action)
         {
             _action = action;
-        }
-
-        public override string ConfigurationSummary
-        {
-            get
-            {
-                StringBuilder sb = new();
-                IEnumerable<BindableActionSetting> settings = _action.GetSettings();
-                foreach (BindableActionSetting setting in settings)
-                {
-                    if (sb.Length > 0) sb.Append(", ");
-                    sb.Append(setting.Attribute.Name)
-                        .Append(": '")
-                        .Append(setting.Value?.ToString() ?? "")
-                        .Append('\'');
-                }
-                return sb.ToString();
-            }
         }
 
         public override string UniqueIdentifier => _action.UniqueIdentifier;

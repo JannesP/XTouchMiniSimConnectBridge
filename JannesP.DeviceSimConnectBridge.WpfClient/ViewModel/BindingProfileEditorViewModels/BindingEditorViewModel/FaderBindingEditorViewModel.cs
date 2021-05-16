@@ -10,6 +10,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
         public DesignTimeFaderBindingEditorViewModel() : base(null)
         { }
 
+        public override string ConfigurationSummary { get; protected set; } = "Fader ConfigurationSummary";
         public override string Name { get; } = $"Design Time Fader {++_instanceCount}";
 
         protected override void OnApplyChanges() => throw new NotImplementedException();

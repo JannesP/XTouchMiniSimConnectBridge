@@ -119,7 +119,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error releasing _mutexCheckIfFirstInstance.");
+                    _logger.LogWarning(ex, "Error releasing _mutexCheckIfFirstInstance.");
                 }
             }
             _mutexCheckIfFirstInstance.Dispose();

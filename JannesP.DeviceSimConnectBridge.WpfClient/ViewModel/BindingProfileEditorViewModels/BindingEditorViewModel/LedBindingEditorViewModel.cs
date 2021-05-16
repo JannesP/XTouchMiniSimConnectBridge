@@ -1,11 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Windows.Input;
 using JannesP.DeviceSimConnectBridge.Device;
 using JannesP.DeviceSimConnectBridge.WpfApp.ActionBindings;
 using JannesP.DeviceSimConnectBridge.WpfApp.BindableActions;
 using JannesP.DeviceSimConnectBridge.WpfApp.Repositories;
+using JannesP.DeviceSimConnectBridge.WpfApp.Utility.Wpf;
+using JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindableActionSettingsViewModels;
 using JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorViewModels.DataSourceViewModels;
+using JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.DesignTime;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorViewModels.BindingEditorViewModel
@@ -17,6 +21,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
         public DesignTimeLedBindingEditorViewModel() : base(null!, null)
         {
             DataSource = AvailableDataSources.Skip(2).First();
+            ConfigurationSummary = DataSource.ConfigurationSummary;
         }
 
         public override IEnumerable<ISimBoolSourceActionViewModel> AvailableDataSources { get; } = new List<ISimBoolSourceActionViewModel>
@@ -27,6 +32,8 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
             new DesignTimeSimBoolSourceActionViewModel(),
         };
 
+        public override ICommand CommandClearDataSource { get; } = new DesignTimeCommand();
+        public override string ConfigurationSummary { get; protected set; }
         public override ISimBoolSourceActionViewModel? DataSource { get; }
         public override string Name { get; } = $"Design Time Led {++_instanceCount}";
         public override ISimBoolSourceActionViewModel? SelectedDataSource { get => DataSource; set => throw new NotSupportedException(); }
@@ -42,6 +49,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
         { }
 
         public abstract IEnumerable<ISimBoolSourceActionViewModel> AvailableDataSources { get; }
+        public abstract ICommand CommandClearDataSource { get; }
         public abstract ISimBoolSourceActionViewModel? DataSource { get; }
         public abstract ISimBoolSourceActionViewModel? SelectedDataSource { get; set; }
     }
@@ -57,11 +65,16 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
             _bindingActionRepository = serviceProvider.GetRequiredService<BindingActionRepository>();
             _actionBinding = actionBinding;
             AvailableDataSources = _bindingActionRepository.GetAll<ISimBoolSourceAction>().Select(a => new SimBoolSourceActionViewModel(a)).ToList();
+            CommandClearDataSource = new NotifiedRelayCommand(o => SelectedDataSource = null, o => DataSource != null, this, nameof(DataSource));
+
             LoadFromModel();
+            EnableTouchedTracking();
         }
 
         public override IEnumerable<ISimBoolSourceActionViewModel> AvailableDataSources { get; }
 
+        public override ICommand CommandClearDataSource { get; }
+        public override string ConfigurationSummary { get => DataSource?.ConfigurationSummary ?? ""; protected set => throw new NotSupportedException(); }
         public override ISimBoolSourceActionViewModel? DataSource => _dataSource;
 
         public override ISimBoolSourceActionViewModel? SelectedDataSource
@@ -71,10 +84,19 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
             {
                 if (value?.GetType() != _dataSource?.GetType())
                 {
-                    if (_dataSource != null) RemoveChildren(_dataSource);
+                    if (_dataSource != null)
+                    {
+                        RemoveChildren(_dataSource);
+                        _dataSource.PropertyChanged -= DataSource_PropertyChanged;
+                    }
                     _dataSource = value?.CreateNew();
-                    if (_dataSource != null) AddChildren(_dataSource);
+                    if (_dataSource != null)
+                    {
+                        _dataSource.PropertyChanged += DataSource_PropertyChanged;
+                        AddChildren(_dataSource);
+                    }
                     OnPropertyChanged(true);
+                    OnPropertyChanged(true, nameof(ConfigurationSummary));
                     OnPropertyChanged(nameof(DataSource));
                 }
             }
@@ -90,11 +112,23 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
             LoadFromModel();
         }
 
+        private void DataSource_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(BindableActionViewModel.ConfigurationSummary))
+            {
+                OnPropertyChanged(true, nameof(ConfigurationSummary));
+            }
+        }
+
         private void LoadFromModel()
         {
             if (_actionBinding.DataSource != null)
             {
-                _dataSource = new SimBoolSourceActionViewModel(_actionBinding.DataSource);
+                SelectedDataSource = new SimBoolSourceActionViewModel(_actionBinding.DataSource);
+            }
+            else
+            {
+                SelectedDataSource = null;
             }
         }
     }

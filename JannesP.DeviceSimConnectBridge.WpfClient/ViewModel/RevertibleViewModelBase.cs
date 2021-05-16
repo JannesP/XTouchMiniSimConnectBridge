@@ -8,8 +8,8 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel
 {
     public abstract class RevertibleViewModelBase : ViewModelBase
     {
-        private bool _isRevertingChanges = false;
         private bool _isTouched;
+        private bool _trackTouched = false;
 
         protected RevertibleViewModelBase()
         {
@@ -34,17 +34,21 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel
 
         public void ApplyChanges()
         {
+            DisableTouchedTracking();
             OnChildrenApplyChanges();
             OnApplyChanges();
             OnEndApplyChanged();
+            EnableTouchedTracking();
         }
 
         public void RevertChanges()
         {
+            EnableTouchedTracking();
             OnBeginRevertChanges();
             OnChildrenRevertChanges();
             OnRevertChanges();
             OnEndRevertChanges();
+            EnableTouchedTracking();
         }
 
         protected void AddChildren(params RevertibleViewModelBase[] revertibleViewModels) => AddChildren(revertibleViewModels.AsEnumerable());
@@ -57,11 +61,20 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel
             }
         }
 
+        protected void DisableTouchedTracking()
+        {
+            _trackTouched = false;
+        }
+
+        protected void EnableTouchedTracking()
+        {
+            _trackTouched = true;
+        }
+
         protected abstract void OnApplyChanges();
 
         protected virtual void OnBeginRevertChanges()
         {
-            _isRevertingChanges = true;
         }
 
         protected virtual void OnChildrenApplyChanges()
@@ -88,13 +101,12 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel
         protected virtual void OnEndRevertChanges()
         {
             IsTouched = false;
-            _isRevertingChanges = false;
         }
 
         protected override void OnPropertyChanged(bool skipValidation, [CallerMemberName] string? propertyName = null)
         {
             base.OnPropertyChanged(skipValidation, propertyName);
-            if (!_isRevertingChanges)
+            if (_trackTouched)
             {
                 IsTouched = true;
             }

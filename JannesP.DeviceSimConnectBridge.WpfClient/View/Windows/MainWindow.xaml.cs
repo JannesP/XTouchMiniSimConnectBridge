@@ -50,5 +50,24 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.View.Windows
         {
             MessageBox.Show("Here is going to be a settings page at some point :)");
         }
+
+        private void ButtonRevertProfile_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button b)
+            {
+                MessageBoxResult dialogResult = MessageBox.Show("Do you really want to revert all pending changes?", "Revert profile changes?", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                if (dialogResult == MessageBoxResult.Yes)
+                {
+                    if (b.Command.CanExecute(null))
+                    {
+                        b.Command.Execute(null);
+                    }
+                }
+            }
+            else
+            {
+                throw new ArgumentException("The sender needs to be a button.", nameof(sender));
+            }
+        }
     }
 }

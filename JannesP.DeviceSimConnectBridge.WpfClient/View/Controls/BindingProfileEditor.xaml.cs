@@ -18,7 +18,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.View.Controls
 
         private void ButtonConfigureBindableAction_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is FrameworkElement s && s.DataContext is BindableActionViewModel action)
+            if (sender is Button button && button.CommandParameter is BindableActionViewModel action)
             {
                 new ConfigureBindableActionDialog(action).ShowDialogCentered(Window.GetWindow(this));
             }

@@ -15,6 +15,11 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.View.Windows
             base.DataContext = new ConfigureBindableActionDialogViewModel(action);
             InitializeComponent();
         }
+
+        private void ButtonClose_Click(object sender, RoutedEventArgs e)
+        {
+            base.Close();
+        }
     }
 
     public class SettingTemplateSelector : DataTemplateSelector
