@@ -150,8 +150,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp
 
             SimConnectManager scm = Host.Services.GetRequiredService<SimConnectManager>();
             await scm.StartAsync();
-            DeviceBindingManager dbm = Host.Services.GetRequiredService<DeviceBindingManager>();
-            dbm.Enable();
+            _ = Host.Services.GetRequiredService<DeviceBindingManager>();
         }
 
         private static async Task Teardown(App app, bool fastTeardown)

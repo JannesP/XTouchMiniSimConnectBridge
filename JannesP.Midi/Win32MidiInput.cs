@@ -219,9 +219,12 @@ namespace JannesP.Midi
 
             ~MidiInputLongDataBuffer()
             {
-                if (Header.lpData != IntPtr.Zero)
+                if (_prepared)
                 {
-                    Marshal.FreeHGlobal(Header.lpData);
+                    if (Header.lpData != IntPtr.Zero)
+                    {
+                        Marshal.FreeHGlobal(Header.lpData);
+                    }
                 }
                 if (Ptr != IntPtr.Zero)
                 {

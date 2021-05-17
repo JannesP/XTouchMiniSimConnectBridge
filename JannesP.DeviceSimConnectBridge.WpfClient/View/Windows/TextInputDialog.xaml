@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:JannesP.DeviceSimConnectBridge.WpfApp.View.Windows"
         mc:Ignorable="d"
         d:DataContext="{d:DesignInstance IsDesignTimeCreatable=False, Type=local:TextInputDialogViewModel}"
-        Title="TextInputDialog" SizeToContent="WidthAndHeight" WindowStartupLocation="CenterOwner" ResizeMode="NoResize" WindowStyle="ToolWindow"
+        Title="{Binding WindowTitle}" SizeToContent="WidthAndHeight" WindowStartupLocation="CenterOwner" ResizeMode="NoResize" WindowStyle="ToolWindow"
         FocusManager.FocusedElement="{Binding ElementName=TbInput}" KeyDown="Window_KeyDown">
     <Window.Resources>
     </Window.Resources>

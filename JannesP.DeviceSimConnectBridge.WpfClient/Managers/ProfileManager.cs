@@ -74,13 +74,14 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
             {
                 _semProfile.Release();
             }
-            if (profileChanged) OnCurrentProfileChanged(result);
+            if (profileChanged) OnCurrentProfileChanged(result, null);
             return result;
         }
 
         public void SetCurrentProfile(Guid uniqueId)
         {
             BindingProfile? profile = null;
+            BindingProfile? oldProfile = GetCurrentProfile();
             bool profileChanged = false;
             _semProfile.Wait();
             try
@@ -99,7 +100,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
             }
             if (profileChanged && profile != null)
             {
-                OnCurrentProfileChanged(profile);
+                OnCurrentProfileChanged(profile, oldProfile);
             }
         }
 
@@ -115,17 +116,19 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
             return defaultProfile;
         }
 
-        private void OnCurrentProfileChanged(BindingProfile profile)
-                            => CurrentProfileChanged?.Invoke(this, new ProfileChangedEventArgs(profile));
+        private void OnCurrentProfileChanged(BindingProfile newProfile, BindingProfile? oldProfile)
+                            => CurrentProfileChanged?.Invoke(this, new ProfileChangedEventArgs(newProfile, oldProfile));
 
         public class ProfileChangedEventArgs : EventArgs
         {
-            public ProfileChangedEventArgs(BindingProfile newProfile)
+            public ProfileChangedEventArgs(BindingProfile newProfile, BindingProfile? oldProfile)
             {
                 NewProfile = newProfile;
+                OldProfile = oldProfile;
             }
 
             public BindingProfile NewProfile { get; }
+            public BindingProfile? OldProfile { get; }
         }
     }
 }

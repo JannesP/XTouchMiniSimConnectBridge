@@ -15,9 +15,8 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.View.Windows
 
         public TextInputDialog(string title, string text, Func<object, ValidationResult?> validator)
         {
-            _dataContext = new TextInputDialogViewModel(text, validator);
+            _dataContext = new TextInputDialogViewModel(title, text, validator);
             DataContext = _dataContext;
-            Title = title;
             InitializeComponent();
         }
 
@@ -77,8 +76,9 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.View.Windows
         private readonly Func<object, ValidationResult?> _validationFunction;
         private string _inputText = "";
 
-        public TextInputDialogViewModel(string text, Func<object, ValidationResult?> validator)
+        public TextInputDialogViewModel(string title, string text, Func<object, ValidationResult?> validator)
         {
+            WindowTitle = title;
             DialogMessage = text;
             _validationFunction = validator;
             ValidateAsync();
@@ -99,6 +99,8 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.View.Windows
                 }
             }
         }
+
+        public string WindowTitle { get; }
 
         public static ValidationResult? ExecuteCustomValidation(string value, ValidationContext context)
         {

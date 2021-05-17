@@ -82,10 +82,12 @@ namespace JannesP.SimConnectWrapper
                 IsOpen = false;
                 if (_simConnect != null)
                 {
+                    SimConnect sc = _simConnect;
+                    _simConnect = null;
+                    sc.Dispose();
                     SimConnectClose?.Invoke(this, new System.EventArgs());
                 }
-                _simConnect?.Dispose();
-                _simConnect = null;
+
                 _registeredDataDefinitions.Clear();
                 _registeredEventDefinitions.Clear();
                 foreach (KeyValuePair<uint, SimConnectRequest> req in _requests)
@@ -213,6 +215,7 @@ namespace JannesP.SimConnectWrapper
 
         public async Task<TRes> Request<TRes>(SimConnectRequest<TRes> request)
         {
+            bool requestStarted = false;
             await _semaphore.WaitAsync().ConfigureAwait(false);
             try
             {
@@ -222,16 +225,20 @@ namespace JannesP.SimConnectWrapper
                     _requests.Add((uint)newRequestId, request);
                     request.PrepareRequest(this, _simConnect);
                     request.ExecuteRequest((uint)newRequestId, _simConnect);
-                    return await request.TaskCompletionSource.Task.ConfigureAwait(false);
-                }
-                else
-                {
-                    throw new InvalidOperationException("SimConnect is not connected!");
+                    requestStarted = true;
                 }
             }
             finally
             {
                 _semaphore.Release();
+            }
+            if (requestStarted)
+            {
+                return await request.TaskCompletionSource.Task.ConfigureAwait(false);
+            }
+            else
+            {
+                throw new InvalidOperationException("SimConnect is not connected!");
             }
         }
 

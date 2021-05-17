@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using JannesP.DeviceSimConnectBridge.Device;
 using JannesP.DeviceSimConnectBridge.WpfApp.Options;
 using JannesP.DeviceSimConnectBridge.WpfApp.Repositories;
@@ -21,11 +22,13 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
             _profileManager = serviceProvider.GetRequiredService<ProfileManager>();
 
             _serviceProvider = serviceProvider;
+
+            _profileManager.CurrentProfileChanged += ProfileManager_CurrentProfileChanged;
+            _ = EnableAsync(_profileManager.GetCurrentProfile());
         }
 
-        public void Enable()
+        public async Task DisableAsync(BindingProfile profile)
         {
-            BindingProfile? profile = _profileManager.GetCurrentProfile();
             if (profile.BindingConfigurations == null) throw new Exception("F");
             foreach (DeviceBindingConfiguration? bindingConfiguration in profile.BindingConfigurations)
             {
@@ -40,9 +43,36 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
                     _logger.LogInformation("Couldn't find device '{0}:{1}' for a BindingConfiguration.", bindingConfiguration.DeviceType, bindingConfiguration.DeviceId ?? "<null>");
                     continue;
                 }
-                device.ConnectAsync();
+                await device.DisconnectAsync();
+                bindingConfiguration.Bindings.ForEach(ab => ab.Disable());
+            }
+        }
+
+        public async Task EnableAsync(BindingProfile profile)
+        {
+            if (profile.BindingConfigurations == null) throw new Exception("F");
+            foreach (DeviceBindingConfiguration? bindingConfiguration in profile.BindingConfigurations)
+            {
+                if (bindingConfiguration.DeviceType == null)
+                {
+                    _logger.LogWarning("A BindingConfiguration didn't have a {0} set.", nameof(DeviceBindingConfiguration.DeviceType));
+                    continue;
+                }
+                IDevice? device = _deviceRepository.TryFindDevice(bindingConfiguration.DeviceType, bindingConfiguration.DeviceId);
+                if (device == null)
+                {
+                    _logger.LogInformation("Couldn't find device '{0}:{1}' for a BindingConfiguration.", bindingConfiguration.DeviceType, bindingConfiguration.DeviceId ?? "<null>");
+                    continue;
+                }
+                await device.ConnectAsync();
                 bindingConfiguration.Bindings.ForEach(ab => ab.Enable(_serviceProvider, device));
             }
+        }
+
+        private async void ProfileManager_CurrentProfileChanged(object? sender, ProfileManager.ProfileChangedEventArgs e)
+        {
+            if (e.OldProfile != null) await DisableAsync(e.OldProfile);
+            await EnableAsync(e.NewProfile);
         }
     }
 }
