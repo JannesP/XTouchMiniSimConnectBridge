@@ -5,6 +5,7 @@
 
 # Additions
 MsfsWasmOut/
+MsfsWasmBuild/
 
 # User-specific files
 *.rsuser

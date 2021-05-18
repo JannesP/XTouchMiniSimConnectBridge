@@ -86,6 +86,9 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
+    <OutDir>$(SolutionDir)MsfsWasmOut\$(Configuration)\</OutDir>
+    <TargetName>DeviceSimConnectBridgeImplementation</TargetName>
+    <IntDir>$(SolutionDir)MsfsWasmBuild\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>

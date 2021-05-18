@@ -15,10 +15,24 @@
 #include <iconv.h>
 #endif
 
-DeviceSimConnectBridge::BridgeServer* Server;
-
 // ------------------------
 // Callbacks
+
+DeviceSimConnectBridge::BridgeServer* Server;
+
+void StartServer() {
+	if (Server == NULL) {
+		Server = new DeviceSimConnectBridge::BridgeServer();
+	}
+	Server->Start();
+}
+
+void ShutdownServer() {
+	if (Server != NULL) {
+		Server->Shutdown();
+	}
+}
+
 extern "C" {
 	MSFS_CALLBACK bool DeviceSimConnectGauge_gauge_callback(FsContext ctx, int service_id, void* pData)
 	{
@@ -27,10 +41,7 @@ extern "C" {
 		case PANEL_SERVICE_PRE_INSTALL:
 		{
 			LOG("DeviceSimConnectGauge_gauge_callback(PANEL_SERVICE_PRE_INSTALL)");
-			if (Server == NULL) {
-				Server = new DeviceSimConnectBridge::BridgeServer();
-			}
-			Server->Start();
+			StartServer();
 			return true;
 		}
 		break;
@@ -38,9 +49,7 @@ extern "C" {
 		case PANEL_SERVICE_PRE_KILL:
 		{
 			LOG("DeviceSimConnectGauge_gauge_callback(PANEL_SERVICE_PRE_KILL)");
-			if (Server != NULL) {
-				Server->Shutdown();
-			}
+			ShutdownServer();
 			return true;
 		}
 		break;

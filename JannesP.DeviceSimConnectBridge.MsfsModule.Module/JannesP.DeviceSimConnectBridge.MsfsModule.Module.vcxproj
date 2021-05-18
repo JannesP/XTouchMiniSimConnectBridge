@@ -61,6 +61,7 @@
     <LinkIncremental />
     <OutDir>$(SolutionDir)MsfsWasmOut\$(Configuration)\</OutDir>
     <TargetName>DeviceSimConnectBridgeModule</TargetName>
+    <IntDir>$(SolutionDir)MsfsWasmBuild\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|MSFS'">
     <TargetExt>.wasm</TargetExt>
