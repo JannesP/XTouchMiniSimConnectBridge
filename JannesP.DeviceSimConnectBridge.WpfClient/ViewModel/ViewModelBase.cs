@@ -44,9 +44,12 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel
             OnPropertyChanged(true, nameof(HasNoErrors));
         }
 
+#pragma warning disable IDE0079
 #pragma warning disable CS8766 // Nullability of reference types in return type doesn't match implicitly implemented member (possibly because of nullability attributes).
+
         public IEnumerable? GetErrors(string? propertyName)
 #pragma warning restore CS8766 // Nullability of reference types in return type doesn't match implicitly implemented member (possibly because of nullability attributes).
+#pragma warning restore IDE0079
         {
             if (string.IsNullOrEmpty(propertyName))
             {

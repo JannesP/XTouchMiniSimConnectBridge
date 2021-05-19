@@ -76,9 +76,11 @@ namespace JannesP.SimConnectWrapper
                     {
                         DispatchMessage(ref msg);
                     }
+#pragma warning disable IDE0079
 #pragma warning disable CS0618 // Type or member is obsolete -- well, it does raise it Sadge
                     catch (ExecutionEngineException)
 #pragma warning restore CS0618 // Type or member is obsolete
+#pragma warning restore IDE0079
                     {
                         break;
                     }
