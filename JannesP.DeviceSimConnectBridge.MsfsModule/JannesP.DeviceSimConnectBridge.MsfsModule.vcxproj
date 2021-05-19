@@ -22,7 +22,7 @@
     <VCProjectVersion>16.0</VCProjectVersion>
     <ProjectGuid>{A5468B35-BBBD-4C55-97ED-81BFE343B0E4}</ProjectGuid>
     <RootNamespace>Module</RootNamespace>
-    <ProjectName>JannesP.DeviceSimConnectBridge.MsfsModule.Module</ProjectName>
+    <ProjectName>JannesP.DeviceSimConnectBridge.MsfsModule</ProjectName>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -59,9 +59,9 @@
     <TargetExt>.wasm</TargetExt>
     <GenerateManifest />
     <LinkIncremental />
-    <OutDir>$(SolutionDir)MsfsWasmOut\$(Configuration)\</OutDir>
+    <OutDir>$(ProjectDir)bin\$(Configuration)\</OutDir>
     <TargetName>DeviceSimConnectBridgeModule</TargetName>
-    <IntDir>$(SolutionDir)MsfsWasmBuild\</IntDir>
+    <IntDir>$(ProjectDir)obj\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|MSFS'">
     <TargetExt>.wasm</TargetExt>
@@ -118,8 +118,7 @@
       <AdditionalLibraryDirectories>$(OutDir)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>
-      </Command>
+      <Command>"$(SolutionDir)tools\MsfsModulePackHelper\MsfsModulePackHelper.exe" -Manifest "$(ProjectDir)msfs_module_manifest.json" -Modules "$(OutDir)\" -Output "$(SolutionDir)bin\Publish" -Deploy "F:\Programs\Flight Simulator Packages\Community\DeviceSimConnectBridgeModule"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|MSFS'">
@@ -166,17 +165,16 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="BridgeProtocol.cpp" />
+    <ClCompile Include="BridgeServer.cpp" />
     <ClCompile Include="DeviceSimConnectBridgeModule.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="BridgeProtocol.h" />
+    <ClInclude Include="BridgeServer.h" />
     <ClInclude Include="DeviceSimConnectBridgeModule.h" />
+    <ClInclude Include="Global.h" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\JannesP.DeviceSimConnectBridge.MsfsModule.Implementation\JannesP.DeviceSimConnectBridge.MsfsModule.Implementation.vcxproj">
-      <Project>{667abca1-3a9c-443e-82f8-58cdf672f9d8}</Project>
-    </ProjectReference>
+    <None Include="msfs_module_manifest.json" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
