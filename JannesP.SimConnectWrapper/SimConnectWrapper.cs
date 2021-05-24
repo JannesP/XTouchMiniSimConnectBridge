@@ -41,6 +41,8 @@ namespace JannesP.SimConnectWrapper
             _appName = applicationName;
         }
 
+        public event EventHandler<ClientDataReceivedEventArgs>? ClientDataReceived;
+
         public event EventHandler<IntervalRequestResultEventArgs>? IntervalRequestResult;
 
         public event EventHandler? SimConnectClose;
@@ -55,6 +57,25 @@ namespace JannesP.SimConnectWrapper
         private enum PrivateDummy { }
 
         public bool IsOpen { get; private set; }
+
+        public async Task AddToClientDataDefinition(uint defineId, uint dwOffset, uint dwSizeOrType, float fEpsilon = 0.0f, uint datumId = uint.MaxValue)
+        {
+            await _semaphore.WaitAsync();
+            try
+            {
+                _simConnect?.AddToClientDataDefinition((PrivateDummy)defineId, dwOffset, dwSizeOrType, fEpsilon, datumId);
+            }
+            finally
+            {
+                _semaphore.Release();
+            }
+        }
+
+        public async Task AddToClientDataDefinition<TData>(uint defineId, uint dwOffset = 0) where TData : struct
+        {
+            await AddToClientDataDefinition(defineId, dwOffset, (uint)Marshal.SizeOf<TData>());
+            await RegisterClientDataDefineStruct<TData>(defineId);
+        }
 
         public async Task CancelIntervalRequest(int id)
         {
@@ -159,6 +180,32 @@ namespace JannesP.SimConnectWrapper
             return intervalId;
         }
 
+        public async Task MapClientDataNameToID(string clientDataName, uint clientDataId)
+        {
+            await _semaphore.WaitAsync();
+            try
+            {
+                _simConnect?.MapClientDataNameToID(clientDataName, (PrivateDummy)clientDataId);
+            }
+            finally
+            {
+                _semaphore.Release();
+            }
+        }
+
+        public async Task RegisterClientDataDefineStruct<T>(uint defineId)
+        {
+            await _semaphore.WaitAsync();
+            try
+            {
+                _simConnect?.RegisterStruct<SIMCONNECT_RECV_CLIENT_DATA, T>((PrivateDummy)defineId);
+            }
+            finally
+            {
+                _semaphore.Release();
+            }
+        }
+
         public void RegisterDataDefinition(SimConnectDataDefinition dataDefinition)
         {
             if (_registeredDataDefinitions.TryGetValue(dataDefinition.DefinitionId, out SimConnectDataDefinition def))
@@ -242,6 +289,19 @@ namespace JannesP.SimConnectWrapper
             }
         }
 
+        public async Task RequestClientData(uint clientDataId, uint requestId, uint defineId, SIMCONNECT_CLIENT_DATA_PERIOD period = SIMCONNECT_CLIENT_DATA_PERIOD.ONCE, SIMCONNECT_CLIENT_DATA_REQUEST_FLAG flags = SIMCONNECT_CLIENT_DATA_REQUEST_FLAG.DEFAULT, uint origin = 0, uint interval = 0, uint limit = 0)
+        {
+            await _semaphore.WaitAsync();
+            try
+            {
+                _simConnect?.RequestClientData((PrivateDummy)clientDataId, (PrivateDummy)requestId, (PrivateDummy)defineId, period, flags, origin, interval, limit);
+            }
+            finally
+            {
+                _semaphore.Release();
+            }
+        }
+
         public Task<TRes> RequestObjectByType<TRes>(SimConnectDataDefinition dataDefinition) => Request(new SimConnectRequestObjectByType<TRes>(dataDefinition));
 
         /// <summary>
@@ -268,6 +328,19 @@ namespace JannesP.SimConnectWrapper
                     }
                     await Task.Run(() => _simConnect.TransmitClientEvent(0, (PrivateDummy)clientEventId, dwData, EventGroup.Dummy, SIMCONNECT_EVENT_FLAG.GROUPID_IS_PRIORITY));
                 }
+            }
+            finally
+            {
+                _semaphore.Release();
+            }
+        }
+
+        public async Task SetClientData(uint clientDataId, uint defineId, SIMCONNECT_CLIENT_DATA_SET_FLAG flags, object dataSet)
+        {
+            await _semaphore.WaitAsync();
+            try
+            {
+                _simConnect?.SetClientData((PrivateDummy)clientDataId, (PrivateDummy)defineId, flags, 0, dataSet);
             }
             finally
             {
@@ -321,7 +394,8 @@ namespace JannesP.SimConnectWrapper
         //since we can't rescue from this state we just close the object
         private void OnMsgPump_MessagePumpDestroyed(object sender, System.EventArgs e) => Dispose();
 
-        private void OnSimConnect_OnRecvClientData(SimConnect sender, SIMCONNECT_RECV_CLIENT_DATA data) => Console.WriteLine("OnSimConnect_OnRecvClientData");
+        private void OnSimConnect_OnRecvClientData(SimConnect sender, SIMCONNECT_RECV_CLIENT_DATA data)
+            => ClientDataReceived?.Invoke(this, new ClientDataReceivedEventArgs(data));
 
         private async void OnSimConnect_OnRecvException(SimConnect sender, SIMCONNECT_RECV_EXCEPTION data)
         {

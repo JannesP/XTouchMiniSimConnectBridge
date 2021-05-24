@@ -10,6 +10,12 @@
     <Filter Include="Resources">
       <UniqueIdentifier>{3d596000-584a-485a-a4fd-120ccf18426a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\ApiProtocol">
+      <UniqueIdentifier>{32e999b7-e1f9-4bee-af06-7ca588400cbc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ApiProtocol">
+      <UniqueIdentifier>{d3c91114-d43e-4459-ab8b-97e92e6891f7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DeviceSimConnectBridgeModule.h">
@@ -21,6 +27,15 @@
     <ClInclude Include="Global.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ApiRequestReadLVar.h">
+      <Filter>Header Files\ApiProtocol</Filter>
+    </ClInclude>
+    <ClInclude Include="ApiProtocol.h">
+      <Filter>Header Files\ApiProtocol</Filter>
+    </ClInclude>
+    <ClInclude Include="ApiRequestFireHEvent.h">
+      <Filter>Header Files\ApiProtocol</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DeviceSimConnectBridgeModule.cpp">
@@ -28,6 +43,15 @@
     </ClCompile>
     <ClCompile Include="BridgeServer.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ApiRequestReadLVar.cpp">
+      <Filter>Source Files\ApiProtocol</Filter>
+    </ClCompile>
+    <ClCompile Include="ApiProtocol.cpp">
+      <Filter>Source Files\ApiProtocol</Filter>
+    </ClCompile>
+    <ClCompile Include="ApiRequestFireHEvent.cpp">
+      <Filter>Source Files\ApiProtocol</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

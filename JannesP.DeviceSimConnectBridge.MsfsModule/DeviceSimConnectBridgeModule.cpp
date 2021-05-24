@@ -12,7 +12,7 @@
 #include "Global.h"
 #include "BridgeServer.h"
 
-BridgeServer* Server;
+BridgeServer *Server;
 
 void StartServer() {
 	DLOG;

@@ -29,7 +29,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JannesP.DeviceSimConnectBri
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JannesP.DeviceSimConnectBridge.Device.XTouchMini", "JannesP.DeviceSimConnectBridge.Device.XTouchMini\JannesP.DeviceSimConnectBridge.Device.XTouchMini.csproj", "{3524865A-E19F-4511-A699-6AA998F42296}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JannesP.DeviceSimConnectBridge.MsfsModule.BuildHelper", "JannesP.DeviceSimConnectBridge.MsfsModule.BuildHelper\JannesP.DeviceSimConnectBridge.MsfsModule.BuildHelper.csproj", "{AC6EB4A8-7D37-4D3D-943E-FD45A40A181F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JannesP.DeviceSimConnectBridge.MsfsModule.BuildHelper", "JannesP.DeviceSimConnectBridge.MsfsModule.BuildHelper\JannesP.DeviceSimConnectBridge.MsfsModule.BuildHelper.csproj", "{AC6EB4A8-7D37-4D3D-943E-FD45A40A181F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JannesP.DeviceSimConnectBridge.MsfsModule.Client", "JannesP.DeviceSimConnectBridge.MsfsModule.Client\JannesP.DeviceSimConnectBridge.MsfsModule.Client.csproj", "{281113DD-2C18-4C38-A081-3AF0D093EDB7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -65,7 +67,6 @@ Global
 		{A16682BE-B325-4F67-AD0A-C0F3A2BC47B2}.Release|x64.Build.0 = Release|x64
 		{A5468B35-BBBD-4C55-97ED-81BFE343B0E4}.Debug|Any CPU.ActiveCfg = Debug|x64
 		{A5468B35-BBBD-4C55-97ED-81BFE343B0E4}.Debug|x64.ActiveCfg = Debug|MSFS
-		{A5468B35-BBBD-4C55-97ED-81BFE343B0E4}.Debug|x64.Build.0 = Debug|MSFS
 		{A5468B35-BBBD-4C55-97ED-81BFE343B0E4}.Release|Any CPU.ActiveCfg = Release|x64
 		{A5468B35-BBBD-4C55-97ED-81BFE343B0E4}.Release|x64.ActiveCfg = Release|x64
 		{A5468B35-BBBD-4C55-97ED-81BFE343B0E4}.Release|x64.Build.0 = Release|x64
@@ -109,6 +110,11 @@ Global
 		{AC6EB4A8-7D37-4D3D-943E-FD45A40A181F}.Release|Any CPU.Build.0 = Release|Any CPU
 		{AC6EB4A8-7D37-4D3D-943E-FD45A40A181F}.Release|x64.ActiveCfg = Release|Any CPU
 		{AC6EB4A8-7D37-4D3D-943E-FD45A40A181F}.Release|x64.Build.0 = Release|Any CPU
+		{281113DD-2C18-4C38-A081-3AF0D093EDB7}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{281113DD-2C18-4C38-A081-3AF0D093EDB7}.Debug|x64.ActiveCfg = Debug|x64
+		{281113DD-2C18-4C38-A081-3AF0D093EDB7}.Debug|x64.Build.0 = Debug|x64
+		{281113DD-2C18-4C38-A081-3AF0D093EDB7}.Release|Any CPU.ActiveCfg = Release|x64
+		{281113DD-2C18-4C38-A081-3AF0D093EDB7}.Release|x64.ActiveCfg = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

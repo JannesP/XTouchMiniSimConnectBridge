@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\JannesP.DeviceSimConnectBridge.MsfsModule.Client\JannesP.DeviceSimConnectBridge.MsfsModule.Client.csproj" />
     <ProjectReference Include="..\JannesP.Midi\JannesP.Midi.csproj" />
     <ProjectReference Include="..\JannesP.SimConnectWrapper\JannesP.SimConnectWrapper.csproj" />
     <ProjectReference Include="..\JannesP.XTouchMini\JannesP.XTouchMini.csproj" />

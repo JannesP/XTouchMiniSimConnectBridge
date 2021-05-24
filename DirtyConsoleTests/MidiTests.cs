@@ -5,7 +5,7 @@ using JannesP.XTouchMini.Enums;
 
 namespace DirtyConsoleTests
 {
-    internal class MidiTests
+    internal static class MidiTests
     {
         public static async Task Run()
         {

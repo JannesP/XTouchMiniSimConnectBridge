@@ -6,7 +6,7 @@ using JannesP.XTouchMini;
 
 namespace DirtyConsoleTests
 {
-    internal class MidiControlsPlaneTests
+    internal static class MidiControlsPlaneTests
     {
         private static readonly List<double> _ledRadians = new();
 

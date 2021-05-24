@@ -4,7 +4,7 @@ using JannesP.SimConnectWrapper;
 
 namespace DirtyConsoleTests
 {
-    internal class SimconnectTests
+    internal static class SimconnectTests
     {
         public static async Task Run()
         {
@@ -53,8 +53,6 @@ namespace DirtyConsoleTests
 
         public class SimEvent
         {
-            private static readonly int _kEY_ID_MIN = 0x00010000;
-
             public static SimEvent AP_ALT_VAR_DEC = new(_kEY_ID_MIN + 357, "AP_ALT_VAR_DEC", "Decrements reference altitude");
             public static SimEvent AP_ALT_VAR_INC = new(_kEY_ID_MIN + 356, "AP_ALT_VAR_INC", "Increments reference altitude");
             public static SimEvent AP_SPD_VAR_DEC = new(_kEY_ID_MIN + 357, "AP_SPD_VAR_DEC", "Decrements airspeed hold reference");
@@ -63,6 +61,7 @@ namespace DirtyConsoleTests
             public static SimEvent AP_VS_VAR_INC = new(_kEY_ID_MIN + 356, "AP_VS_VAR_INC", "Increments vertical speed reference");
             public static SimEvent HEADING_BUG_DEC = new(_kEY_ID_MIN + 357, "HEADING_BUG_DEC", "Decrements heading hold reference bug");
             public static SimEvent HEADING_BUG_INC = new(_kEY_ID_MIN + 356, "HEADING_BUG_INC", "Increments heading hold reference bug");
+            private static readonly int _kEY_ID_MIN = 0x00010000;
 
             private SimEvent(int eventId, string name, string description)
             {

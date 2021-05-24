@@ -9,7 +9,7 @@ namespace DirtyConsoleTests
         {
             //await MidiTests.Run();
             //await SimconnectTests.Run();
-            await MidiControlsPlaneTests.Run();
+            await MsfsModuleTests.Run();
 
             Console.WriteLine("Program ended! Exit with enter ...");
             Console.ReadLine();
