@@ -22,10 +22,15 @@ namespace ApiProtocol {
 		virtual void Respond(HANDLE hSimConnect) = 0;
 	};
 
-	template <typename TClientData, typename TResponseData>
+	template <typename TClientData>
 	class TypedApiRequest : public ApiRequest {
 	public:
 		static int GetDataSize() { return sizeof(TClientData); };
+	};
+
+	template <typename TClientData, typename TResponseData>
+	class TypedApiRequestWithResponse : public TypedApiRequest<TClientData> {
+	public:
 		static int GetResponseSize() { return sizeof(TResponseData); };
 	};
 

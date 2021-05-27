@@ -27,8 +27,15 @@ namespace DirtyConsoleTests
                     if (x++ % 2 == 0)
                     {
                         Console.WriteLine("Reading LVar WT_CJ4_HDG_ON ...");
-                        double result = await client.ReadLVar("WT_CJ4_HDG_ON");
-                        Console.WriteLine($"Response: {result}");
+                        try
+                        {
+                            double result = await client.ReadLVar("WT_CJ4_HDG_ON");
+                            Console.WriteLine($"Response: {result}");
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex.ToString());
+                        }
                     }
                     else
                     {

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using JannesP.DeviceSimConnectBridge.MsfsModule.Client;
 using JannesP.DeviceSimConnectBridge.WpfApp.Options;
 using Microsoft.Extensions.Logging;
 
@@ -16,6 +17,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
 
         private CancellationTokenSource? _ctsConnect;
 
+        private MsfsModuleClient? _msfsModuleClient;
         private SimConnectWrapper.SimConnectWrapper? _simConnect;
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("CodeQuality", "IDE0052:Remove unread private members", Justification = "We need to keep a reference to the task, otherwise it'll just get collected.")]
@@ -42,6 +44,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
         }
 
         public State ConnectionState { get; private set; } = State.Disconnected;
+        public MsfsModuleClient? MsfsClient => ConnectionState == State.Connected ? _msfsModuleClient : null;
         public SimConnectWrapper.SimConnectWrapper? SimConnectWrapper => ConnectionState == State.Connected ? _simConnect : null;
 
         public void Dispose()
@@ -51,6 +54,8 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
             _ctsConnect?.Dispose();
             _ctsConnect = null;
             _taskConnect = null;
+            _msfsModuleClient?.Dispose();
+            _msfsModuleClient = null;
             _simConnect?.Dispose();
             _simConnect = null;
             TransitionStateAsync(State.Disconnected).Wait();
@@ -104,7 +109,9 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
                 _simConnect.SimConnectOpen += OnSimConnect_SimConnectOpen;
                 _simConnect.SimConnectClose += OnSimConnect_SimConnectClose;
             }
-            return await _simConnect.TryConnect().ConfigureAwait(false);
+            bool success = await _simConnect.TryConnect().ConfigureAwait(false);
+            _msfsModuleClient = new MsfsModuleClient(_simConnect);
+            return success;
         }
 
         private async Task ConnectLoopAsync(CancellationToken ct)

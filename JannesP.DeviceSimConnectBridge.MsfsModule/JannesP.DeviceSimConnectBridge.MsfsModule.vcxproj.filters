@@ -33,7 +33,7 @@
     <ClInclude Include="ApiProtocol.h">
       <Filter>Header Files\ApiProtocol</Filter>
     </ClInclude>
-    <ClInclude Include="ApiRequestFireHEvent.h">
+    <ClInclude Include="ApiRequestExecuteCalculatorCode.h">
       <Filter>Header Files\ApiProtocol</Filter>
     </ClInclude>
   </ItemGroup>
@@ -50,7 +50,7 @@
     <ClCompile Include="ApiProtocol.cpp">
       <Filter>Source Files\ApiProtocol</Filter>
     </ClCompile>
-    <ClCompile Include="ApiRequestFireHEvent.cpp">
+    <ClCompile Include="ApiRequestExecuteCalculatorCode.cpp">
       <Filter>Source Files\ApiProtocol</Filter>
     </ClCompile>
   </ItemGroup>

@@ -166,14 +166,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ApiProtocol.cpp" />
-    <ClCompile Include="ApiRequestFireHEvent.cpp" />
+    <ClCompile Include="ApiRequestExecuteCalculatorCode.cpp" />
     <ClCompile Include="ApiRequestReadLVar.cpp" />
     <ClCompile Include="BridgeServer.cpp" />
     <ClCompile Include="DeviceSimConnectBridgeModule.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ApiProtocol.h" />
-    <ClInclude Include="ApiRequestFireHEvent.h" />
+    <ClInclude Include="ApiRequestExecuteCalculatorCode.h" />
     <ClInclude Include="ApiRequestReadLVar.h" />
     <ClInclude Include="BridgeServer.h" />
     <ClInclude Include="DeviceSimConnectBridgeModule.h" />

@@ -6,7 +6,7 @@
 #include "Global.h"
 
 #include "ApiRequestReadLVar.h"
-#include "ApiRequestFireHEvent.h"
+#include "ApiRequestExecuteCalculatorCode.h"
 
 namespace ApiProtocol {
 	ApiRequest *CreateClientRequest(SIMCONNECT_RECV_CLIENT_DATA *pData)
@@ -17,7 +17,7 @@ namespace ApiProtocol {
 			return new ApiRequestReadLVar(pData);
 			break;
 		case FireHEvent:
-			return new ApiRequestFireHEvent(pData);
+			return new ApiRequestExecuteCalculatorCode(pData);
 			break;
 		default:
 			LOG("Unexpected defineID: " << std::to_string(requestType));
@@ -28,6 +28,6 @@ namespace ApiProtocol {
 	void SetupChannels(HANDLE hSimConnect)
 	{
 		ApiRequestReadLVar::SetupChannels(hSimConnect);
-		ApiRequestFireHEvent::SetupChannels(hSimConnect);
+		ApiRequestExecuteCalculatorCode::SetupChannels(hSimConnect);
 	}
 }

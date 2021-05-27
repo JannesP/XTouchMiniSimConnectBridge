@@ -8,7 +8,7 @@ using Microsoft.FlightSimulator.SimConnect;
 
 namespace JannesP.DeviceSimConnectBridge.MsfsModule.Client
 {
-    public class MsfsModuleClient
+    public class MsfsModuleClient : IDisposable
     {
         private static readonly List<SimConnectWrapper.SimConnectWrapper> _registeredWith = new List<SimConnectWrapper.SimConnectWrapper>();
         private static readonly SemaphoreSlim _semStatic = new SemaphoreSlim(1);
@@ -31,29 +31,45 @@ namespace JannesP.DeviceSimConnectBridge.MsfsModule.Client
             simConnect.SimConnectClose += SimConnect_SimConnectClose;
             simConnect.ClientDataReceived += SimConnect_ClientDataReceived;
 
-            ReadLVarRequest.SetupChannels(simConnect);
-            FireHEventRequest.SetupChannels(simConnect);
+            ReadLVarRequest.SetupChannels(simConnect).Wait();
+            ExecuteCalculatorCodeRequest.SetupChannels(simConnect).Wait();
         }
 
         public bool IsValid { get; private set; }
 
         internal SimConnectWrapper.SimConnectWrapper SimConnect { get; private set; }
 
-        public Task FireHEvent(string name)
+        public void Dispose()
         {
-            var req = new FireHEventRequest(name);
+            //TODO: dispose all running requests
+        }
+
+        public Task ExecuteCalculatorCode(string code)
+        {
+            var req = new ExecuteCalculatorCodeRequest(code);
             return req.Execute(SimConnect);
         }
 
-        public Task<double> ReadLVar(string name)
+        public Task FireHEvent(string name)
+        {
+            return ExecuteCalculatorCode($"(>H:{name})");
+        }
+
+        public async Task<double> ReadLVar(string name)
         {
             var req = new ReadLVarRequest(name);
-            return req.Execute(SimConnect);
+            return await req.Execute(SimConnect).ConfigureAwait(false);
         }
 
         private void SimConnect_ClientDataReceived(object sender, SimConnectWrapper.EventArgs.ClientDataReceivedEventArgs e)
         {
             SIMCONNECT_RECV_CLIENT_DATA data = e.RecvClientData;
+            switch (data.dwRequestID)
+            {
+                case ReadLVarRequest.RequestId:
+                    ReadLVarRequest.HandleResponse(data.dwData);
+                    break;
+            }
         }
 
         private void SimConnect_SimConnectClose(object sender, EventArgs e)

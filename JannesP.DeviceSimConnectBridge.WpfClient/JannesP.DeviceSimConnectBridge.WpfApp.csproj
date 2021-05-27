@@ -34,6 +34,7 @@
   <ItemGroup>
     <ProjectReference Include="..\JannesP.DeviceSimConnectBridge.Device.XTouchMini\JannesP.DeviceSimConnectBridge.Device.XTouchMini.csproj" />
     <ProjectReference Include="..\JannesP.DeviceSimConnectBridge.Device\JannesP.DeviceSimConnectBridge.Device.csproj" />
+    <ProjectReference Include="..\JannesP.DeviceSimConnectBridge.MsfsModule.Client\JannesP.DeviceSimConnectBridge.MsfsModule.Client.csproj" />
     <ProjectReference Include="..\JannesP.SimConnectWrapper\JannesP.SimConnectWrapper.csproj" />
     <ProjectReference Include="..\JannesP.XTouchMini\JannesP.XTouchMini.csproj" />
   </ItemGroup>

@@ -8,22 +8,18 @@
 #include "ApiProtocol.h"
 
 namespace ApiProtocol {
-	struct ApiResponseFireHEventData {
-		int requestId;
-	};
-	struct ApiRequestFireHEventData {
+	struct ApiRequestExecuteCalculatorCodeData {
 		int requestId;
 		char hEventName[128];
 	};
-	class ApiRequestFireHEvent : public TypedApiRequest<ApiRequestFireHEventData, ApiResponseFireHEventData> {
+	class ApiRequestExecuteCalculatorCode : public TypedApiRequest<ApiRequestExecuteCalculatorCodeData> {
 	public:
 		const static ClientRequests DefinitionId = ClientRequests::FireHEvent;
 		const static DataAreaDefinition DataAreaModuleInput;
-		const static DataAreaDefinition DataAreaModuleOutput;
 		static void SetupChannels(HANDLE hSimConnect);
-		ApiRequestFireHEvent(SIMCONNECT_RECV_CLIENT_DATA *pData);
+		ApiRequestExecuteCalculatorCode(SIMCONNECT_RECV_CLIENT_DATA *pData);
 		void Respond(HANDLE hSimConnect) override;
 	private:
-		std::string hEventName;
+		std::string _hEventName;
 	};
 }

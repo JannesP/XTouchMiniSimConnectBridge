@@ -14,7 +14,9 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Repositories
         {
             _actionList = new List<IBindableAction>
             {
+                //simple actions
                 new SimConnectActionSimEvent(),
+                new MsfsFireHEvent(),
 
                 //data sources
                 new SimVarBoolDataSource(),

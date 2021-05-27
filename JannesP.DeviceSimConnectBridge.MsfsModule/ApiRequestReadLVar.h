@@ -17,7 +17,7 @@ namespace ApiProtocol {
 		char lvarName[128];
 	};
 
-	class ApiRequestReadLVar : public TypedApiRequest<ApiRequestReadLVarData, ApiResponseReadLVarData> {
+	class ApiRequestReadLVar : public TypedApiRequestWithResponse<ApiRequestReadLVarData, ApiResponseReadLVarData> {
 	public:
 		const static ClientRequests DefinitionId = ClientRequests::ReadLVar;
 		const static DataAreaDefinition DataAreaModuleInput;
@@ -26,6 +26,7 @@ namespace ApiProtocol {
 		ApiRequestReadLVar(SIMCONNECT_RECV_CLIENT_DATA *pData);
 		void Respond(HANDLE hSimConnect) override;
 	private:
-		std::string lvarName;
+		std::string _lvarName;
+		int _requestId;
 	};
 }
