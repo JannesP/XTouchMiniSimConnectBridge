@@ -32,11 +32,15 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ActionBindings
 
         public override void Enable(IServiceProvider serviceProvider, IDevice device)
         {
+            bool wasEnabled = IsEnabled;
             base.Enable(serviceProvider, device);
-            _logger = serviceProvider.GetRequiredService<ILogger<EncoderActionBinding>>();
-            if (Device == null) throw new ArgumentException("device cannot be null here.", nameof(device));
-            if (ServiceProvider == null) throw new ArgumentException("serviceProvider cannot be null here.", nameof(serviceProvider));
-            Device.EncoderTurned += Device_EncoderTurned;
+            if (!wasEnabled)
+            {
+                _logger = serviceProvider.GetRequiredService<ILogger<EncoderActionBinding>>();
+                if (Device == null) throw new ArgumentException("device cannot be null here.", nameof(device));
+                if (ServiceProvider == null) throw new ArgumentException("serviceProvider cannot be null here.", nameof(serviceProvider));
+                Device.EncoderTurned += Device_EncoderTurned;
+            }
         }
 
         public override bool IsEmpty() => TurnClockwise == null && TurnAntiClockwise == null;

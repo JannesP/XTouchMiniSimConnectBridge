@@ -20,6 +20,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Repositories
 
                 //data sources
                 new SimVarBoolDataSource(),
+                new LVarBoolDataSource(),
             };
         }
 

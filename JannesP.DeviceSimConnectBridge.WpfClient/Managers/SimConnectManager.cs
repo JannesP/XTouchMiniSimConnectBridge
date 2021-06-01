@@ -110,7 +110,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
                 _simConnect.SimConnectClose += OnSimConnect_SimConnectClose;
             }
             bool success = await _simConnect.TryConnect().ConfigureAwait(false);
-            _msfsModuleClient = new MsfsModuleClient(_simConnect);
+            _msfsModuleClient = MsfsModuleClient.CreateFor(_simConnect);
             return success;
         }
 

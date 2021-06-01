@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace JannesP.DeviceSimConnectBridge.MsfsModule.Client.Requests
 {
-    public abstract class MsfsModuleRequest
+    internal abstract class MsfsModuleRequest
     {
         private static readonly Random _random = new Random();
         public static string DataAreaModuleBaseName { get; } = "jannesp.device_simconnect_bridge";
@@ -22,12 +22,12 @@ namespace JannesP.DeviceSimConnectBridge.MsfsModule.Client.Requests
         }
     }
 
-    public abstract class MsfsModuleRequestWithResponse : MsfsModuleRequest
+    internal abstract class MsfsModuleRequestWithResponse : MsfsModuleRequest
     {
         internal abstract void Finish(object response);
     }
 
-    public abstract class MsfsModuleRequestWithResponse<TRes> : MsfsModuleRequestWithResponse, IDisposable
+    internal abstract class MsfsModuleRequestWithResponse<TRes> : MsfsModuleRequestWithResponse, IDisposable
     {
         private static readonly Dictionary<int, MsfsModuleRequestWithResponse<TRes>> _pendingRequests = new Dictionary<int, MsfsModuleRequestWithResponse<TRes>>();
 

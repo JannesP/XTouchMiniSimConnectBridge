@@ -18,7 +18,6 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
     {
         private readonly BindingActionRepository _bindingActionRepository;
         private readonly ButtonActionBinding _buttonBinding;
-
         private ISimpleBindableActionEditorViewModel? _buttonPressAction;
         private bool _triggerOnRelease = false;
 
@@ -46,7 +45,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
             get => AvailableActions.FirstOrDefault(a => a.UniqueIdentifier == _buttonPressAction?.UniqueIdentifier);
             set
             {
-                if (value?.GetType() != _buttonPressAction?.GetType())
+                if (value?.UniqueIdentifier != _buttonPressAction?.UniqueIdentifier)
                 {
                     if (_buttonPressAction != null)
                     {

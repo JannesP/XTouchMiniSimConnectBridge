@@ -8,7 +8,7 @@ using Microsoft.FlightSimulator.SimConnect;
 namespace JannesP.DeviceSimConnectBridge.MsfsModule.Client.Requests
 {
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
-    public struct ReadLVarRequestData
+    internal struct ReadLVarRequestData
     {
         public int RequestId;
 
@@ -17,13 +17,13 @@ namespace JannesP.DeviceSimConnectBridge.MsfsModule.Client.Requests
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
-    public struct ReadLVarResponseData
+    internal struct ReadLVarResponseData
     {
         public int RequestId;
         public double Value;
     }
 
-    public class ReadLVarRequest : MsfsModuleRequestWithResponse<double>
+    internal class ReadLVarRequest : MsfsModuleRequestWithResponse<double>
     {
         public const uint DefineId = 1;
 

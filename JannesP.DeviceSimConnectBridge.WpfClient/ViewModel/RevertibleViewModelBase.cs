@@ -37,7 +37,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel
             DisableTouchedTracking();
             OnChildrenApplyChanges();
             OnApplyChanges();
-            OnEndApplyChanged();
+            OnEndApplyChanges();
             EnableTouchedTracking();
         }
 
@@ -93,7 +93,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel
             }
         }
 
-        protected virtual void OnEndApplyChanged()
+        protected virtual void OnEndApplyChanges()
         {
             IsTouched = false;
         }

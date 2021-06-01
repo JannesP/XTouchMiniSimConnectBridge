@@ -1,19 +1,20 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>netstandard2.1</TargetFramework>
-    <Platforms>x64</Platforms>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>netstandard2.1</TargetFramework>
+		<Platforms>x64</Platforms>
+		<Nullable>enable</Nullable>
+		<WarningsAsErrors>nullable</WarningsAsErrors>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\JannesP.SimConnectWrapper\JannesP.SimConnectWrapper.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\JannesP.SimConnectWrapper\JannesP.SimConnectWrapper.csproj" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <Reference Include="Microsoft.FlightSimulator.SimConnect">
-      <HintPath>..\..\..\MSFS SDK\SimConnect SDK\lib\managed\Microsoft.FlightSimulator.SimConnect.dll</HintPath>
-      <Private>true</Private>
-    </Reference>
-  </ItemGroup>
-
+	<ItemGroup>
+		<Reference Include="Microsoft.FlightSimulator.SimConnect">
+			<HintPath>..\..\..\MSFS SDK\SimConnect SDK\lib\managed\Microsoft.FlightSimulator.SimConnect.dll</HintPath>
+			<Private>true</Private>
+		</Reference>
+	</ItemGroup>
 </Project>

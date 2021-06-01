@@ -1,27 +1,28 @@
 ﻿using System;
-using System.Diagnostics.CodeAnalysis;
+using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.Serialization;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using JannesP.DeviceSimConnectBridge.WpfApp.Managers;
-using JannesP.SimConnectWrapper;
 using Microsoft.Extensions.DependencyInjection;
+using JannesP.DeviceSimConnectBridge.WpfApp.Managers;
+using System.Diagnostics.CodeAnalysis;
 
 namespace JannesP.DeviceSimConnectBridge.WpfApp.BindableActions.DataSources
 {
     [DataContract]
-    public class SimVarBoolDataSource : ISimBoolSourceAction
+    public class LVarBoolDataSource : ISimBoolSourceAction
     {
         private readonly SemaphoreSlim _sem = new(1);
-        private SimConnectDataDefinition? _dataDefinition;
         private int? _interval;
         private int? _intervalId;
+        private string? _lvarVarName;
         private SimConnectManager? _simConnectManager;
-        private string? _simVarName;
 
         public event EventHandler<SimDataReceivedEventArgs<bool>>? SimBoolReceived;
 
-        public string Description => "Retrieves a SimVar with SimConnect that is a Bool (eg. 'AUTOPILOT MASTER').";
+        public string Description => "Retrieves an LVar from MSFS that represents a Bool (eg. 'WT_CJ4_HDG_ON').";
 
         [DataMember]
         [IntActionSetting("Interval", "The polling frequency in ms.", Min = 20, Max = 60000)]
@@ -39,32 +40,31 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.BindableActions.DataSources
         }
 
         public bool IsInitialized { get; private set; } = false;
-        public string Name => "Retrieve Bool SimVar";
 
         [DataMember]
-        [StringActionSetting("SimVar Name", "The name of the SimVar (eg. \"AUTOPILOT MASTER\")", CanBeEmpty = false)]
-        public string? SimVarName
+        [StringActionSetting("LVar Name", "The name of the LVar (eg. \"WT_CJ4_HDG_ON\")", CanBeEmpty = false)]
+        public string? LVarVarName
         {
-            get => _simVarName;
+            get => _lvarVarName;
             set
             {
-                if (_simVarName != value)
+                if (_lvarVarName != value)
                 {
-                    _simVarName = value;
-                    if (!string.IsNullOrWhiteSpace(_simVarName))
+                    _lvarVarName = value;
+                    if (!string.IsNullOrWhiteSpace(_lvarVarName))
                     {
-                        _dataDefinition = new SimConnectDataDefinition(_simVarName, SimConnectDataDefinition.SimConnectUnitName.Bool, SimConnectDataType.FLOAT64);
                         _ = UpdateIntervalRequestAsync();
                     }
                     else
                     {
-                        _dataDefinition = null;
+                        _lvarVarName = null;
                     }
                 }
             }
         }
 
-        public string UniqueIdentifier => nameof(SimVarBoolDataSource);
+        public string Name => "Retrieve Bool LVar";
+        public string UniqueIdentifier => nameof(LVarBoolDataSource);
 
         public async Task DeactivateAsync()
         {
@@ -96,8 +96,16 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.BindableActions.DataSources
             await UpdateIntervalRequestAsync().ConfigureAwait(false);
         }
 
-        [MemberNotNullWhen(true, nameof(Interval), nameof(SimVarName), nameof(_dataDefinition))]
+        [MemberNotNullWhen(true, nameof(Interval), nameof(LVarVarName))]
         private bool AreSettingsValidInternal() => this.AreSettingsValid();
+
+        private void MsfsClient_IntervalResult(object? sender, MsfsModule.Client.IntervalResultEventArgs e)
+        {
+            if (e.LVarName == LVarVarName)
+            {
+                SimBoolReceived?.Invoke(this, new SimDataReceivedEventArgs<bool>((double)e.Value != 0));
+            }
+        }
 
         private async void SimConnectManager_StateChanged(object? sender, SimConnectManager.StateChangedEventArgs e)
         {
@@ -113,7 +121,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.BindableActions.DataSources
 
         private void SimConnectWrapper_IntervalRequestResult(object? sender, SimConnectWrapper.EventArgs.IntervalRequestResultEventArgs e)
         {
-            if (e.Result == null || e.RequestId != _intervalId) return;
+            if (e.Result == null) return;
             SimBoolReceived?.Invoke(this, new SimDataReceivedEventArgs<bool>((double)e.Result != 0));
         }
 
@@ -124,19 +132,19 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.BindableActions.DataSources
             {
                 if (_intervalId.HasValue)
                 {
-                    if (_simConnectManager?.SimConnectWrapper != null)
+                    if (_simConnectManager?.MsfsClient != null)
                     {
-                        await _simConnectManager.SimConnectWrapper.CancelIntervalRequest(_intervalId.Value).ConfigureAwait(false);
+                        _simConnectManager.MsfsClient.StopLVarIntervalUpdates(_intervalId.Value);
                     }
                     _intervalId = null;
                 }
                 if (IsInitialized && AreSettingsValidInternal())
                 {
-                    if (_simConnectManager?.SimConnectWrapper != null)
+                    if (_simConnectManager?.MsfsClient != null)
                     {
-                        _simConnectManager.SimConnectWrapper.IntervalRequestResult -= SimConnectWrapper_IntervalRequestResult;
-                        _simConnectManager.SimConnectWrapper.IntervalRequestResult += SimConnectWrapper_IntervalRequestResult;
-                        _intervalId = await _simConnectManager.SimConnectWrapper.IntervalRequestObjectByType<double>(Interval.Value, _dataDefinition).ConfigureAwait(false);
+                        _simConnectManager.MsfsClient.IntervalResult -= MsfsClient_IntervalResult;
+                        _simConnectManager.MsfsClient.IntervalResult += MsfsClient_IntervalResult;
+                        _intervalId = _simConnectManager.MsfsClient.StartLVarIntervalUpdates(LVarVarName, TimeSpan.FromMilliseconds(Interval.Value));
                     }
                 }
             }

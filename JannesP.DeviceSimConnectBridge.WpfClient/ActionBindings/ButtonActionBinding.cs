@@ -30,11 +30,15 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ActionBindings
 
         public override void Enable(IServiceProvider serviceProvider, IDevice device)
         {
+            bool wasEnabled = IsEnabled;
             base.Enable(serviceProvider, device);
-            _logger = serviceProvider.GetRequiredService<ILogger<ButtonActionBinding>>();
+            if (!wasEnabled)
+            {
+                _logger = serviceProvider.GetRequiredService<ILogger<ButtonActionBinding>>();
 
-            Device.ButtonDown += Device_ButtonDown;
-            Device.ButtonUp += Device_ButtonUp;
+                Device.ButtonDown += Device_ButtonDown;
+                Device.ButtonUp += Device_ButtonUp;
+            }
         }
 
         public override bool IsEmpty() => ButtonPressed == null;

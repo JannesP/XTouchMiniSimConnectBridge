@@ -118,7 +118,7 @@
       <AdditionalLibraryDirectories>$(OutDir)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>"$(SolutionDir)tools\MsfsModulePackHelper\MsfsModulePackHelper.exe" -Manifest "$(ProjectDir)msfs_module_manifest.json" -Modules "$(OutDir)\" -Output "$(SolutionDir)bin\Publish" -Deploy "F:\Programs\Flight Simulator Packages\Community\DeviceSimConnectBridgeModule"</Command>
+      <Command>"$(SolutionDir)tools\MsfsModulePackHelper\MsfsModulePackHelper.exe" -Manifest "$(ProjectDir)msfs_module_manifest.json" -Modules "$(OutDir)\" -Output "$(SolutionDir)bin\Publish" -Deploy "F:\MSFS\Mods\Other\DeviceSimConnectBridgeModule"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|MSFS'">

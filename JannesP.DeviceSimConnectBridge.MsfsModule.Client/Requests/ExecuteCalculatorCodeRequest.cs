@@ -8,7 +8,7 @@ using Microsoft.FlightSimulator.SimConnect;
 namespace JannesP.DeviceSimConnectBridge.MsfsModule.Client.Requests
 {
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
-    public struct ExecuteCalculatorCodeRequestData
+    internal struct ExecuteCalculatorCodeRequestData
     {
         public int RequestId;
 
@@ -16,7 +16,7 @@ namespace JannesP.DeviceSimConnectBridge.MsfsModule.Client.Requests
         public string HEventName;
     }
 
-    public class ExecuteCalculatorCodeRequest : MsfsModuleRequest
+    internal class ExecuteCalculatorCodeRequest : MsfsModuleRequest
     {
         public ExecuteCalculatorCodeRequest(string heventName)
         {

@@ -93,11 +93,11 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
         }
     }
 
-    public class DesignTimeBindingProfileEditorViewModel : IBindingProfileEditorViewModel
+    public class DesignTimeBindingProfileEditorViewModel : DesignTimeViewModel, IBindingProfileEditorViewModel
     {
-        public ICommand CommandApplyChanges => new DesignTimeCommand();
+        public ICommand CommandApplyChanges => EmptyCommand;
 
-        public ICommand CommandRevertChanges => new DesignTimeCommand();
+        public ICommand CommandRevertChanges => EmptyCommand;
 
         public ObservableCollection<IDeviceBindingConfigurationEditorViewModel> Devices { get; } = new ObservableCollection<IDeviceBindingConfigurationEditorViewModel>()
         {

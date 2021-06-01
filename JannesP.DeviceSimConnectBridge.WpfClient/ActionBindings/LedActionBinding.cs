@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.Serialization;
 using JannesP.DeviceSimConnectBridge.Device;
@@ -13,7 +14,6 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ActionBindings
     {
         private ISimBoolSourceAction? _dataSource;
         private IDeviceLed? _deviceLed;
-        private bool _isEnabled = false;
         private ILogger<LedActionBinding>? _logger;
 
         [DataMember]
@@ -28,13 +28,17 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ActionBindings
                         _dataSource.SimBoolReceived -= DataSource_SimBoolReceived;
                     }
                     _dataSource = value;
+                    if (_dataSource != null && IsEnabled && ServiceProvider != null)
+                    {
+                        _dataSource.SimBoolReceived += DataSource_SimBoolReceived;
+                        _dataSource.InitializeAsync(ServiceProvider);
+                    }
                 }
             }
         }
 
         public override async void Disable()
         {
-            _isEnabled = false;
             base.Disable();
             if (DataSource != null)
             {
@@ -45,15 +49,16 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ActionBindings
 
         public override async void Enable(IServiceProvider serviceProvider, IDevice device)
         {
-            if (_isEnabled) throw new InvalidOperationException("LedActionBinding is already enabled!");
+            bool wasEnabled = IsEnabled;
             base.Enable(serviceProvider, device);
-            _isEnabled = true;
-
-            if (_logger == null) _logger = serviceProvider.GetService<ILogger<LedActionBinding>>();
-            if (DataSource != null)
+            if (!wasEnabled)
             {
-                await DataSource.InitializeAsync(serviceProvider).ConfigureAwait(false);
-                DataSource.SimBoolReceived += DataSource_SimBoolReceived;
+                if (_logger == null) _logger = serviceProvider.GetService<ILogger<LedActionBinding>>();
+                if (DataSource != null)
+                {
+                    await DataSource.InitializeAsync(serviceProvider).ConfigureAwait(false);
+                    DataSource.SimBoolReceived += DataSource_SimBoolReceived;
+                }
             }
         }
 

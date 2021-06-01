@@ -21,7 +21,7 @@ namespace DirtyConsoleTests
                     return;
                 }
                 int x = 0;
-                MsfsModuleClient client = new(simConnect);
+                var client = MsfsModuleClient.CreateFor(simConnect);
                 while (Console.ReadLine() != "stop")
                 {
                     if (x++ % 2 == 0)

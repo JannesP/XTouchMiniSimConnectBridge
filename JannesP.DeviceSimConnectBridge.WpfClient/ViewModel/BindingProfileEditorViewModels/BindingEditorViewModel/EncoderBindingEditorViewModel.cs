@@ -122,7 +122,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
             get => AvailableActions.FirstOrDefault(a => a.UniqueIdentifier == _selectedAntiClockwiseAction?.UniqueIdentifier);
             set
             {
-                if (value?.GetType() != _selectedAntiClockwiseAction?.GetType())
+                if (value?.UniqueIdentifier != _selectedAntiClockwiseAction?.UniqueIdentifier)
                 {
                     if (_selectedAntiClockwiseAction != null)
                     {
@@ -146,7 +146,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
             get => AvailableActions.FirstOrDefault(a => a.UniqueIdentifier == _selectedClockwiseAction?.UniqueIdentifier);
             set
             {
-                if (value?.GetType() != _selectedClockwiseAction?.GetType())
+                if (value?.UniqueIdentifier != _selectedClockwiseAction?.UniqueIdentifier)
                 {
                     if (_selectedClockwiseAction != null)
                     {

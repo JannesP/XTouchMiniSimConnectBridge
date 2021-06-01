@@ -82,7 +82,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
             get => AvailableDataSources.FirstOrDefault(a => a.UniqueIdentifier == _dataSource?.UniqueIdentifier);
             set
             {
-                if (value?.GetType() != _dataSource?.GetType())
+                if (value?.UniqueIdentifier != _dataSource?.UniqueIdentifier)
                 {
                     if (_dataSource != null)
                     {

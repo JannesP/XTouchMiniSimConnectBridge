@@ -50,8 +50,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
 
         public async Task EnableAsync(BindingProfile profile)
         {
-            if (profile.BindingConfigurations == null) throw new Exception("F");
-            foreach (DeviceBindingConfiguration? bindingConfiguration in profile.BindingConfigurations)
+            foreach (DeviceBindingConfiguration bindingConfiguration in profile.BindingConfigurations)
             {
                 if (bindingConfiguration.DeviceType == null)
                 {
@@ -64,7 +63,14 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
                     _logger.LogInformation("Couldn't find device '{0}:{1}' for a BindingConfiguration.", bindingConfiguration.DeviceType, bindingConfiguration.DeviceId ?? "<null>");
                     continue;
                 }
-                await device.ConnectAsync();
+                if (!device.IsConnected)
+                {
+                    await device.ConnectAsync().ConfigureAwait(false);
+                }
+                else
+                {
+                    await device.ResetDeviceState().ConfigureAwait(false);
+                }
                 bindingConfiguration.Bindings.ForEach(ab => ab.Enable(_serviceProvider, device));
             }
         }
