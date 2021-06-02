@@ -53,6 +53,8 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
 
     public class DesignTimeDeviceBindingConfigurationEditorViewModel : IDeviceBindingConfigurationEditorViewModel
     {
+        public override DeviceBindingConfiguration BindingConfig => throw new NotSupportedException();
+
         public override IEnumerable<IBindingListViewModel> BindingTypes { get; protected set; } = new List<IBindingListViewModel>()
         {
             new DesignTimeBindingListViewModel("Buttons", new ObservableCollection<IBindingEditorViewModel>()
@@ -89,7 +91,6 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
 
     public class DeviceBindingConfigurationEditorViewModel : IDeviceBindingConfigurationEditorViewModel
     {
-        private readonly DeviceBindingConfiguration _bindingConfig;
         private readonly DeviceRepository _deviceRepository;
         private readonly IServiceProvider _serviceProvider;
         private IDevice? _device;
@@ -99,7 +100,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
         {
             bindingConfig.ThrowIfNotComplete();
             _serviceProvider = serviceProvider;
-            _bindingConfig = bindingConfig;
+            BindingConfig = bindingConfig;
             _device = device;
             Name = bindingConfig.FriendlyName;
             DeviceType = bindingConfig.DeviceType;
@@ -113,6 +114,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
             EnableTouchedTracking();
         }
 
+        public override DeviceBindingConfiguration BindingConfig { get; }
         public override IEnumerable<IBindingListViewModel> BindingTypes { get; protected set; }
 
         public override string? DeviceId { get; protected set; }
@@ -137,12 +139,12 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
         protected override void OnApplyChanges()
         {
             //remove models that are now "empty"
-            _bindingConfig.Bindings.RemoveAll(bc => bc.IsEmpty());
+            BindingConfig.Bindings.RemoveAll(bc => bc.IsEmpty);
             //add models that aren't empty and aren't already included
-            _bindingConfig.Bindings.AddRange(BindingTypes
+            BindingConfig.Bindings.AddRange(BindingTypes
                 .SelectMany(bt => bt.Editors)
                 .Select(b => b.Model)
-                .Where(b => !b.IsEmpty() && !_bindingConfig.Bindings.Contains(b)));
+                .Where(b => !b.IsEmpty && !BindingConfig.Bindings.Contains(b)));
         }
 
         protected override void OnRevertChanges()
@@ -158,11 +160,11 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
             ObservableCollection<IBindingEditorViewModel> _ledBindingViewModels;
             if (_device != null)
             {
-                IEnumerable<ButtonActionBinding> buttonBindings = _bindingConfig.Bindings.OfType<ButtonActionBinding>();
+                IEnumerable<ButtonActionBinding> buttonBindings = BindingConfig.Bindings.OfType<ButtonActionBinding>();
                 _buttonBindingViewModels = new ObservableCollection<IBindingEditorViewModel>(_device.Buttons
                     .Select(b => new ButtonBindingEditorViewModel(_serviceProvider, buttonBindings.SingleOrDefault(ab => ab.DeviceControlId == b.Id) ?? new ButtonActionBinding { DeviceControlId = b.Id }, b)));
 
-                IEnumerable<EncoderActionBinding> encoderBindings = _bindingConfig.Bindings.OfType<EncoderActionBinding>();
+                IEnumerable<EncoderActionBinding> encoderBindings = BindingConfig.Bindings.OfType<EncoderActionBinding>();
                 _encoderBindingViewModels = new ObservableCollection<IBindingEditorViewModel>(_device.Encoders
                     .Select(e => new EncoderBindingEditorViewModel(_serviceProvider, encoderBindings.SingleOrDefault(ab => ab.DeviceControlId == e.Id) ?? new EncoderActionBinding { DeviceControlId = e.Id }, e)));
 
@@ -170,17 +172,17 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
                 var faders = new BindingListViewModel("Faders", device.Faders.Select(b => new FaderBindingEditorViewModel().ToList()));
                 bindingTypes.Add(faders);*/
 
-                IEnumerable<LedActionBinding> ledBindings = _bindingConfig.Bindings.OfType<LedActionBinding>();
+                IEnumerable<LedActionBinding> ledBindings = BindingConfig.Bindings.OfType<LedActionBinding>();
                 _ledBindingViewModels = new ObservableCollection<IBindingEditorViewModel>(_device.Leds
                     .Select(led => new LedBindingEditorViewModel(_serviceProvider, ledBindings.SingleOrDefault(ab => ab.DeviceControlId == led.Id) ?? new LedActionBinding { DeviceControlId = led.Id }, led)));
             }
             else
             {
-                _buttonBindingViewModels = new ObservableCollection<IBindingEditorViewModel>(_bindingConfig.Bindings
+                _buttonBindingViewModels = new ObservableCollection<IBindingEditorViewModel>(BindingConfig.Bindings
                     .OfType<ButtonActionBinding>()
                     .Select(bab => new ButtonBindingEditorViewModel(_serviceProvider, bab, null)));
 
-                _encoderBindingViewModels = new ObservableCollection<IBindingEditorViewModel>(_bindingConfig.Bindings
+                _encoderBindingViewModels = new ObservableCollection<IBindingEditorViewModel>(BindingConfig.Bindings
                      .OfType<EncoderActionBinding>()
                      .Select(bab => new EncoderBindingEditorViewModel(_serviceProvider, bab, null)));
 
@@ -188,7 +190,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
                var faders = new BindingListViewModel("Faders", device.Faders.Select(b => new FaderBindingEditorViewModel().ToList()));
                bindingTypes.Add(faders);*/
 
-                _ledBindingViewModels = new ObservableCollection<IBindingEditorViewModel>(_bindingConfig.Bindings
+                _ledBindingViewModels = new ObservableCollection<IBindingEditorViewModel>(BindingConfig.Bindings
                     .OfType<LedActionBinding>()
                     .Select(bab => new LedBindingEditorViewModel(_serviceProvider, bab, null)));
             }
@@ -241,6 +243,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
 
     public abstract class IDeviceBindingConfigurationEditorViewModel : RevertibleViewModelBase
     {
+        public abstract DeviceBindingConfiguration BindingConfig { get; }
         public abstract IEnumerable<IBindingListViewModel> BindingTypes { get; protected set; }
 
         public abstract string? DeviceId { get; protected set; }

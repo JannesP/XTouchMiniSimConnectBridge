@@ -25,7 +25,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
         {
             _bindingActionRepository = serviceProvider.GetRequiredService<BindingActionRepository>();
             _buttonBinding = buttonBinding;
-            AvailableActions = _bindingActionRepository.GetAll<ISimpleBindableAction>().Select(b => new SimpleBindableActionEditorViewModel(b)).ToList();
+            AvailableActions = _bindingActionRepository.GetAll<ISimpleBindableAction>().Select(b => new SimpleBindableActionEditorViewModel((ISimpleBindableAction)b.CreateNew())).ToList();
             CommandClearButtonPressAction = new NotifiedRelayCommand(o => SelectedAction = null, o => ButtonPressAction != null, this, nameof(ButtonPressAction));
 
             LoadFromModel();

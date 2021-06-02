@@ -37,6 +37,8 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ActionBindings
             }
         }
 
+        public override bool IsEmpty => DataSource == null;
+
         public override async void Disable()
         {
             base.Disable();
@@ -61,8 +63,6 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ActionBindings
                 }
             }
         }
-
-        public override bool IsEmpty() => DataSource == null;
 
         private void DataSource_SimBoolReceived(object? sender, SimDataReceivedEventArgs<bool> e)
         {

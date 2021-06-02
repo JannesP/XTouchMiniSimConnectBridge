@@ -15,6 +15,8 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ActionBindings
         [DataMember]
         public ISimpleBindableAction? ButtonPressed { get; set; }
 
+        public override bool IsEmpty => ButtonPressed == null;
+
         [DataMember]
         public bool TriggerOnRelease { get; set; } = false;
 
@@ -40,8 +42,6 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ActionBindings
                 Device.ButtonUp += Device_ButtonUp;
             }
         }
-
-        public override bool IsEmpty() => ButtonPressed == null;
 
         private void Device_ButtonDown(object? sender, DeviceButtonEventArgs e)
         {

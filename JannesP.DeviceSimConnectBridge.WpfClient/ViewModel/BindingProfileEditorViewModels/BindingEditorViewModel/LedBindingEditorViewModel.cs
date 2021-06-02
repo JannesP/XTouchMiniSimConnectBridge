@@ -64,7 +64,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
         {
             _bindingActionRepository = serviceProvider.GetRequiredService<BindingActionRepository>();
             _actionBinding = actionBinding;
-            AvailableDataSources = _bindingActionRepository.GetAll<ISimBoolSourceAction>().Select(a => new SimBoolSourceActionViewModel(a)).ToList();
+            AvailableDataSources = _bindingActionRepository.GetAll<ISimBoolSourceAction>().Select(a => new SimBoolSourceActionViewModel((ISimBoolSourceAction)a.CreateNew())).ToList();
             CommandClearDataSource = new NotifiedRelayCommand(o => SelectedDataSource = null, o => DataSource != null, this, nameof(DataSource));
 
             LoadFromModel();

@@ -21,12 +21,14 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
 
         public DesignTimeEncoderBindingEditorViewModel() : base(null!, null)
         {
-            EncoderClockwiseAction = AvailableActions.Skip(1).First();
-            EncoderAntiClockwiseAction = AvailableActions.Skip(2).First();
+            EncoderClockwiseAction = AvailableClockwiseActions.Skip(1).First();
+            EncoderAntiClockwiseAction = AvailableClockwiseActions.Skip(2).First();
             ConfigurationSummary = $"{EncoderClockwiseAction.ConfigurationSummary}, {EncoderAntiClockwiseAction.ConfigurationSummary}";
         }
 
-        public override IEnumerable<ISimpleBindableActionEditorViewModel> AvailableActions { get; } = new List<ISimpleBindableActionEditorViewModel>
+        public override IEnumerable<ISimpleBindableActionEditorViewModel> AvailableAntiClockwiseActions => AvailableClockwiseActions;
+
+        public override IEnumerable<ISimpleBindableActionEditorViewModel> AvailableClockwiseActions { get; } = new List<ISimpleBindableActionEditorViewModel>
         {
             new DesignTimeSimpleBindableActionEditorViewModel(),
             new DesignTimeSimpleBindableActionEditorViewModel(),
@@ -62,7 +64,9 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
         {
             _bindingActionRepository = serviceProvider.GetRequiredService<BindingActionRepository>();
             _encoderBinding = encoderBinding;
-            AvailableActions = _bindingActionRepository.GetAll<ISimpleBindableAction>().Select(b => new SimpleBindableActionEditorViewModel(b)).ToList();
+            IEnumerable<SimpleBindableActionEditorViewModel> availableActions = _bindingActionRepository.GetAll<ISimpleBindableAction>().Select(b => new SimpleBindableActionEditorViewModel((ISimpleBindableAction)b.CreateNew()));
+            AvailableClockwiseActions = availableActions.ToList();
+            AvailableAntiClockwiseActions = availableActions.ToList();
             CommandClearClockwiseAction = new NotifiedRelayCommand(o => SelectedClockwiseAction = null, o => EncoderClockwiseAction != null, this, nameof(EncoderClockwiseAction));
             CommandClearAntiClockwiseAction = new NotifiedRelayCommand(o => SelectedAntiClockwiseAction = null, o => EncoderAntiClockwiseAction != null, this, nameof(EncoderAntiClockwiseAction));
 
@@ -70,8 +74,8 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
             EnableTouchedTracking();
         }
 
-        public override IEnumerable<ISimpleBindableActionEditorViewModel> AvailableActions { get; }
-
+        public override IEnumerable<ISimpleBindableActionEditorViewModel> AvailableAntiClockwiseActions { get; }
+        public override IEnumerable<ISimpleBindableActionEditorViewModel> AvailableClockwiseActions { get; }
         public override ICommand CommandClearAntiClockwiseAction { get; protected set; }
         public override ICommand CommandClearClockwiseAction { get; protected set; }
 
@@ -119,7 +123,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
 
         public override ISimpleBindableActionEditorViewModel? SelectedAntiClockwiseAction
         {
-            get => AvailableActions.FirstOrDefault(a => a.UniqueIdentifier == _selectedAntiClockwiseAction?.UniqueIdentifier);
+            get => AvailableAntiClockwiseActions.FirstOrDefault(a => a.UniqueIdentifier == _selectedAntiClockwiseAction?.UniqueIdentifier);
             set
             {
                 if (value?.UniqueIdentifier != _selectedAntiClockwiseAction?.UniqueIdentifier)
@@ -136,14 +140,14 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
                         AddChildren(_selectedAntiClockwiseAction);
                     }
                     OnPropertyChanged(true);
-                    OnPropertyChanged(nameof(EncoderClockwiseAction));
+                    OnPropertyChanged(nameof(EncoderAntiClockwiseAction));
                 }
             }
         }
 
         public override ISimpleBindableActionEditorViewModel? SelectedClockwiseAction
         {
-            get => AvailableActions.FirstOrDefault(a => a.UniqueIdentifier == _selectedClockwiseAction?.UniqueIdentifier);
+            get => AvailableClockwiseActions.FirstOrDefault(a => a.UniqueIdentifier == _selectedClockwiseAction?.UniqueIdentifier);
             set
             {
                 if (value?.UniqueIdentifier != _selectedClockwiseAction?.UniqueIdentifier)
@@ -212,7 +216,8 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
         protected IEncoderBindingEditorViewModel(EncoderActionBinding actionBinding, IDeviceEncoder? deviceButton) : base(actionBinding, deviceButton)
         { }
 
-        public abstract IEnumerable<ISimpleBindableActionEditorViewModel> AvailableActions { get; }
+        public abstract IEnumerable<ISimpleBindableActionEditorViewModel> AvailableAntiClockwiseActions { get; }
+        public abstract IEnumerable<ISimpleBindableActionEditorViewModel> AvailableClockwiseActions { get; }
         public abstract ICommand CommandClearAntiClockwiseAction { get; protected set; }
         public abstract ICommand CommandClearClockwiseAction { get; protected set; }
         public abstract ISimpleBindableActionEditorViewModel? EncoderAntiClockwiseAction { get; }

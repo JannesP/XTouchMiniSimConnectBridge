@@ -104,7 +104,7 @@
 
                                                                         <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Text="Clockwise Rotation:" />
                                                                         <ComboBox Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" Margin="{StaticResource SpacingSmallLeft}" Width="200"
-                                                                                ItemsSource="{Binding Path=AvailableActions}"
+                                                                                ItemsSource="{Binding Path=AvailableClockwiseActions}"
                                                                                 SelectedItem="{Binding Path=SelectedClockwiseAction}"
                                                                                 ItemTemplate="{StaticResource DataTemplateItemComboBoxAction}"
                                                                                 ToolTip="{Binding Path=EncoderClockwiseAction.ConfigurationSummary}" />
@@ -116,7 +116,7 @@
                                                                         <TextBlock Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" Margin="{StaticResource SpacingSmallLeft}"
                                                                                 Text="Anti-Clockwise Rotation:" />
                                                                         <ComboBox Grid.Row="2" Grid.Column="1" VerticalAlignment="Center" Margin="{StaticResource SpacingSmallLeft}" Width="200"
-                                                                                ItemsSource="{Binding Path=AvailableActions}"
+                                                                                ItemsSource="{Binding Path=AvailableAntiClockwiseActions}"
                                                                                 SelectedItem="{Binding Path=SelectedAntiClockwiseAction}"
                                                                                 ItemTemplate="{StaticResource DataTemplateItemComboBoxAction}"
                                                                                 ToolTip="{Binding Path=EncoderAntiClockwiseAction.ConfigurationSummary}" />

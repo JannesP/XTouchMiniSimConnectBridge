@@ -157,6 +157,8 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindableActionSettings
 
         public string UniqueIdentifier => nameof(DesignTimeBindableAction);
 
+        public IBindableAction Clone() => throw new NotSupportedException();
+
         public Task DeactivateAsync() => throw new NotSupportedException();
 
         public Task ExecuteAsync() => throw new NotImplementedException();

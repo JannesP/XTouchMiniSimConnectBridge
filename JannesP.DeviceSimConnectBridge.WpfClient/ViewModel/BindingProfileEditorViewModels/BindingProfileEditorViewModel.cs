@@ -19,19 +19,19 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
         ICommand CommandRevertChanges { get; }
         ObservableCollection<IDeviceBindingConfigurationEditorViewModel> Devices { get; }
         bool IsTouched { get; }
+        BindingProfile Model { get; }
     }
 
     public class BindingProfileEditorViewModel : RevertibleViewModelBase, IBindingProfileEditorViewModel
     {
         private readonly DeviceRepository _deviceRepository;
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("CodeQuality", "IDE0052:Remove unread private members", Justification = "I want this here, because it's the model.")]
-        private readonly BindingProfile _profile;
+        public BindingProfile Model { get; }
 
         public BindingProfileEditorViewModel(IServiceProvider service, BindingProfile profile)
         {
             _deviceRepository = service.GetRequiredService<DeviceRepository>();
-            _profile = profile;
+            Model = profile;
 
             var deviceList = new List<IDeviceBindingConfigurationEditorViewModel>();
             //add all available devices
@@ -71,7 +71,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
 
         protected override void OnApplyChanges()
         {
-            /* nothing to do here :) */
+            Model.BindingConfigurations = Devices.Select(bindings => bindings.BindingConfig).Where(bindings => bindings.Bindings.Count > 0).ToList();
         }
 
         protected override void OnRevertChanges()
@@ -107,6 +107,8 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindingProfileEditorVi
         };
 
         public bool IsTouched => false;
+
+        public BindingProfile Model => throw new NotSupportedException();
 
         public void ApplyChanges() => throw new NotSupportedException();
 

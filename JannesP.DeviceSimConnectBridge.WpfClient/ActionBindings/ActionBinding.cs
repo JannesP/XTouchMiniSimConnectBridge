@@ -14,6 +14,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ActionBindings
         [DataMember]
         public int? DeviceControlId { get; set; }
 
+        public abstract bool IsEmpty { get; }
         public bool IsEnabled { get; protected set; }
 
         protected IDevice? Device { get; private set; }
@@ -32,7 +33,5 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ActionBindings
             ServiceProvider = serviceProvider;
             Device = device;
         }
-
-        public abstract bool IsEmpty();
     }
 }

@@ -60,13 +60,14 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.WindowViewModels
             _profileEditor.CommandApplyChanges.CanExecuteChanged += ProfileEditorCommandApplyChanges_CanExecuteChanged;
             _profileEditor.CommandRevertChanges.CanExecuteChanged += ProfileEditorCommandRevertChanges_CanExecuteChanged;
 
-            _commandApplyProfileChanges = new NotifiedRelayCommand(o =>
+            _commandApplyProfileChanges = new NotifiedRelayCommand(async o =>
             {
+                await _deviceBindingManager.DisableAsync(ProfileEditor.Model);
                 ProfileEditor.CommandApplyChanges.Execute(o);
-                _ = _deviceBindingManager.EnableAsync(_profileManager.GetCurrentProfile()).ContinueWith(t =>
+                if (_profileManager.GetCurrentProfile() == ProfileEditor.Model)
                 {
-                    _logger.LogError(t.Exception, "Error enabling current profile.");
-                }, TaskContinuationOptions.OnlyOnFaulted);
+                    await _deviceBindingManager.EnableAsync(_profileManager.GetCurrentProfile());
+                }
             }, o => ProfileEditor.CommandApplyChanges.CanExecute(o), this, nameof(ProfileEditor));
 
             _commandRevertProfileChanges = new NotifiedRelayCommand(ProfileEditor.CommandApplyChanges.Execute, ProfileEditor.CommandRevertChanges.CanExecute, this, nameof(ProfileEditor));

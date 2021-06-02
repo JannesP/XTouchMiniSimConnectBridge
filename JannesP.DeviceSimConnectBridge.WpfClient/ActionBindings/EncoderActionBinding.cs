@@ -15,6 +15,8 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ActionBindings
         [DataMember]
         public bool IgnoreSpeed { get; set; } = false;
 
+        public override bool IsEmpty => TurnClockwise == null && TurnAntiClockwise == null;
+
         [DataMember]
         public ISimpleBindableAction? TurnAntiClockwise { get; set; }
 
@@ -42,8 +44,6 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ActionBindings
                 Device.EncoderTurned += Device_EncoderTurned;
             }
         }
-
-        public override bool IsEmpty() => TurnClockwise == null && TurnAntiClockwise == null;
 
         private async void Device_EncoderTurned(object? sender, DeviceEncoderEventArgs e)
         {
