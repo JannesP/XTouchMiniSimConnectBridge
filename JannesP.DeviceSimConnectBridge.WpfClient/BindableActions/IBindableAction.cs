@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
@@ -49,6 +50,11 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.BindableActions
         }
 
         public static IEnumerable<BindableActionSetting> GetSettings(this IBindableAction action)
+        {
+            return action.GetSettingsUnordered().OrderBy(a => a.Attribute.Order);
+        }
+
+        public static IEnumerable<BindableActionSetting> GetSettingsUnordered(this IBindableAction action)
         {
             Type t = action.GetType();
             PropertyInfo[] props = t.GetProperties(BindingFlags.Public | BindingFlags.Instance);

@@ -24,7 +24,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.BindableActions.DataSources
         public string Description => "Retrieves a SimVar with SimConnect that is a Bool (eg. 'AUTOPILOT MASTER').";
 
         [DataMember]
-        [IntActionSetting("Interval", "The polling frequency in ms.", Min = 20, Max = 60000)]
+        [IntActionSetting("Interval", "The polling frequency in ms.", 2, Min = 20, Max = 60000)]
         public int? Interval
         {
             get => _interval;
@@ -42,7 +42,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.BindableActions.DataSources
         public string Name => "Retrieve Bool SimVar";
 
         [DataMember]
-        [StringActionSetting("SimVar Name", "The name of the SimVar (eg. \"AUTOPILOT MASTER\")", CanBeEmpty = false)]
+        [StringActionSetting("SimVar Name", "The name of the SimVar (eg. \"AUTOPILOT MASTER\")", 1, CanBeEmpty = false)]
         public string? SimVarName
         {
             get => _simVarName;

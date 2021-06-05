@@ -66,6 +66,9 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|MSFS'">
     <TargetExt>.wasm</TargetExt>
     <IncludePath>$(MSFS_IncludePath)</IncludePath>
+    <TargetName>DeviceSimConnectBridgeModule</TargetName>
+    <OutDir>$(ProjectDir)bin\$(Configuration)\</OutDir>
+    <IntDir>$(ProjectDir)obj\$(Configuration)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|MSFS'">
     <ClCompile>
@@ -118,7 +121,7 @@
       <AdditionalLibraryDirectories>$(OutDir)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>"$(SolutionDir)tools\MsfsModulePackHelper\MsfsModulePackHelper.exe" -Manifest "$(ProjectDir)msfs_module_manifest.json" -Modules "$(OutDir)\" -Output "$(SolutionDir)bin\Publish" -Deploy "F:\MSFS\Mods\Other\DeviceSimConnectBridgeModule"</Command>
+      <Command>"$(SolutionDir)tools\MsfsModulePackHelper\MsfsModulePackHelper.exe" -Manifest "$(ProjectDir)msfs_module_manifest.json" -Modules "$(OutDir)\" -Output "$(SolutionDir)bin\Publish" -Deploy "F:\Programs\Flight Simulator Packages\Community\DeviceSimConnectBridgeModule"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|MSFS'">
@@ -137,6 +140,8 @@
       <DebugInformationFormat>false</DebugInformationFormat>
       <SupportJustMyCode>
       </SupportJustMyCode>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -160,8 +165,7 @@
       <AdditionalLibraryDirectories>$(OutDir)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>
-      </Command>
+      <Command>"$(SolutionDir)tools\MsfsModulePackHelper\MsfsModulePackHelper.exe" -Manifest "$(ProjectDir)msfs_module_manifest.json" -Modules "$(OutDir)\" -Output "$(SolutionDir)bin\Publish" -Deploy "F:\Programs\Flight Simulator Packages\Community\DeviceSimConnectBridgeModule"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

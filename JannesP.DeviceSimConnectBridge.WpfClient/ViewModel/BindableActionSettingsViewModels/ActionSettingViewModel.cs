@@ -149,10 +149,10 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.ViewModel.BindableActionSettings
 
         public string Name => "DesignTime BindableAction";
 
-        [IntActionSetting("Int Setting", "This is a description for a DesignTime int setting.")]
+        [IntActionSetting("Int Setting", "This is a description for a DesignTime int setting.", 2)]
         public int TestInt { get; set; } = 259;
 
-        [StringActionSetting("String Setting", "This is a description for a DesignTime string setting.")]
+        [StringActionSetting("String Setting", "This is a description for a DesignTime string setting.", 1)]
         public string TestString { get; set; } = "SUPER EVENT";
 
         public string UniqueIdentifier => nameof(DesignTimeBindableAction);

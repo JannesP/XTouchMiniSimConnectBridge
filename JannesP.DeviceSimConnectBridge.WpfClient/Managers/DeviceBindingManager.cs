@@ -43,8 +43,8 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
                     _logger.LogInformation("Couldn't find device '{0}:{1}' for a BindingConfiguration.", bindingConfiguration.DeviceType, bindingConfiguration.DeviceId ?? "<null>");
                     continue;
                 }
-                await device.DisconnectAsync();
                 bindingConfiguration.Bindings.ForEach(ab => ab.Disable());
+                await device.DisconnectAsync();
             }
         }
 

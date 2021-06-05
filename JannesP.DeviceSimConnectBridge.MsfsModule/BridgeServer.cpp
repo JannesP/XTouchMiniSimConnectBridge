@@ -23,7 +23,7 @@ void CALLBACK BridgeServer::SimConnectMessageCallback(SIMCONNECT_RECV *pData, DW
 
 void BridgeServer::Start()
 {
-	DLOG;
+	TLOG;
 	// ignore call if simconnect is already open
 	if (this->hSimConnect) return;
 	this->InitSimConnect();
@@ -31,7 +31,7 @@ void BridgeServer::Start()
 
 void BridgeServer::Shutdown()
 {
-	DLOG;
+	TLOG;
 	// ignore call if simconnect is already closed
 	if (!this->hSimConnect) return;
 
@@ -43,13 +43,13 @@ void BridgeServer::HandleSimConnectMessage(SIMCONNECT_RECV *pData, DWORD cbData)
 {
 	switch (pData->dwID) {
 	case SIMCONNECT_RECV_ID_OPEN:
-		LOG("SIMCONNECT_RECV_ID_OPEN");
+		DLOG("SIMCONNECT_RECV_ID_OPEN");
 		break;
 	case SIMCONNECT_RECV_ID_QUIT:
-		LOG("SIMCONNECT_RECV_ID_QUIT");
+		DLOG("SIMCONNECT_RECV_ID_QUIT");
 		break;
 	case SIMCONNECT_RECV_ID_CLIENT_DATA:
-		LOG("SIMCONNECT_RECV_ID_CLIENT_DATA");
+		DLOG("SIMCONNECT_RECV_ID_CLIENT_DATA");
 		this->HandleSimConnectReceiveClientData(static_cast<SIMCONNECT_RECV_CLIENT_DATA *>(pData));
 		break;
 	}

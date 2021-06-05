@@ -5,14 +5,16 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.BindableActions
     [AttributeUsage(AttributeTargets.Property, Inherited = true, AllowMultiple = false)]
     public abstract class ActionSettingAttribute : Attribute
     {
-        public ActionSettingAttribute(string name, string description)
+        public ActionSettingAttribute(string name, string description, int order)
         {
             Name = name;
             Description = description;
+            Order = order;
         }
 
         public string Description { get; }
         public string Name { get; }
+        public int Order { get; }
 
         public abstract string? ValidateValue(object? value);
     }
@@ -20,7 +22,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.BindableActions
     [AttributeUsage(AttributeTargets.Property, Inherited = true, AllowMultiple = false)]
     public class IntActionSettingAttribute : ActionSettingAttribute
     {
-        public IntActionSettingAttribute(string name, string description) : base(name, description)
+        public IntActionSettingAttribute(string name, string description, int order) : base(name, description, order)
         {
         }
 
@@ -59,7 +61,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.BindableActions
     [AttributeUsage(AttributeTargets.Property, Inherited = true, AllowMultiple = false)]
     public class StringActionSettingAttribute : ActionSettingAttribute
     {
-        public StringActionSettingAttribute(string name, string description) : base(name, description)
+        public StringActionSettingAttribute(string name, string description, int order) : base(name, description, order)
         {
         }
 

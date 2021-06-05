@@ -4,7 +4,9 @@
 
 #define LOG(MSG) std::cout << "[DeviceSimConnectBridgeModule] " << MSG << std::endl
 #ifdef _DEBUG
-#define DLOG std::cout << "[DeviceSimConnectBridgeModule] " << __func__ << std::endl
+#define DLOG(MSG) LOG(MSG)
+#define TLOG LOG("[DeviceSimConnectBridgeModule] " << __func__)
 #else // DEBUG
-#define DLOG
+#define DLOG(MSG)
+#define TLOG
 #endif

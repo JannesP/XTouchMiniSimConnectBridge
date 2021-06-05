@@ -17,7 +17,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.BindableActions.SimConnectAction
         #region Persistable Settings
 
         [DataMember]
-        [StringActionSetting("Event Name", "You can find them in the docs for the plane you want to map. (for example 'A320_Neo_FCU_SPEED_PULL' and 'WT_CJ4_AP_HDG_PRESSED')", CanBeEmpty = false)]
+        [StringActionSetting("Event Name", "You can find them in the docs for the plane you want to map. (for example 'A320_Neo_FCU_SPEED_PULL' and 'WT_CJ4_AP_HDG_PRESSED')", 1, CanBeEmpty = false)]
         public string? HEventName { get; set; }
 
         #endregion Persistable Settings

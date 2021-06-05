@@ -34,7 +34,7 @@
             <MenuItem Header="_File">
                 <MenuItem Header="Settings" Click="MenuItemOpenSettings_Click" />
                 <Separator />
-                <MenuItem Header="_Exit" Command="{Binding Path=CommandExit}" />
+                <MenuItem Header="_Exit" Click="MenuItemExit_Click" />
             </MenuItem>
             <MenuItem Header="_Help">
                 <MenuItem Header="Open Github" Command="{Binding Path=CommandOpenGithub}" />

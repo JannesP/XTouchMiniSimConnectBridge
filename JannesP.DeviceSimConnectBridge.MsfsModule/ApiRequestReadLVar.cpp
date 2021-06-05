@@ -29,11 +29,11 @@ namespace ApiProtocol {
 
 	void ApiRequestReadLVar::Respond(HANDLE hSimConnect)
 	{
-		LOG("ApiRequestReadLVar::Respond(HANDLE hSimConnect): " << _lvarName.c_str());
+		DLOG("ApiRequestReadLVar::Respond(HANDLE hSimConnect): " << _lvarName.c_str());
 		//get variable by name
 		int lvar = check_named_variable(_lvarName.c_str());
 		if (lvar == -1) {
-			LOG("ApiRequestReadLVar::Respond(HANDLE hSimConnect): Requested LVar not found.");
+			DLOG("ApiRequestReadLVar::Respond(HANDLE hSimConnect): Requested LVar " << _lvarName.c_str() << " not found.");
 			return;
 		}
 		double value = get_named_variable_value(lvar);
@@ -42,6 +42,6 @@ namespace ApiProtocol {
 		response->requestId = _requestId;
 		response->value = value;
 		SimConnect_SetClientData(hSimConnect, DataAreaModuleOutput.id, DefinitionId + 100, SIMCONNECT_CLIENT_DATA_SET_FLAG_DEFAULT, 0, DataAreaModuleOutput.size, response);
-		LOG("ApiRequestReadLVar::Respond(HANDLE hSimConnect): Responded!");
+		DLOG("ApiRequestReadLVar::Respond(HANDLE hSimConnect): Responded!");
 	}
 }

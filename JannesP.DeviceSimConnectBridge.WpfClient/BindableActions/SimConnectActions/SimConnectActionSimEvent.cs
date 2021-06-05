@@ -13,11 +13,11 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.BindableActions.SimConnectAction
         #region Persistable Settings
 
         [DataMember]
-        [StringActionSetting("Event Name", "You can find them in the MSFS docs. (for example 'HEADING_BUG_INC' and 'COM_RADIO_FRACT_DEC')", CanBeEmpty = false)]
+        [StringActionSetting("Event Name", "You can find them in the MSFS docs. (for example 'HEADING_BUG_INC' and 'COM_RADIO_FRACT_DEC')", 1, CanBeEmpty = false)]
         public string? SimConnectEventName { get; set; }
 
         [DataMember]
-        [IntActionSetting("Event Data", "This varies by event. Numbers with decimal places NYI.", CanBeNull = true, Min = 0)]
+        [IntActionSetting("Event Data", "This varies by event. Numbers with decimal places NYI.", 2, CanBeNull = true, Min = 0)]
         public int? EventData { get; set; }
 
         #endregion Persistable Settings

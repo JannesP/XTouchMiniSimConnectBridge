@@ -25,7 +25,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.BindableActions.DataSources
         public string Description => "Retrieves an LVar from MSFS that represents a Bool (eg. 'WT_CJ4_HDG_ON').";
 
         [DataMember]
-        [IntActionSetting("Interval", "The polling frequency in ms.", Min = 20, Max = 60000)]
+        [IntActionSetting("Interval", "The polling frequency in ms.", 2, Min = 20, Max = 60000)]
         public int? Interval
         {
             get => _interval;
@@ -42,7 +42,7 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.BindableActions.DataSources
         public bool IsInitialized { get; private set; } = false;
 
         [DataMember]
-        [StringActionSetting("LVar Name", "The name of the LVar (eg. \"WT_CJ4_HDG_ON\")", CanBeEmpty = false)]
+        [StringActionSetting("LVar Name", "The name of the LVar (eg. \"WT_CJ4_HDG_ON\")", 1, CanBeEmpty = false)]
         public string? LVarVarName
         {
             get => _lvarVarName;

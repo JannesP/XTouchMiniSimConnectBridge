@@ -23,13 +23,12 @@ namespace ApiProtocol {
 	}
 	void ApiRequestExecuteCalculatorCode::Respond(HANDLE hSimConnect)
 	{
-		LOG("ApiRequestFireHEvent::Respond(HANDLE hSimConnect): " << this->_hEventName.c_str());
+		DLOG("ApiRequestFireHEvent::Respond(HANDLE hSimConnect): " << this->_hEventName.c_str());
 		BOOL res = execute_calculator_code(this->_hEventName.c_str(), nullptr, nullptr, nullptr);
 		if (res == 0) {
-			LOG("ApiRequestReadLVar::Respond(HANDLE hSimConnect): Execution failed.");
-		}
-		else {
-			LOG("ApiRequestReadLVar::Respond(HANDLE hSimConnect): Execution successful.");
+			DLOG("ApiRequestReadLVar::Respond(HANDLE hSimConnect): Execution failed: " << this->_hEventName.c_str());
+		} else {
+			DLOG("ApiRequestReadLVar::Respond(HANDLE hSimConnect): Execution successful.");
 		}
 	}
 }

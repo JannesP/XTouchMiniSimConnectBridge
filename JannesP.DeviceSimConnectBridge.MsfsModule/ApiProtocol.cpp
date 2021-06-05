@@ -20,7 +20,7 @@ namespace ApiProtocol {
 			return new ApiRequestExecuteCalculatorCode(pData);
 			break;
 		default:
-			LOG("Unexpected defineID: " << std::to_string(requestType));
+			DLOG("Unexpected defineID: " << std::to_string(requestType));
 			break;
 		}
 	}

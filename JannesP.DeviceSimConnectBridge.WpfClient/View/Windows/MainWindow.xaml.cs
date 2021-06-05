@@ -30,27 +30,6 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.View.Windows
             profileManagementWindow.ShowDialogCentered(this);
         }
 
-        private void ComboBoxProfile_SelectionChanged(object sender, RoutedEventArgs e)
-        {
-            if (sender is ComboBox comboBox)
-            {
-                if (comboBox.SelectedItem is IBindingProfileViewModel profile)
-                {
-                    _viewModel?.ProfileManagement.ChangeProfile(profile);
-                }
-            }
-        }
-
-        private void MenuItemOpenAbout_Click(object sender, RoutedEventArgs e)
-        {
-            MessageBox.Show("Here is going to be an about page at some point :)");
-        }
-
-        private void MenuItemOpenSettings_Click(object sender, RoutedEventArgs e)
-        {
-            MessageBox.Show("Here is going to be a settings page at some point :)");
-        }
-
         private void ButtonRevertProfile_Click(object sender, RoutedEventArgs e)
         {
             if (sender is Button b)
@@ -68,6 +47,44 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.View.Windows
             {
                 throw new ArgumentException("The sender needs to be a button.", nameof(sender));
             }
+        }
+
+        private void ComboBoxProfile_SelectionChanged(object sender, RoutedEventArgs e)
+        {
+            if (sender is ComboBox comboBox)
+            {
+                if (comboBox.SelectedItem is IBindingProfileViewModel profile)
+                {
+                    _viewModel?.ProfileManagement.ChangeProfile(profile);
+                }
+            }
+        }
+
+        private void MenuItemExit_Click(object sender, RoutedEventArgs e)
+        {
+            e.Handled = true;
+            if (_viewModel.CommandApplyProfileChanges.CanExecute(null))
+            {
+                MessageBoxResult dialogResult = MessageBox.Show("You still have unsaved profile changes, do you want to discard them and exit?", "Discard profle changes?", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                if (dialogResult == MessageBoxResult.No)
+                {
+                    return;
+                }
+            }
+            if (_viewModel.CommandExit.CanExecute(null))
+            {
+                _viewModel.CommandExit.Execute(null);
+            }
+        }
+
+        private void MenuItemOpenAbout_Click(object sender, RoutedEventArgs e)
+        {
+            MessageBox.Show("Here is going to be an about page at some point :)");
+        }
+
+        private void MenuItemOpenSettings_Click(object sender, RoutedEventArgs e)
+        {
+            MessageBox.Show("Here is going to be a settings page at some point :)");
         }
     }
 }

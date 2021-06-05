@@ -15,7 +15,7 @@
 BridgeServer *Server;
 
 void StartServer() {
-	DLOG;
+	TLOG;
 	if (Server == NULL) {
 		Server = new BridgeServer();
 	}
@@ -23,7 +23,7 @@ void StartServer() {
 }
 
 void ShutdownServer() {
-	DLOG;
+	TLOG;
 	if (Server != NULL) {
 		Server->Shutdown();
 	}
@@ -31,12 +31,12 @@ void ShutdownServer() {
 
 extern "C" MSFS_CALLBACK void module_init() {
 	// This will (hopefully) be visibile in the Microsoft Flight Simulator console.
-	DLOG;
+	TLOG;
 	StartServer();
 }
 
 extern "C" MSFS_CALLBACK void module_deinit()
 {
-	DLOG;
+	TLOG;
 	ShutdownServer();
 }
