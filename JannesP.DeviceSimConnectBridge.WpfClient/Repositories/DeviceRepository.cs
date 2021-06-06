@@ -7,7 +7,7 @@ using JannesP.DeviceSimConnectBridge.Device.XTouchMini;
 
 namespace JannesP.DeviceSimConnectBridge.WpfApp.Repositories
 {
-    public class DeviceRepository
+    public class DeviceRepository : IDisposable
     {
         private readonly List<IDevice> _availableDevices = new();
 
@@ -25,6 +25,17 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Repositories
         {
             _availableDevices.Add(device);
             DeviceListChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        public void Dispose()
+        {
+            foreach (IDevice dev in _availableDevices)
+            {
+                if (dev.IsConnected)
+                {
+                    dev.DisconnectAsync().Wait();
+                }
+            }
         }
 
         public void RemoveDevice(IDevice device)
