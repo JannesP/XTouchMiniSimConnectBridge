@@ -43,8 +43,12 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
                     _logger.LogInformation("Couldn't find device '{0}:{1}' for a BindingConfiguration.", bindingConfiguration.DeviceType, bindingConfiguration.DeviceId ?? "<null>");
                     continue;
                 }
-                bindingConfiguration.Bindings.ForEach(ab => ab.Disable());
-                await device.DisconnectAsync();
+                bindingConfiguration.Bindings.ForEach(ab => { try { ab.Disable(); } catch { } });
+                try
+                {
+                    await device.DisconnectAsync();
+                }
+                catch { }
             }
         }
 
@@ -63,15 +67,23 @@ namespace JannesP.DeviceSimConnectBridge.WpfApp.Managers
                     _logger.LogInformation("Couldn't find device '{0}:{1}' for a BindingConfiguration.", bindingConfiguration.DeviceType, bindingConfiguration.DeviceId ?? "<null>");
                     continue;
                 }
+                bool deviceAvailable = false;
                 if (!device.IsConnected)
                 {
-                    await device.ConnectAsync().ConfigureAwait(false);
+                    if (await device.ConnectAsync().ConfigureAwait(false))
+                    {
+                        deviceAvailable = true;
+                    }
                 }
                 else
                 {
                     await device.ResetDeviceState().ConfigureAwait(false);
+                    deviceAvailable = true;
                 }
-                bindingConfiguration.Bindings.ForEach(ab => ab.Enable(_serviceProvider, device));
+                if (deviceAvailable)
+                {
+                    bindingConfiguration.Bindings.ForEach(ab => ab.Enable(_serviceProvider, device));
+                }
             }
         }
 

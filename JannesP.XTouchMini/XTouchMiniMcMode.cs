@@ -48,9 +48,14 @@ namespace JannesP.XTouchMini
             {
                 lock (_syncRoot)
                 {
+                    if (State == ConnectionState.Opening)
+                    {
+                        throw new InvalidOperationException("Cannot close device while it's being opened.");
+                    }
                     if (State != ConnectionState.Open)
                     {
-                        throw new InvalidOperationException($"CloseDevice is only possible if the state is {ConnectionState.Open}.");
+                        return;
+                        //throw new InvalidOperationException($"CloseDevice is only possible if the state is {ConnectionState.Open}.");
                     }
                     ResetDeviceState();
                     State = ConnectionState.Closing;
@@ -75,7 +80,11 @@ namespace JannesP.XTouchMini
         {
             lock (_syncRoot)
             {
-                if (State != ConnectionState.Closed)
+                if (State == ConnectionState.Open)
+                {
+                    return Task.FromResult(true);
+                }
+                else if (State != ConnectionState.Closed)
                 {
                     throw new InvalidOperationException($"OpenDevice is only possible if the state is {ConnectionState.Closed}.");
                 }
