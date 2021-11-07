@@ -438,25 +438,33 @@ namespace JannesP.SimConnectWrapper
 
         private void OnSimConnect_OnRecvSimobjectDataBytype(SimConnect sender, SIMCONNECT_RECV_SIMOBJECT_DATA_BYTYPE data)
         {
-            if (_requests.TryGetValue(data.dwRequestID, out SimConnectRequest request))
+            _semaphore.Wait();
+            try
             {
-                object? result = data.dwData?.FirstOrDefault();
-                if (result == null)
+                if (_requests.TryGetValue(data.dwRequestID, out SimConnectRequest request))
                 {
-                    request.SetException(new Exception("Request got no result."));
-                }
-                else
-                {
-                    try
+                    object? result = data.dwData?.FirstOrDefault();
+                    if (result == null)
                     {
-                        request.SetResult(result);
+                        request.SetException(new Exception("Request got no result."));
                     }
-                    catch (Exception ex)
+                    else
                     {
-                        request.SetException(ex);
+                        try
+                        {
+                            request.SetResult(result);
+                        }
+                        catch (Exception ex)
+                        {
+                            request.SetException(ex);
+                        }
                     }
+                    _requests.Remove(data.dwRequestID);
                 }
-                _requests.Remove(data.dwRequestID);
+            }
+            finally
+            {
+                _semaphore.Release();
             }
         }
 
