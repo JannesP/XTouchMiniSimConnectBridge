@@ -59,7 +59,7 @@ namespace JannesP.DeviceSimConnectBridge.MsfsModule.Client.Requests
         {
             lock (_pendingRequests)
             {
-                if (_pendingRequests.TryGetValue(requestId, out MsfsModuleRequestWithResponse<TRes> request))
+                if (_pendingRequests.TryGetValue(requestId, out MsfsModuleRequestWithResponse<TRes>? request))
                 {
                     _pendingRequests.Remove(requestId);
                     request.CompleteTask(result);

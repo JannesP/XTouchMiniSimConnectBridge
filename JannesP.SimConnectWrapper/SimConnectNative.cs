@@ -11,11 +11,17 @@ namespace JannesP.SimConnectWrapper
     /// </summary>
     internal static class SimConnectNative
     {
-        private static readonly Lazy<FieldInfo> _simConnectHandleFieldInfo = new Lazy<FieldInfo>(() => typeof(SimConnect).GetField("hSimConnect", BindingFlags.NonPublic | BindingFlags.Instance));
+        private static readonly Lazy<FieldInfo> _simConnectHandleFieldInfo = new(() => typeof(SimConnect).GetField("hSimConnect", BindingFlags.NonPublic | BindingFlags.Instance) 
+            ?? throw new Exception("Simconnect handle field couldn't be found."));
 
         public static IntPtr GetSimConnectHandle(this SimConnect simConnect)
         {
-            return (IntPtr)_simConnectHandleFieldInfo.Value.GetValue(simConnect);
+            object? result = _simConnectHandleFieldInfo.Value.GetValue(simConnect);
+            if (result is IntPtr ptr)
+            {
+                return ptr;
+            }
+            throw new InvalidOperationException("SimConnectHandle was not set in the given SimConnect instance.");
         }
 
         [DllImport("SimConnect.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]

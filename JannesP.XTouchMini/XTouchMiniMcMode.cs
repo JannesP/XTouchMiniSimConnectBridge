@@ -180,12 +180,12 @@ namespace JannesP.XTouchMini
 
         protected virtual void OnFaderMoved(XTouchMiniMcFader fader, double value) => FaderMoved?.Invoke(this, new XTouchMiniMcModeFaderMovedEventArgs(fader, value));
 
-        private void MidiIn_MidiEventReceived(object sender, MidiEventReceivedEventArgs e)
+        private void MidiIn_MidiEventReceived(object? sender, MidiEventReceivedEventArgs e)
         {
             switch (e.MidiEvent.Status)
             {
                 case MidiEventStatusType.NoteOn:
-                    if (XTouchMiniMcButton.Controls.TryGetValue(e.MidiEvent.Arg1, out XTouchMiniMcButton button))
+                    if (XTouchMiniMcButton.Controls.TryGetValue(e.MidiEvent.Arg1, out XTouchMiniMcButton? button))
                     {
                         if (e.MidiEvent.Arg2 == (byte)McButtonState.Down)
                         {
@@ -205,7 +205,7 @@ namespace JannesP.XTouchMini
                     break;
 
                 case MidiEventStatusType.CC:
-                    if (XTouchMiniMcEncoder.Controls.TryGetValue(e.MidiEvent.Arg1, out XTouchMiniMcEncoder encoder))
+                    if (XTouchMiniMcEncoder.Controls.TryGetValue(e.MidiEvent.Arg1, out XTouchMiniMcEncoder? encoder))
                     {
                         /*
                          * apparently the encoder works like this:
@@ -234,7 +234,7 @@ namespace JannesP.XTouchMini
                     break;
 
                 case MidiEventStatusType.Pitch:
-                    if (XTouchMiniMcFader.Controls.TryGetValue(e.MidiEvent.Channel, out XTouchMiniMcFader fader))
+                    if (XTouchMiniMcFader.Controls.TryGetValue(e.MidiEvent.Channel, out XTouchMiniMcFader? fader))
                     {
                         /*
                          * translate the native value range from 0-127 to a double 0-1

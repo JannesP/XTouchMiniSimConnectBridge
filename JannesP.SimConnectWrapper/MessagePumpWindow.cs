@@ -111,7 +111,7 @@ namespace JannesP.SimConnectWrapper
                 PostQuitMessage(0);
                 return IntPtr.Zero;
             }
-            if (_windows.TryGetValue(hWnd, out MessagePumpWindow window))
+            if (_windows.TryGetValue(hWnd, out MessagePumpWindow? window))
             {
                 return window._wndProc.Invoke(hWnd, msg, wParam, lParam);
             }
@@ -131,7 +131,7 @@ namespace JannesP.SimConnectWrapper
                 }
                 lock (_syncRoot)
                 {
-                    if (Handle != null)
+                    if (Handle != IntPtr.Zero)
                     {
                         SendMessage(Handle, WindowMessage.WM_CLOSE, IntPtr.Zero, IntPtr.Zero);
                         _windows.Remove(Handle);

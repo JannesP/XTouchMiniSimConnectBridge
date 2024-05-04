@@ -208,7 +208,7 @@ namespace JannesP.SimConnectWrapper
 
         public void RegisterDataDefinition(SimConnectDataDefinition dataDefinition)
         {
-            if (_registeredDataDefinitions.TryGetValue(dataDefinition.DefinitionId, out SimConnectDataDefinition def))
+            if (_registeredDataDefinitions.TryGetValue(dataDefinition.DefinitionId, out SimConnectDataDefinition? def))
             {
                 if (!def.Equals(dataDefinition))
                 {
@@ -392,7 +392,7 @@ namespace JannesP.SimConnectWrapper
         }
 
         //since we can't rescue from this state we just close the object
-        private void OnMsgPump_MessagePumpDestroyed(object sender, System.EventArgs e) => Dispose();
+        private void OnMsgPump_MessagePumpDestroyed(object? sender, System.EventArgs e) => Dispose();
 
         private void OnSimConnect_OnRecvClientData(SimConnect sender, SIMCONNECT_RECV_CLIENT_DATA data)
             => ClientDataReceived?.Invoke(this, new ClientDataReceivedEventArgs(data));
@@ -441,7 +441,7 @@ namespace JannesP.SimConnectWrapper
             _semaphore.Wait();
             try
             {
-                if (_requests.TryGetValue(data.dwRequestID, out SimConnectRequest request))
+                if (_requests.TryGetValue(data.dwRequestID, out SimConnectRequest? request))
                 {
                     object? result = data.dwData?.FirstOrDefault();
                     if (result == null)

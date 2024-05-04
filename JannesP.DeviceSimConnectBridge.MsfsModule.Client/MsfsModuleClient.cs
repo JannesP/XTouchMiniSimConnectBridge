@@ -110,7 +110,7 @@ namespace JannesP.DeviceSimConnectBridge.MsfsModule.Client
         {
             lock (_intervalRequests)
             {
-                if (_intervalRequests.TryGetValue(intervalId, out IntervalRequest request))
+                if (_intervalRequests.TryGetValue(intervalId, out IntervalRequest? request))
                 {
                     _intervalRequests.Remove(intervalId);
                     request.Stop();
@@ -124,7 +124,7 @@ namespace JannesP.DeviceSimConnectBridge.MsfsModule.Client
             IntervalResult?.Invoke(this, new IntervalResultEventArgs(requestId, lvarName, value));
         }
 
-        private void SimConnect_ClientDataReceived(object sender, SimConnectWrapper.EventArgs.ClientDataReceivedEventArgs e)
+        private void SimConnect_ClientDataReceived(object? sender, SimConnectWrapper.EventArgs.ClientDataReceivedEventArgs e)
         {
             SIMCONNECT_RECV_CLIENT_DATA data = e.RecvClientData;
             switch (data.dwRequestID)
@@ -135,7 +135,7 @@ namespace JannesP.DeviceSimConnectBridge.MsfsModule.Client
             }
         }
 
-        private void SimConnect_SimConnectClose(object sender, EventArgs e)
+        private void SimConnect_SimConnectClose(object? sender, EventArgs e)
         {
             _semStatic.Wait();
             try
